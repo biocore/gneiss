@@ -7,11 +7,7 @@ from collections import OrderedDict
 def _balance_basis(tree_node):
     """ Helper method for calculating balance basis
     """
-
-    n_tips = sum([n.is_tip() for n in tree_node.traverse()])
     counts = _count_matrix(tree_node)
-    counts = OrderedDict([(x, counts[x])
-                          for x in counts.keys() if not x.is_tip()])
     nds = counts.keys()
     r = np.array([counts[n]['r'] for n in nds])
     s = np.array([counts[n]['l'] for n in nds])
@@ -29,17 +25,23 @@ def _balance_basis(tree_node):
 
 def balance_basis(tree_node):
     """
-    Determines the basis based on tree
+    Determines the basis based on binary tree.
+
+    This is commonly referred to as sequential binary partition.
+    Given a binary tree relating a list of features, this module can
+    be used to calculate an orthonormal basis, which is used to
+    calculate the ilr transform.
 
     Parameters
     ----------
     treenode : skbio.TreeNode
-        Phylogenetic tree.  Must be a strictly bifurcating tree
+        Binary tree.  Must be a strictly bifurcating tree.
+
     Returns
     -------
     basis : np.array
         Returns a set of orthonormal bases in the Aitchison simplex
-        corresponding to the phylogenetic tree. The order of the
+        corresponding to the tree. The order of the
         basis is index by the level order of the internal nodes.
     nodes : list, skbio.TreeNode
         List of tree nodes indicating the ordering in the basis.
@@ -47,7 +49,7 @@ def balance_basis(tree_node):
     Raises
     ------
     ValueError
-        The tree doesn't contain two branches
+        The tree doesn't contain two branches.
 
     Examples
     --------
@@ -64,6 +66,15 @@ def balance_basis(tree_node):
     -----
     The tree must be strictly bifurcating, meaning that
     every internal node has exactly 2 children.
+
+    See Also
+    --------
+    skbio.stats.composition.ilr
+
+    References
+    ----------
+    .. [1] J.J. Egozcue and V. Pawlowsky-Glahn "Exploring Compositional Data
+    with the CoDa-Dendrogram" (2011)
     """
     basis, nodes = _balance_basis(tree_node)
     basis = clr_inv(basis)
@@ -111,5 +122,6 @@ def _count_matrix(treenode):
         else:
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
-
+    counts = OrderedDict([(x, counts[x])
+                          for x in counts.keys() if not x.is_tip()])
     return counts
