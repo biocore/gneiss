@@ -1,4 +1,5 @@
-Check on http://lint.travis-ci.org/ after modifying it!
+# Travis yml file inspired by scikit-bio
+# Check on http://lint.travis-ci.org/ after modifying it!
 sudo: false
 language: python
 env:
