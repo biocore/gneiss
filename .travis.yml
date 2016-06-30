@@ -1,0 +1,29 @@
+# Travis yml file inspired by scikit-bio
+# Check on http://lint.travis-ci.org/ after modifying it!
+sudo: false
+language: python
+env:
+  - PYVERSION=3.5 USE_CYTHON=TRUE
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+  # Useful for debugging any issues with conda
+install:
+  - conda create --yes -n test_env python=$PYVERSION --file ci/conda_requirements.txt -c biocore
+  - conda install --yes -n test_env cython
+  - source activate test_env
+  - pip install -r ci/pip_requirements.txt
+  - pip install -e .
+  - ./scripts/run_the_ipys.sh ipynb/
+script:
+  - make all
+notifications:
+  webhooks:
+    on_success: change
+    on_failure: always
