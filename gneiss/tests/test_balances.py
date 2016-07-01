@@ -12,7 +12,7 @@ class TestBalances(unittest.TestCase):
     def test_count_matrix_base_case(self):
         tree = u"(a,b);"
         t = TreeNode.read([tree])
-        res = _count_matrix(t)
+        res, _ = _count_matrix(t)
         exp = {'k': 0, 'l': 1, 'r': 1, 't': 0, 'tips': 2}
         self.assertEqual(res[t], exp)
 
@@ -25,7 +25,7 @@ class TestBalances(unittest.TestCase):
     def test_count_matrix_unbalanced(self):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
-        res = _count_matrix(t)
+        res, _ = _count_matrix(t)
 
         exp = {'k': 0, 'l': 2, 'r': 1, 't': 0, 'tips': 3}
         self.assertEqual(res[t], exp)

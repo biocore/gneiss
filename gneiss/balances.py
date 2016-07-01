@@ -7,7 +7,9 @@ from collections import OrderedDict
 def _balance_basis(tree_node):
     """ Helper method for calculating balance basis
     """
-    counts = _count_matrix(tree_node)
+    counts, n_tips = _count_matrix(tree_node)
+    counts = OrderedDict([(x, counts[x])
+                          for x in counts.keys() if not x.is_tip()])
     nds = counts.keys()
     r = np.array([counts[n]['r'] for n in nds])
     s = np.array([counts[n]['l'] for n in nds])
@@ -82,6 +84,7 @@ def balance_basis(tree_node):
 
 
 def _count_matrix(treenode):
+    n_tips = 0
     nodes = list(treenode.levelorder(include_self=True))
     # fill in the dictionary
     counts = OrderedDict()
@@ -92,10 +95,11 @@ def _count_matrix(treenode):
         for c in columns:
             counts[n][c] = 0
 
-    # fill in r and l
+    # fill in r and l.  This is done in reverse level order.
     for n in nodes[::-1]:
         if n.is_tip():
             counts[n]['tips'] = 1
+            n_tips += 1
         elif len(n.children) == 2:
             lchild = n.children[0]
             rchild = n.children[1]
@@ -122,6 +126,4 @@ def _count_matrix(treenode):
         else:
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
-    counts = OrderedDict([(x, counts[x])
-                          for x in counts.keys() if not x.is_tip()])
-    return counts
+    return counts, n_tips
