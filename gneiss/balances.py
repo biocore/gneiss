@@ -86,7 +86,7 @@ def balance_basis(tree_node):
 def _count_matrix(treenode):
     n_tips = 0
     nodes = list(treenode.levelorder(include_self=True))
-    # fill in the Ordered dictionary.  Note that the
+    # fill in the Ordered dictionary. Note that the
     # elements of this Ordered dictionary are
     # dictionaries.
     counts = OrderedDict()
