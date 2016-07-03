@@ -10,6 +10,7 @@ help:
 test:
 	$(TEST_COMMAND)
 pep8:
+	pep8 gneiss setup.py
 	flake8 gneiss setup.py
 
 all: pep8 test
