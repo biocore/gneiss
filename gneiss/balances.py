@@ -129,3 +129,107 @@ def _count_matrix(treenode):
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
     return counts, n_tips
+
+
+def default_layout(node):
+    if node.is_leaf():
+        # Add node name to leaf nodes
+        N = AttrFace("name", fsize=14, fgcolor="black")
+
+        faces.add_face_to_node(N, node, 0)
+    if "weight" in node.features:
+        # Creates a sphere face whose size is proportional to node's
+        # feature "weight"
+        C = CircleFace(radius=node.weight, color="Red", style="sphere")
+        # Let's make the sphere transparent
+        C.opacity = 0.5
+        # Rotate the faces by 90*
+        C.rotation = 90
+        # And place as a float face over the tree
+        faces.add_face_to_node(C, node, 0, position="float")
+
+
+def barchart_layout(node, name='name',
+                    width=20, height=40,
+                    colors=None, min_value=0, max_value=1,
+                    fsize=14, fgcolor="black"):
+    if colors is None:
+        colors = ['#0000FF']
+    if node.is_leaf():
+        # Add node name to leaf nodes
+        N = AttrFace("name", fsize=fsize, fgcolor=fgcolor)
+
+        faces.add_face_to_node(N, node, 0)
+    if "weight" in node.features:
+        # Creates a sphere face whose size is proportional to node's
+        # feature "weight"
+        if (isinstance(node.weight, int) or isinstance(node.weight, float)):
+            weight = [node.weight]
+        else:
+            weight = node.weight
+        C = BarChartFace(values=weight, width=width, height=height,
+                         colors=['#0000FF'], min_value=min_value,
+                         max_value=max_value)
+        # Let's make the sphere transparent
+        C.opacity = 0.5
+        # Rotate the faces by 270*
+        C.rotation = 270
+        # And place as a float face over the tree
+        faces.add_face_to_node(C, node, 0, position="float")
+
+
+def balanceplot(balances, tree,
+                layout=None,
+                mode='c'):
+    """ Plots balances on tree.
+
+    Parameters
+    ----------
+    balances : np.array
+        A vector of internal nodes and their associated real-valued balances.
+        The order of the balances will be assumed to be in level order.
+    tree : skbio.TreeNode
+        A strictly bifurcating tree defining a hierarchical relationship
+        between all of the features within `table`.
+    layout : function, optional
+        A layout for formatting the tree visualization. Must take a
+        `ete.tree` as a parameter.
+    mode : str
+        Type of display to show the tree. ('c': circular, 'r': rectangular).
+
+    Note
+    ----
+    The `tree` is assumed to strictly bifurcating and
+    whose tips match `balances.
+
+    See Also
+    --------
+    TreeNode.levelorder
+    """
+    # The names aren't preserved - let's pray that the topology is consistent.
+    ete_tree = Tree(str(tree))
+    # Some random features in all nodes
+    i = 0
+    for n in ete_tree.traverse():
+        if not n.is_leaf():
+            n.add_features(weight=balances[-i])
+            i += 1
+
+    # Create an empty TreeStyle
+    ts = TreeStyle()
+
+    # Set our custom layout function
+    if layout is None:
+        ts.layout_fn = default_layout
+    else:
+        ts.layout_fn = layout
+    # Draw a tree
+    ts.mode = mode
+
+    # We will add node names manually
+    ts.show_leaf_name = False
+    # Show branch data
+    ts.show_branch_length = True
+    ts.show_branch_support = True
+
+    return ete_tree, ts
