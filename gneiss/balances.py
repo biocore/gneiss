@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
 from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
@@ -153,7 +154,9 @@ def default_layout(node):
 def barchart_layout(node, name='name',
                     width=20, height=40,
                     colors=None, min_value=0, max_value=1,
-                    fsize=14, fgcolor="black"):
+                    fsize=14, fgcolor="black",
+                    alpha=0.5,
+                    rotation=270):
     if colors is None:
         colors = ['#0000FF']
     if node.is_leaf():
@@ -172,11 +175,53 @@ def barchart_layout(node, name='name',
                          colors=['#0000FF'], min_value=min_value,
                          max_value=max_value)
         # Let's make the sphere transparent
-        C.opacity = 0.5
+        C.opacity = alpha
         # Rotate the faces by 270*
-        C.rotation = 270
+        C.rotation = rotation
         # And place as a float face over the tree
         faces.add_face_to_node(C, node, 0, position="float")
+
+
+def _attach_balances(balances, tree):
+    """ Appends the balances to each of the internal nodes
+    in the ete tree.
+
+    Parameters
+    ----------
+    balances : array_like, pd.Series
+        Vector of balances to plot on internal nodes of the tree.
+        If the balances is not in a `pd.Series`, it is assumed
+        to be stored in level order.
+    tree : skbio.TreeNode
+        Bifurcating tree to plot balances on.
+
+    Return
+    ------
+    ete.Tree
+        The ETE representation of the tree with balances encoded
+        as node weights.
+    """
+    nodes = [n for n in tree.traverse(include_self=True)]
+    n_tips = sum([n.is_tip() for n in nodes])
+    n_nontips = len(nodes) - n_tips
+    if len(balances) != n_nontips:
+        raise IndexError('The number of balances (%d) is not '
+                         'equal to the number of internal nodes '
+                         'in the tree (%d)' % (len(balances), n_nontips))
+    ete_tree = Tree.from_skbio(tree)
+    # Some random features in all nodes
+    i = 0
+    for n in ete_tree.traverse():
+        if not n.is_leaf():
+            if not isinstance(balances, pd.Series):
+                # The balances are oriented backwards
+                # so we need to rearrange them so that the
+                # ordering is correct.
+                n.add_features(weight=balances[-i])
+            else:
+                n.add_features(weight=balances.loc[n.name])
+            i += 1
+    return ete_tree
 
 
 def balanceplot(balances, tree,
@@ -200,21 +245,33 @@ def balanceplot(balances, tree,
 
     Note
     ----
-    The `tree` is assumed to strictly bifurcating and
-    whose tips match `balances.
+    The `tree` is assumed to strictly bifurcating and whose tips match
+    `balances.  It is not recommended to attempt to plot trees with a
+    ton of leaves (i.e. more than 4000 leaves).
+
+
+    Examples
+    --------
+    >>> from gneiss.balances import balanceplot
+    >>> from skbio import TreeNode
+    >>> tree = u"((b,c)a, d)root;"
+    >>> t = TreeNode.read([tree])
+    >>> balances = [10, -10]
+    >>> tr, ts = balanceplot(balances, t)
+    >>> print(tr.get_ascii())
+    <BLANKLINE>
+           /-b
+        /a|
+    -root  \-c
+       |
+        \-d
+
 
     See Also
     --------
     TreeNode.levelorder
     """
-    # The names aren't preserved - let's pray that the topology is consistent.
-    ete_tree = Tree(str(tree))
-    # Some random features in all nodes
-    i = 0
-    for n in ete_tree.traverse():
-        if not n.is_leaf():
-            n.add_features(weight=balances[-i])
-            i += 1
+    ete_tree = _attach_balances(balances, tree)
 
     # Create an empty TreeStyle
     ts = TreeStyle()
