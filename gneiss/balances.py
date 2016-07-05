@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
+from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
 
 
 def _balance_basis(tree_node):
