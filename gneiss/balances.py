@@ -134,6 +134,14 @@ def _count_matrix(treenode):
 
 
 def default_layout(node):
+    """
+    Specifies the layout for the ete.TreeStyle object.
+
+    Parameters
+    ----------
+    node: ete.Tree
+        Input node for specifying which attributes.
+    """
     if node.is_leaf():
         # Add node name to leaf nodes
         N = AttrFace("name", fsize=14, fgcolor="black")
@@ -157,6 +165,34 @@ def barchart_layout(node, name='name',
                     fsize=14, fgcolor="black",
                     alpha=0.5,
                     rotation=270):
+    """
+    Specifies the layout for the ete.TreeStyle object.
+
+    Parameters
+    ----------
+    node: ete.Tree
+        Input node for specifying which attributes.
+    name: str, optional
+        Attribute to look up the name of the node.
+    width: int, optional
+        Width of the barchart.
+    height: int, optional
+        Height of the barchart.
+    colors: list of str, optional
+        List of HTML colors to color the barchart values.
+    min_value: int, optional
+        Minimum value to set the scale of the chart.
+    max_value: int, optional
+        Maximum value to set the scale of the chart.
+    fsize: int, optional
+        Font size on the leafs.
+    fgcolor: str, optional
+        Font color of the leafs.
+    alpha: float, optional
+        Transparency of the barchart.
+    rotation: int, optional
+        Orientation of the barchart.
+    """
     if colors is None:
         colors = ['#0000FF']
     if node.is_leaf():
@@ -172,7 +208,7 @@ def barchart_layout(node, name='name',
         else:
             weight = node.weight
         C = BarChartFace(values=weight, width=width, height=height,
-                         colors=['#0000FF'], min_value=min_value,
+                         colors=colors, min_value=min_value,
                          max_value=max_value)
         # Let's make the sphere transparent
         C.opacity = alpha
@@ -269,7 +305,7 @@ def balanceplot(balances, tree,
 
     See Also
     --------
-    TreeNode.levelorder
+    skbio.TreeNode.levelorder
     """
     ete_tree = _attach_balances(balances, tree)
 
