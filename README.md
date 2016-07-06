@@ -1,8 +1,8 @@
 # gneiss
 
 
-[[https://coveralls.io/github/biocore/micronota?branch=master][https://coveralls.io/repos/biocore/micronota/badge.svg?branch=master&service=github]]
-[[https://travis-ci.org/biocore/micronota][https://travis-ci.org/biocore/micronota.svg?branch=master]]
+[[https://coveralls.io/github/biocore/gneiss?branch=master][https://coveralls.io/repos/biocore/gneiss/badge.svg?branch=master&service=github]]
+[[https://travis-ci.org/biocore/gneiss][https://travis-ci.org/biocore/micronota.svg?branch=master]]
 
 Canonically pronouced *nice*
 
