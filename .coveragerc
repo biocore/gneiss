@@ -4,6 +4,7 @@
 omit =
     */tests*
     */__init__.py
+    */gneiss/layouts.py
 source = gneiss
 branch = True
 include = */gneiss/*
@@ -16,3 +17,4 @@ exclude_lines =
 omit =
     */tests*
     */__init__.py
+    */gneiss/layouts.py
