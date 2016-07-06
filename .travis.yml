@@ -14,6 +14,7 @@ before_install:
   # Update conda itself
   - conda update --yes conda
   # Useful for debugging any issues with conda
+  - conda info -a
 install:
   - conda create --yes -n test_env python=$PYVERSION --file ci/conda_requirements.txt -c biocore
   - conda install --yes -n test_env cython
@@ -21,7 +22,9 @@ install:
   - pip install -r ci/pip_requirements.txt
   - pip install -e .
 script:
-  - make all
+  - WITH_COVERAGE=TRUE make all
+after_success:
+  - coveralls
 notifications:
   webhooks:
     on_success: change

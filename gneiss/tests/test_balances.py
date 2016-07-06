@@ -1,10 +1,54 @@
 from __future__ import absolute_import, division, print_function
 import unittest
 import numpy as np
+import pandas as pd
 import numpy.testing as npt
-from gneiss.balances import balance_basis, _count_matrix, _balance_basis
+from gneiss.balances import (balance_basis, _count_matrix,
+                             _balance_basis, _attach_balances,
+                             balanceplot)
+from gneiss.balances import default_layout
 from skbio import TreeNode
 from skbio.util import get_data_path
+
+
+class TestPlot(unittest.TestCase):
+    def test__attach_balances(self):
+        tree = TreeNode.read([u"(a,b);"])
+        balances = np.array([10])
+        res_tree = _attach_balances(balances, tree)
+        self.assertEqual(res_tree.weight, 10)
+
+    def test__attach_balances_level_order(self):
+        tree = TreeNode.read([u"((a,b)c,d)r;"])
+        balances = np.array([10, -10])
+        res_tree = _attach_balances(balances, tree)
+        self.assertEqual(res_tree.weight, 10)
+        self.assertEqual(res_tree.children[0].weight, -10)
+
+    def test__attach_balances_bad_index(self):
+        tree = TreeNode.read([u"((a,b)c,d)r;"])
+        balances = np.array([10])
+        with self.assertRaises(IndexError):
+            _attach_balances(balances, tree)
+
+    def test__attach_balances_series(self):
+        tree = TreeNode.read([u"((a,b)c,d)r;"])
+        balances = pd.Series([10, -10], index=['r', 'c'])
+        res_tree = _attach_balances(balances, tree)
+        self.assertEqual(res_tree.weight, 10)
+
+    def test__attach_balances_series_bad(self):
+        tree = TreeNode.read([u"((a,b)c,d)r;"])
+        balances = pd.Series([10, -10])
+        with self.assertRaises(KeyError):
+            _attach_balances(balances, tree)
+
+    def test_balanceplot(self):
+        tree = TreeNode.read([u"((a,b)c,d)r;"])
+        balances = np.array([10, -10])
+        tr, ts = balanceplot(balances, tree)
+        self.assertEquals(ts.mode, 'c')
+        self.assertEquals(ts.layout_fn[0], default_layout)
 
 
 class TestBalances(unittest.TestCase):
