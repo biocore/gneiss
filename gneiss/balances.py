@@ -169,9 +169,6 @@ def _attach_balances(balances, tree):
     for n in ete_tree.traverse():
         if not n.is_leaf():
             if not isinstance(balances, pd.Series):
-                # The balances are oriented backwards
-                # so we need to rearrange them so that the
-                # ordering is correct.
                 n.add_features(weight=balances[i])
             else:
                 n.add_features(weight=balances.loc[n.name])
