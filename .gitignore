@@ -47,3 +47,6 @@ doc/source/generated
 
 # OSX files
 .DS_Store
+
+# IPythnon checkpoints
+.ipynb_checkpoints
