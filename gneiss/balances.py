@@ -25,6 +25,9 @@ def _balance_basis(tree_node):
     basis = np.zeros((n_tips-1, n_tips))
     for i in range(len(nds)):
         basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
+    # Make sure that the basis is in level order
+    basis = basis[:, ::-1]
+    nds = list(nds)
     return basis, nds
 
 
@@ -64,8 +67,8 @@ def balance_basis(tree_node):
     >>> t = TreeNode.read([tree])
     >>> basis, nodes = balance_basis(t)
     >>> basis
-    array([[ 0.62985567,  0.18507216,  0.18507216],
-           [ 0.28399541,  0.57597535,  0.14002925]])
+    array([[ 0.18507216,  0.18507216,  0.62985567],
+           [ 0.14002925,  0.57597535,  0.28399541]])
 
     Notes
     -----
@@ -169,7 +172,7 @@ def _attach_balances(balances, tree):
                 # The balances are oriented backwards
                 # so we need to rearrange them so that the
                 # ordering is correct.
-                n.add_features(weight=balances[-i])
+                n.add_features(weight=balances[i])
             else:
                 n.add_features(weight=balances.loc[n.name])
             i += 1

@@ -6,12 +6,13 @@ import numpy.testing as npt
 from gneiss.balances import (balance_basis, _count_matrix,
                              _balance_basis, _attach_balances,
                              balanceplot)
-from gneiss.balances import default_layout
+from gneiss.layouts import default_layout
 from skbio import TreeNode
 from skbio.util import get_data_path
 
 
 class TestPlot(unittest.TestCase):
+
     def test__attach_balances(self):
         tree = TreeNode.read([u"(a,b);"])
         balances = np.array([10])
@@ -97,43 +98,43 @@ class TestBalances(unittest.TestCase):
         tree = u"(a,b);"
         t = TreeNode.read([tree])
 
-        exp_basis = np.array([[np.sqrt(1. / 2), -np.sqrt(1. / 2)]])
+        exp_basis = np.array([[-np.sqrt(1. / 2), np.sqrt(1. / 2)]])
         exp_keys = [t]
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertListEqual(exp_keys, list(res_keys))
+        self.assertListEqual(exp_keys, res_keys)
 
     def test__balance_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
 
-        exp_basis = np.array([[np.sqrt(2. / 3), -np.sqrt(1. / 6),
-                               -np.sqrt(1. / 6)],
-                              [0, np.sqrt(1. / 2), -np.sqrt(1. / 2)]
+        exp_basis = np.array([[-np.sqrt(1. / 6), -np.sqrt(1. / 6),
+                               np.sqrt(2. / 3)],
+                              [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]
                               ])
         exp_keys = [t, t[0]]
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertListEqual(exp_keys, list(res_keys))
+        self.assertListEqual(exp_keys, res_keys)
 
     def test_balance_basis_base_case(self):
         tree = u"(a,b);"
         t = TreeNode.read([tree])
         exp_keys = [t]
-        exp_basis = np.array([0.80442968, 0.19557032])
+        exp_basis = np.array([0.19557032, 0.80442968])
         res_basis, res_keys = balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertListEqual(exp_keys, list(res_keys))
+        self.assertListEqual(exp_keys, res_keys)
 
     def test_balance_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
         exp_keys = [t, t[0]]
-        exp_basis = np.array([[0.62985567, 0.18507216, 0.18507216],
-                             [0.28399541, 0.57597535, 0.14002925]])
+        exp_basis = np.array([[0.18507216, 0.18507216, 0.62985567],
+                              [0.14002925, 0.57597535, 0.28399541]])
 
         res_basis, res_keys = balance_basis(t)
 
@@ -144,11 +145,12 @@ class TestBalances(unittest.TestCase):
         fname = get_data_path('large_tree.nwk',
                               subfolder='data')
         t = TreeNode.read(fname)
+        # note that the basis is in reverse level order
         exp_basis = np.loadtxt(
             get_data_path('large_tree_basis.txt',
                           subfolder='data'))
         res_basis, res_keys = balance_basis(t)
-        npt.assert_allclose(exp_basis, res_basis)
+        npt.assert_allclose(exp_basis[:, ::-1], res_basis)
 
 
 if __name__ == "__main__":
