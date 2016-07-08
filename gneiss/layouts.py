@@ -66,7 +66,6 @@ def barchart_layout(node, name='name',
     if node.is_leaf():
         # Add node name to leaf nodes
         N = AttrFace("name", fsize=fsize, fgcolor=fgcolor)
-
         faces.add_face_to_node(N, node, 0)
     if "weight" in node.features:
         # Creates a sphere face whose size is proportional to node's
