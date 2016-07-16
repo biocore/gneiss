@@ -40,8 +40,8 @@ classes = """
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
-    Programming Language :: Python :: 2
-    Programming Language :: Python :: 2 :: Only
+    Programming Language :: Python :: 3
+    Programming Language :: Python :: 3 :: Only
     Operating System :: Unix
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
