@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-
-
 def match(x, y, intersect=False):
     """ Sorts samples in metadata and contingency table in the same order.
 

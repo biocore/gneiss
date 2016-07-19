@@ -91,18 +91,6 @@ class TestUtil(unittest.TestCase):
                                  ['b', 'control']],
                                 index=['s1', 's3', 's2'],
                                 columns=['Barcode', 'Treatment'])
-
-        exp_table = pd.DataFrame([[0, 0, 1, 1],
-                                  [2, 2, 4, 4],
-                                  [5, 5, 3, 3]],
-                                 index=['s1', 's2', 's3'],
-                                 columns=['o1', 'o2', 'o3', 'o4'])
-
-        exp_metadata = pd.DataFrame([['a', 'control'],
-                                     ['b', 'control'],
-                                     ['c', 'diseased']],
-                                    index=['s1', 's2', 's3'],
-                                    columns=['Barcode', 'Treatment'])
         with self.assertRaises(ValueError):
             match(table, metadata)
 
