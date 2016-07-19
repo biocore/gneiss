@@ -1,3 +1,11 @@
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
+
 import unittest
 import pandas as pd
 import pandas.util.testing as pdt
@@ -24,6 +32,38 @@ class TestUtil(unittest.TestCase):
         res_table, res_metadata = match(table, metadata)
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
+
+    def test_match_duplicate(self):
+        table1 = pd.DataFrame([[0, 0, 1, 1],
+                               [2, 2, 4, 4],
+                               [5, 5, 3, 3],
+                               [0, 0, 0, 1]],
+                             index=['s2', 's2', 's3', 's4'],
+                             columns=['o1', 'o2', 'o3', 'o4'])
+        metadata1 = pd.DataFrame([['a', 'control'],
+                                  ['b', 'control'],
+                                  ['c', 'diseased'],
+                                  ['d', 'diseased']],
+                                index=['s1', 's2', 's3', 's4'],
+                                columns=['Barcode', 'Treatment'])
+
+        table2 = pd.DataFrame([[0, 0, 1, 1],
+                               [2, 2, 4, 4],
+                               [5, 5, 3, 3],
+                               [0, 0, 0, 1]],
+                             index=['s1', 's2', 's3', 's4'],
+                             columns=['o1', 'o2', 'o3', 'o4'])
+        metadata2 = pd.DataFrame([['a', 'control'],
+                                  ['b', 'control'],
+                                  ['c', 'diseased'],
+                                  ['d', 'diseased']],
+                                index=['s1', 's1', 's3', 's4'],
+                                columns=['Barcode', 'Treatment'])
+
+        with self.assertRaises(ValueError):
+            match(table1, metadata1)
+        with self.assertRaises(ValueError):
+            match(table2, metadata2)
 
     def test_match_scrambled(self):
         table = pd.DataFrame([[0, 0, 1, 1],
@@ -220,6 +260,12 @@ class TestUtil(unittest.TestCase):
         exp_tree = TreeNode.read([u"(((a,b)ab, c)abc,d)r;"])
         res_tree = rename_tips(tree, ['r', 'abc', 'ab'])
         self.assertEqual(str(exp_tree), str(res_tree))
+
+    def test_rename_tips_names_mismatch(self):
+        tree = TreeNode.read([u"(((a,b), c),d)r;"])
+        exp_tree = TreeNode.read([u"(((a,b)ab, c)abc,d)r;"])
+        with self.assertRaises(IndexError):
+            rename_tips(tree, ['r', 'abc'])
 
 if __name__ == '__main__':
     unittest.main()
