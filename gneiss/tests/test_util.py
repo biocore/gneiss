@@ -38,27 +38,27 @@ class TestUtil(unittest.TestCase):
                                [2, 2, 4, 4],
                                [5, 5, 3, 3],
                                [0, 0, 0, 1]],
-                             index=['s2', 's2', 's3', 's4'],
-                             columns=['o1', 'o2', 'o3', 'o4'])
+                              index=['s2', 's2', 's3', 's4'],
+                              columns=['o1', 'o2', 'o3', 'o4'])
         metadata1 = pd.DataFrame([['a', 'control'],
                                   ['b', 'control'],
                                   ['c', 'diseased'],
                                   ['d', 'diseased']],
-                                index=['s1', 's2', 's3', 's4'],
-                                columns=['Barcode', 'Treatment'])
+                                 index=['s1', 's2', 's3', 's4'],
+                                 columns=['Barcode', 'Treatment'])
 
         table2 = pd.DataFrame([[0, 0, 1, 1],
                                [2, 2, 4, 4],
                                [5, 5, 3, 3],
                                [0, 0, 0, 1]],
-                             index=['s1', 's2', 's3', 's4'],
-                             columns=['o1', 'o2', 'o3', 'o4'])
+                              index=['s1', 's2', 's3', 's4'],
+                              columns=['o1', 'o2', 'o3', 'o4'])
         metadata2 = pd.DataFrame([['a', 'control'],
                                   ['b', 'control'],
                                   ['c', 'diseased'],
                                   ['d', 'diseased']],
-                                index=['s1', 's1', 's3', 's4'],
-                                columns=['Barcode', 'Treatment'])
+                                 index=['s1', 's1', 's3', 's4'],
+                                 columns=['Barcode', 'Treatment'])
 
         with self.assertRaises(ValueError):
             match(table1, metadata1)
@@ -263,7 +263,6 @@ class TestUtil(unittest.TestCase):
 
     def test_rename_tips_names_mismatch(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
-        exp_tree = TreeNode.read([u"(((a,b)ab, c)abc,d)r;"])
         with self.assertRaises(IndexError):
             rename_tips(tree, ['r', 'abc'])
 

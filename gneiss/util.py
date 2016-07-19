@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+
 def match(table, metadata, intersect=False):
     """ Sorts samples in metadata and contingency table in the same order.
 
@@ -46,7 +47,7 @@ def match(table, metadata, intersect=False):
         raise ValueError("`metadata` has duplicate sample ids.")
 
     if intersect:
-        idx =  subtableids & submetadataids
+        idx = subtableids & submetadataids
         idx = sorted(idx)
         return table.loc[idx], metadata.loc[idx]
     else:
