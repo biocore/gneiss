@@ -268,7 +268,6 @@ class TestUtil(unittest.TestCase):
         match_tips(table, tree, intersect=True)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
 
-
     def test_match_tips_mismatch(self):
         # table has less columns than tree tips
         table = pd.DataFrame([[0, 0, 1],
@@ -308,7 +307,7 @@ class TestUtil(unittest.TestCase):
         with self.assertRaises(ValueError):
             rename_internal_nodes(tree, ['r', 'abc'])
 
-    def test_rename_internal_nodes(self):
+    def test_rename_internal_nodes_warning(self):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
         with self.assertWarns(Warning):
             rename_internal_nodes(tree)

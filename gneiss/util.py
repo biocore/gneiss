@@ -152,7 +152,7 @@ def rename_internal_nodes(tree, names=None):
     """
     _tree = tree.copy()
     non_tips = [n for n in _tree.levelorder() if not n.is_tip()]
-    if not names is None and len(non_tips) != len(names):
+    if names is not None and len(non_tips) != len(names):
         raise ValueError("`_tree` and `names` have incompatible sizes, "
                          "`_tree` has %d tips, `names` has %d elements." %
                          (len(non_tips), len(names)))
@@ -164,7 +164,7 @@ def rename_internal_nodes(tree, names=None):
                 label = 'y%i' % i
             else:
                 label = names[i]
-            if not n.name is None and label == n.name:
+            if n.name is not None and label == n.name:
                 warnings.warn("Warning. Internal node (%s) has been replaced "
                               "with (%s)" % (n.name, label))
 
