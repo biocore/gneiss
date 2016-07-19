@@ -117,5 +117,5 @@ def rename_tips(tree, names=None):
                 n.name = 'y%i' % i
             else:
                 n.name = names[i]
-            i+=1
+            i += 1
     return tree

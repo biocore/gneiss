@@ -25,7 +25,6 @@ class TestUtil(unittest.TestCase):
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
 
-
     def test_match_scrambled(self):
         table = pd.DataFrame([[0, 0, 1, 1],
                               [2, 2, 4, 4],
@@ -40,12 +39,12 @@ class TestUtil(unittest.TestCase):
                                 index=['s1', 's3', 's2', 's4'],
                                 columns=['Barcode', 'Treatment'])
         exp_table = table
-        exp_metadata =  pd.DataFrame([['a', 'control'],
-                                      ['b', 'control'],
-                                      ['c', 'diseased'],
-                                      ['d', 'diseased']],
-                                     index=['s1', 's2', 's3', 's4'],
-                                     columns=['Barcode', 'Treatment'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased'],
+                                     ['d', 'diseased']],
+                                    index=['s1', 's2', 's3', 's4'],
+                                    columns=['Barcode', 'Treatment'])
 
         res_table, res_metadata = match(table, metadata)
         pdt.assert_frame_equal(exp_table, res_table)
@@ -70,11 +69,11 @@ class TestUtil(unittest.TestCase):
                                  index=['s1', 's2', 's3'],
                                  columns=['o1', 'o2', 'o3', 'o4'])
 
-        exp_metadata =  pd.DataFrame([['a', 'control'],
-                                      ['b', 'control'],
-                                      ['c', 'diseased']],
-                                     index=['s1', 's2', 's3'],
-                                     columns=['Barcode', 'Treatment'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
 
         res_table, res_metadata = match(table, metadata, intersect=True)
         pdt.assert_frame_equal(exp_table, res_table)
@@ -99,11 +98,11 @@ class TestUtil(unittest.TestCase):
                                  index=['s1', 's2', 's3'],
                                  columns=['o1', 'o2', 'o3', 'o4'])
 
-        exp_metadata =  pd.DataFrame([['a', 'control'],
-                                      ['b', 'control'],
-                                      ['c', 'diseased']],
-                                     index=['s1', 's2', 's3'],
-                                     columns=['Barcode', 'Treatment'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
         with self.assertRaises(ValueError):
             match(table, metadata)
 
@@ -159,7 +158,6 @@ class TestUtil(unittest.TestCase):
         res_table, res_tree = match_tips(table, tree)
         pdt.assert_frame_equal(exp_table, res_table)
         self.assertEqual(str(exp_tree), str(res_tree))
-
 
     def test_match_tips_intersect_tips(self):
         # there are less tree tips than table columns
@@ -223,13 +221,11 @@ class TestUtil(unittest.TestCase):
         with self.assertRaises(ValueError):
             match_tips(table, tree)
 
-
     def test_rename_tips(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
         exp_tree = TreeNode.read([u"(((a,b)y2, c)y1,d)y0;"])
         res_tree = rename_tips(tree)
         self.assertEqual(str(exp_tree), str(res_tree))
-
 
     def test_rename_tips_names(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
