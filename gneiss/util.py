@@ -1,10 +1,12 @@
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the GPLv3 License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import warnings
+import copy
 
 
 def match(table, metadata, intersect=False):
@@ -123,8 +125,8 @@ def match_tips(table, tree, intersect=False):
     return _table, _tree
 
 
-def rename_tips(tree, names=None):
-    """ Names the tree tips according to level ordering.
+def rename_internal_nodes(tree, names=None):
+    """ Names the internal according to level ordering.
 
     The tree will be traversed in level order (i.e. top-down, left to right).
     If `names` is not specified, the node with the smallest label (y0)
@@ -144,13 +146,28 @@ def rename_tips(tree, names=None):
     -------
     skbio.TreeNode
        Tree with renamed internal nodes.
+
+    ValueError:
+        Raised if `tree` and `name` have incompatible sizes.
     """
+    _tree = tree.copy()
+    non_tips = [n for n in _tree.levelorder() if not n.is_tip()]
+    if not names is None and len(non_tips) != len(names):
+        raise ValueError("`_tree` and `names` have incompatible sizes, "
+                         "`_tree` has %d tips, `names` has %d elements." %
+                         (len(non_tips), len(names)))
+
     i = 0
-    for n in tree.levelorder():
+    for n in _tree.levelorder():
         if not n.is_tip():
             if names is None:
-                n.name = 'y%i' % i
+                label = 'y%i' % i
             else:
-                n.name = names[i]
+                label = names[i]
+            if not n.name is None and label == n.name:
+                warnings.warn("Warning. Internal node (%s) has been replaced "
+                              "with (%s)" % (n.name, label))
+
+            n.name = label
             i += 1
-    return tree
+    return _tree

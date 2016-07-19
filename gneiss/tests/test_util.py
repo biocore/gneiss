@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the GPLv3 License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
@@ -10,7 +10,7 @@ import unittest
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
-from gneiss.util import match, match_tips, rename_tips
+from gneiss.util import match, match_tips, rename_internal_nodes
 
 
 class TestUtil(unittest.TestCase):
@@ -32,6 +32,35 @@ class TestUtil(unittest.TestCase):
         res_table, res_metadata = match(table, metadata)
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
+
+    def test_match_immutable(self):
+        # tests to make sure that the original tables don't change.
+        table = pd.DataFrame([[0, 0, 1, 1],
+                              [2, 2, 4, 4],
+                              [5, 5, 3, 3],
+                              [0, 0, 0, 1]],
+                             index=['s1', 's2', 's3', 's4'],
+                             columns=['o1', 'o2', 'o3', 'o4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+
+        exp_table = pd.DataFrame([[0, 0, 1, 1],
+                                  [2, 2, 4, 4],
+                                  [5, 5, 3, 3],
+                                  [0, 0, 0, 1]],
+                                 index=['s1', 's2', 's3', 's4'],
+                                 columns=['o1', 'o2', 'o3', 'o4'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['c', 'diseased'],
+                                     ['b', 'control']],
+                                    index=['s1', 's3', 's2'],
+                                    columns=['Barcode', 'Treatment'])
+        match(table, metadata, intersect=True)
+        pdt.assert_frame_equal(table, exp_table)
+        pdt.assert_frame_equal(metadata, exp_metadata)
 
     def test_match_duplicate(self):
         table1 = pd.DataFrame([[0, 0, 1, 1],
@@ -227,6 +256,19 @@ class TestUtil(unittest.TestCase):
         pdt.assert_frame_equal(exp_table, res_table)
         self.assertEqual(str(exp_tree), str(res_tree))
 
+    def test_match_tips_intersect_tree_immutable(self):
+        # tests to see if tree chnages.
+        table = pd.DataFrame([[0, 0, 1],
+                              [2, 3, 4],
+                              [5, 5, 3],
+                              [0, 0, 1]],
+                             index=['s1', 's2', 's3', 's4'],
+                             columns=['a', 'b', 'd'])
+        tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
+        match_tips(table, tree, intersect=True)
+        self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
+
+
     def test_match_tips_mismatch(self):
         # table has less columns than tree tips
         table = pd.DataFrame([[0, 0, 1],
@@ -249,22 +291,33 @@ class TestUtil(unittest.TestCase):
         with self.assertRaises(ValueError):
             match_tips(table, tree)
 
-    def test_rename_tips(self):
+    def test_rename_internal_nodes(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
         exp_tree = TreeNode.read([u"(((a,b)y2, c)y1,d)y0;"])
-        res_tree = rename_tips(tree)
+        res_tree = rename_internal_nodes(tree)
         self.assertEqual(str(exp_tree), str(res_tree))
 
-    def test_rename_tips_names(self):
+    def test_rename_internal_nodes_names(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
         exp_tree = TreeNode.read([u"(((a,b)ab, c)abc,d)r;"])
-        res_tree = rename_tips(tree, ['r', 'abc', 'ab'])
+        res_tree = rename_internal_nodes(tree, ['r', 'abc', 'ab'])
         self.assertEqual(str(exp_tree), str(res_tree))
 
-    def test_rename_tips_names_mismatch(self):
+    def test_rename_internal_nodes_names_mismatch(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
-        with self.assertRaises(IndexError):
-            rename_tips(tree, ['r', 'abc'])
+        with self.assertRaises(ValueError):
+            rename_internal_nodes(tree, ['r', 'abc'])
+
+    def test_rename_internal_nodes(self):
+        tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
+        with self.assertWarns(Warning):
+            rename_internal_nodes(tree)
+
+    def test_rename_internal_nodes_immutable(self):
+        tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
+        rename_internal_nodes(tree)
+        self.assertEqual(str(tree), "(((a,b)y2,c),d)r;\n")
+
 
 if __name__ == '__main__':
     unittest.main()
