@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import warnings
-import copy
 
 
 def match(table, metadata, intersect=False):
