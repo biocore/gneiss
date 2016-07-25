@@ -30,7 +30,26 @@ class TestSort(unittest.TestCase):
         self.assertEqual(m, 1.75)
 
     def test_mean_niche_estimator_bad_length(self):
-        pass
+        gradient = pd.Series(
+            [1, 2, 3, 4, 5],
+            index=['s1', 's2', 's3', 's4', 's5'])
+        values = pd.Series(
+            [1, 3, 0, 0, 0, 0],
+            index=['s1', 's2', 's3', 's4', 's5', 's6'])
+
+        with self.assertRaises(ValueError):
+            mean_niche_estimator(values, gradient)
+
+    def test_mean_niche_estimator_missing(self):
+        gradient = pd.Series(
+            [1, 2, 3, 4, np.nan],
+            index=['s1', 's2', 's3', 's4', 's5'])
+        values = pd.Series(
+            [1, 3, 0, 0, 0],
+            index=['s1', 's2', 's3', 's4', 's5'])
+
+        with self.assertRaises(ValueError):
+            mean_niche_estimator(values, gradient)
 
     def test_basic_nichesort(self):
         table = pd.DataFrame(
