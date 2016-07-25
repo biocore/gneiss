@@ -39,6 +39,11 @@ def match(table, metadata, intersect=False):
         Raised if duplicate sample ids are present in `metadata`.
     ValueError:
         Raised if `table` and `metadata` have incompatible sizes.
+
+    Note
+    ----
+    If `intersect=True` is specified, then the rows for `table` and
+    `metadata` will be matched, but they will be in a random order.
     """
     subtableids = set(table.index)
     submetadataids = set(metadata.index)
@@ -49,7 +54,6 @@ def match(table, metadata, intersect=False):
 
     if intersect:
         idx = subtableids & submetadataids
-        idx = sorted(idx)
         return table.loc[idx], metadata.loc[idx]
     else:
         subtable = table.sort_index()
@@ -124,7 +128,7 @@ def match_tips(table, tree, intersect=False):
     return _table, _tree
 
 
-def rename_internal_nodes(tree, names=None):
+def rename_internal_nodes(tree, names=None, inplace=False):
     """ Names the internal according to level ordering.
 
     The tree will be traversed in level order (i.e. top-down, left to right).
@@ -140,6 +144,8 @@ def rename_internal_nodes(tree, names=None):
         List of labels to rename the tip names.  It is assumed that the
         names are listed in level ordering, and the length of the list
         is at least as long as the number of internal nodes.
+    inplace : bool, optional
+        Specifies if the operation should be done on the original tree or not.
 
     Returns
     -------
@@ -149,7 +155,11 @@ def rename_internal_nodes(tree, names=None):
     ValueError:
         Raised if `tree` and `name` have incompatible sizes.
     """
-    _tree = tree.copy()
+    if inplace:
+        _tree = tree
+    else:
+        _tree = tree.copy()
+
     non_tips = [n for n in _tree.levelorder() if not n.is_tip()]
     if names is not None and len(non_tips) != len(names):
         raise ValueError("`_tree` and `names` have incompatible sizes, "

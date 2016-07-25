@@ -145,6 +145,10 @@ class TestUtil(unittest.TestCase):
                                     columns=['Barcode', 'Treatment'])
 
         res_table, res_metadata = match(table, metadata, intersect=True)
+        # sort for comparison, since the match function
+        # scrambles the names due to hashing.
+        res_table = res_table.sort_index()
+        res_metadata = res_metadata.sort_index()
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
 
@@ -316,6 +320,11 @@ class TestUtil(unittest.TestCase):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
         rename_internal_nodes(tree)
         self.assertEqual(str(tree), "(((a,b)y2,c),d)r;\n")
+
+    def test_rename_internal_nodes_mutable(self):
+        tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
+        rename_internal_nodes(tree, inplace=True)
+        self.assertEqual(str(tree), "(((a,b)y2,c)y1,d)y0;\n")
 
 
 if __name__ == '__main__':
