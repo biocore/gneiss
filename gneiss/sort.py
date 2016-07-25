@@ -53,7 +53,7 @@ def nichesort(table, gradient, niche_estimator=None):
     niche_estimator : function
         A function that takes in two pandas series and returns an ordered
         object. The ability for the object to be ordered is critical, since
-        this will allow the table to be sorted according to this sorting.
+        this will allow the table to be sorted according to this ordering.
 
     Returns
     -------
