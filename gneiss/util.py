@@ -8,8 +8,11 @@
 import warnings
 
 
-def match(table, metadata, intersect=False):
+def match(table, metadata):
     """ Sorts samples in metadata and contingency table in the same order.
+
+    The intersection of samples in the contingency table and the metadata table
+    will returned.
 
     Parameters
     ----------
@@ -19,10 +22,6 @@ def match(table, metadata, intersect=False):
     metadata: pd.DataFrame
         Metadata table where samples correspond to rows and
         explanatory metadata variables correspond to columns.
-    intersect : bool, optional
-        Specifies if only the intersection of samples in the
-        contingency table and the metadata table will returned.
-        By default, this is False.
 
     Returns
     -------
@@ -52,22 +51,13 @@ def match(table, metadata, intersect=False):
     if len(submetadataids) != len(metadata.index):
         raise ValueError("`metadata` has duplicate sample ids.")
 
-    if intersect:
-        idx = subtableids & submetadataids
-        return table.loc[idx], metadata.loc[idx]
-    else:
-        subtable = table.sort_index()
-        submetadata = metadata.sort_index()
-
-        if len(subtable.index) != len(submetadata.index):
-            raise ValueError("`table` and `metadata` have incompatible sizes, "
-                             "`table` has %d rows, `metadata` has %d rows.  "
-                             "Consider setting `intersect=True`." %
-                             (len(subtable.index), len(submetadata.index)))
-        return subtable, submetadata
+    idx = subtableids & submetadataids
+    subtable = table.loc[idx]
+    submetadata = metadata.loc[idx]
+    return subtable, submetadata
 
 
-def match_tips(table, tree, intersect=False):
+def match_tips(table, tree):
     """ Returns the contingency table and tree with matched tips.
 
     Sorts the columns of the contingency table to match the tips in
@@ -76,6 +66,9 @@ def match_tips(table, tree, intersect=False):
     If the tree is multi-furcating, then the tree is reduced to a
     bifurcating tree by randomly inserting internal nodes.
 
+    The intersection of samples in the contingency table and the
+    tree will returned.
+
     Parameters
     ----------
     table : pd.DataFrame
@@ -83,10 +76,6 @@ def match_tips(table, tree, intersect=False):
         features correspond to columns.
     tree : skbio.TreeNode
         Tree object where the leafs correspond to the features.
-    intersect : bool, optional
-        Specifies if only the intersection of samples in the
-        contingency table and the tree will returned.
-        By default, this is False.
 
     Returns
     -------
@@ -108,23 +97,14 @@ def match_tips(table, tree, intersect=False):
     tips = [x.name for x in tree.tips()]
     common_tips = list(set(tips) & set(table.columns))
 
-    if intersect:
-        _table = table.loc[:, common_tips]
-        _tree = tree.shear(names=common_tips)
-    else:
-        if len(tips) != len(table.columns):
-            raise ValueError("`table` and `tree` have incompatible sizes, "
-                             "`table` has %d columns, `tree` has %d tips.  "
-                             "Consider setting `intersect=True`." %
-                             (len(table.columns), len(tips)))
-
-        _table = table
-        _tree = tree
+    _table = table.loc[:, common_tips]
+    _tree = tree.shear(names=common_tips)
 
     _tree.bifurcate()
     _tree.prune()
     sorted_features = [n.name for n in _tree.tips()]
     _table = _table.reindex_axis(sorted_features, axis=1)
+
     return _table, _tree
 
 
