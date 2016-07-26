@@ -66,7 +66,6 @@ def nichesort(table, gradient, niche_estimator=None):
     if niche_estimator is None:
         niche_estimator = mean_niche_estimator
 
-
     _table, _gradient = match(table, gradient)
 
     niche_estimator = partial(niche_estimator,
