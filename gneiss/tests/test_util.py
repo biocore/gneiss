@@ -30,6 +30,16 @@ class TestUtil(unittest.TestCase):
                                 columns=['Barcode', 'Treatment'])
         exp_table, exp_metadata = table, metadata
         res_table, res_metadata = match(table, metadata)
+
+        # make sure that the metadata and table indeces match
+        pdt.assert_index_equal(res_table.index, res_metadata.index)
+
+        res_table = res_table.sort_index()
+        exp_table = exp_table.sort_index()
+
+        res_metadata = res_metadata.sort_index()
+        exp_metadata = exp_metadata.sort_index()
+
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
 
@@ -58,7 +68,7 @@ class TestUtil(unittest.TestCase):
                                      ['b', 'control']],
                                     index=['s1', 's3', 's2'],
                                     columns=['Barcode', 'Treatment'])
-        match(table, metadata, intersect=True)
+        match(table, metadata)
         pdt.assert_frame_equal(table, exp_table)
         pdt.assert_frame_equal(metadata, exp_metadata)
 
@@ -116,6 +126,15 @@ class TestUtil(unittest.TestCase):
                                     columns=['Barcode', 'Treatment'])
 
         res_table, res_metadata = match(table, metadata)
+        # make sure that the metadata and table indeces match
+        pdt.assert_index_equal(res_table.index, res_metadata.index)
+
+        res_table = res_table.sort_index()
+        exp_table = exp_table.sort_index()
+
+        res_metadata = res_metadata.sort_index()
+        exp_metadata = exp_metadata.sort_index()
+
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
 
@@ -144,24 +163,13 @@ class TestUtil(unittest.TestCase):
                                     index=['s1', 's2', 's3'],
                                     columns=['Barcode', 'Treatment'])
 
-        res_table, res_metadata = match(table, metadata, intersect=True)
+        res_table, res_metadata = match(table, metadata)
+        # sort for comparison, since the match function
+        # scrambles the names due to hashing.
+        res_table = res_table.sort_index()
+        res_metadata = res_metadata.sort_index()
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
-
-    def test_match_mismatch(self):
-        table = pd.DataFrame([[0, 0, 1, 1],
-                              [2, 2, 4, 4],
-                              [5, 5, 3, 3],
-                              [0, 0, 0, 1]],
-                             index=['s1', 's2', 's3', 's4'],
-                             columns=['o1', 'o2', 'o3', 'o4'])
-        metadata = pd.DataFrame([['a', 'control'],
-                                 ['c', 'diseased'],
-                                 ['b', 'control']],
-                                index=['s1', 's3', 's2'],
-                                columns=['Barcode', 'Treatment'])
-        with self.assertRaises(ValueError):
-            match(table, metadata)
 
     def test_match_tips(self):
         table = pd.DataFrame([[0, 0, 1, 1],
@@ -232,7 +240,7 @@ class TestUtil(unittest.TestCase):
                                  index=['s1', 's2', 's3', 's4'],
                                  columns=['a', 'b', 'd'])
         exp_tree = tree
-        res_table, res_tree = match_tips(table, tree, intersect=True)
+        res_table, res_tree = match_tips(table, tree)
         pdt.assert_frame_equal(exp_table, res_table)
         self.assertEqual(str(exp_tree), str(res_tree))
 
@@ -252,7 +260,7 @@ class TestUtil(unittest.TestCase):
                                  index=['s1', 's2', 's3', 's4'],
                                  columns=['d', 'a', 'b'])
         exp_tree = TreeNode.read([u"(d,(a,b)f)r;"])
-        res_table, res_tree = match_tips(table, tree, intersect=True)
+        res_table, res_tree = match_tips(table, tree)
         pdt.assert_frame_equal(exp_table, res_table)
         self.assertEqual(str(exp_tree), str(res_tree))
 
@@ -265,30 +273,8 @@ class TestUtil(unittest.TestCase):
                              index=['s1', 's2', 's3', 's4'],
                              columns=['a', 'b', 'd'])
         tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
-        match_tips(table, tree, intersect=True)
+        match_tips(table, tree)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
-
-    def test_match_tips_mismatch(self):
-        # table has less columns than tree tips
-        table = pd.DataFrame([[0, 0, 1],
-                              [2, 3, 4],
-                              [5, 5, 3],
-                              [0, 0, 1]],
-                             index=['s1', 's2', 's3', 's4'],
-                             columns=['a', 'b', 'd'])
-        tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
-        with self.assertRaises(ValueError):
-            match_tips(table, tree)
-
-        table = pd.DataFrame([[0, 0, 1, 1],
-                              [2, 3, 4, 4],
-                              [5, 5, 3, 3],
-                              [0, 0, 0, 1]],
-                             index=['s1', 's2', 's3', 's4'],
-                             columns=['a', 'b', 'c', 'd'])
-        tree = TreeNode.read([u"((a,b)f,d)r;"])
-        with self.assertRaises(ValueError):
-            match_tips(table, tree)
 
     def test_rename_internal_nodes(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
@@ -316,6 +302,11 @@ class TestUtil(unittest.TestCase):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
         rename_internal_nodes(tree)
         self.assertEqual(str(tree), "(((a,b)y2,c),d)r;\n")
+
+    def test_rename_internal_nodes_mutable(self):
+        tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
+        rename_internal_nodes(tree, inplace=True)
+        self.assertEqual(str(tree), "(((a,b)y2,c)y1,d)y0;\n")
 
 
 if __name__ == '__main__':
