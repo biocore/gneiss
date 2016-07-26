@@ -9,10 +9,12 @@ import warnings
 
 
 def match(table, metadata):
-    """ Sorts samples in metadata and contingency table in the same order.
+    """ Matches samples between a contingency table and a metadata table.
 
-    The intersection of samples in the contingency table and the metadata table
-    will returned.
+    Sorts samples in metadata and contingency table in the same order.
+    If there are sames contained in the contigency table, but not in metadata or
+    vice versa, the intersection of samples in the contingency table and the
+    metadata table will returned.
 
     Parameters
     ----------
@@ -39,10 +41,6 @@ def match(table, metadata):
     ValueError:
         Raised if `table` and `metadata` have incompatible sizes.
 
-    Note
-    ----
-    If `intersect=True` is specified, then the rows for `table` and
-    `metadata` will be matched, but they will be in a random order.
     """
     subtableids = set(table.index)
     submetadataids = set(metadata.index)
@@ -132,6 +130,8 @@ def rename_internal_nodes(tree, names=None, inplace=False):
     skbio.TreeNode
        Tree with renamed internal nodes.
 
+    Raises
+    ------
     ValueError:
         Raised if `tree` and `name` have incompatible sizes.
     """
