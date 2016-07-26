@@ -12,8 +12,8 @@ def match(table, metadata):
     """ Matches samples between a contingency table and a metadata table.
 
     Sorts samples in metadata and contingency table in the same order.
-    If there are sames contained in the contigency table, but not in metadata or
-    vice versa, the intersection of samples in the contingency table and the
+    If there are sames contained in the contigency table, but not in metadata
+    or vice versa, the intersection of samples in the contingency table and the
     metadata table will returned.
 
     Parameters
