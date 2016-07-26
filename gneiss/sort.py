@@ -34,7 +34,8 @@ def mean_niche_estimator(abundances, gradient):
     # normalizes the proportions of the organism across all of the
     # samples to add to 1.
     v = abundances / abundances.sum()
-    return np.dot(gradient, v)
+    m = np.dot(gradient, v)
+    return m
 
 
 def nichesort(table, gradient, niche_estimator=None):
@@ -65,13 +66,14 @@ def nichesort(table, gradient, niche_estimator=None):
     if niche_estimator is None:
         niche_estimator = mean_niche_estimator
 
-    niche_estimator = partial(niche_estimator,
-                              gradient=gradient)
 
-    _table, _gradient = match(table, gradient, intersect=True)
+    _table, _gradient = match(table, gradient)
+
+    niche_estimator = partial(niche_estimator,
+                              gradient=_gradient)
+
     norm_table = _table.apply(lambda x: x/x.sum(), axis=1)
     est_niche = norm_table.apply(niche_estimator, axis=0)
-
     _gradient = _gradient.sort_values()
     est_niche = est_niche.sort_values()
 
