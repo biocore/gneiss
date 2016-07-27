@@ -22,7 +22,7 @@ def mean_niche_estimator(abundances, gradient):
 
     .. math::
         E[g | x] =
-        \frac{1}{\sum\limits_{j=1}^N x_j} \sum\limits_{i=1}^N x_i g_i
+         \sum\limits_{i=1}^N x_i g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}
 
     Where :math:`N` is the number of samples, :math:`x_i` is the proportion of
     species :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value
