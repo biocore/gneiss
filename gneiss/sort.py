@@ -88,6 +88,11 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
     pd.DataFrame :
         Sorted table according to the gradient of the samples, and the niches
         of the organisms along that gradient.
+
+    Raises
+    ------
+    ValueError :
+        Raised if `niche_estimator` is not a function.
     """
     if not callable(niche_estimator):
         raise ValueError("`niche_estimator` is not a function.")
