@@ -89,6 +89,8 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
         Sorted table according to the gradient of the samples, and the niches
         of the organisms along that gradient.
     """
+    if not callable(niche_estimator):
+        raise ValueError("`niche_estimator` is not a function.")
 
     table, gradient = match(table, gradient)
 

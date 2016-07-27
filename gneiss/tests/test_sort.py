@@ -72,6 +72,20 @@ class TestSort(unittest.TestCase):
         res_table = niche_sort(table, gradient)
         pdt.assert_frame_equal(table, res_table)
 
+    def test_basic_niche_sort_error(self):
+        table = pd.DataFrame(
+            [[1, 1, 0, 0, 0],
+             [0, 1, 1, 0, 0],
+             [0, 0, 1, 1, 0],
+             [0, 0, 0, 1, 1]],
+            columns=['s1', 's2', 's3', 's4', 's5'],
+            index=['o1', 'o2', 'o3', 'o4']).T
+        gradient = pd.Series(
+            [1, 2, 3, 4, 5],
+            index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            niche_sort(table, gradient, niche_estimator='rawr')
+
     def test_basic_niche_sort_scrambled(self):
         # Swap samples s1 and s2 and features o1 and o2 to see if this can
         # obtain the original table structure.
