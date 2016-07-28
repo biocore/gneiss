@@ -57,3 +57,61 @@ class RegressionResults():
         # calculate the overall coefficient of determination (i.e. R2)
         sst = sse + ssr
         self.r2 = 1 - sse / sst
+
+    def _check_projection(self, project):
+        """
+        Parameters
+        ----------
+        project : bool
+           Specifies if a projection into the Aitchison simplex can be performed.
+        Raises
+        ------
+        ValueError:
+            Cannot perform projection into Aitchison simplex if `basis`
+            is not specified.
+        ValueError:
+            Cannot perform projection into Aitchison simplex
+            if `feature_names` is not specified.
+        """
+        if self.basis is None and project:
+            raise ValueError("Cannot perform projection into Aitchison simplex"
+                             "if `basis` is not specified.")
+
+        if self.feature_names is None and project:
+            raise ValueError("Cannot perform projection into Aitchison simplex"
+                             "if `feature_names` is not specified.")
+
+    def coefficients(self, project=False):
+        """ Returns coefficients from fit.
+
+        Parameters
+        ----------
+        project : bool, optional
+            Specifies if coefficients should be projected back into
+            the Aitchison simplex.  If false, the coefficients will be
+            represented as balances  (default: False).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of values where columns are coefficients, and the index
+            is either balances or proportions, depending on the value of
+            `project`.
+        """
+        self._check_projection(project)
+        coef = pd.DataFrame()
+
+        for i in range(len(self.results)):
+            c = self.results[i].params
+            c.name = self.results[i].model.endog_names
+            coef = coef.append(c)
+
+        if project:
+            # `check=True` due to type issue resolved here
+            # https://github.com/biocore/scikit-bio/pull/1396
+            c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
+            c = pd.DataFrame(c, index=self.feature_names,
+                             columns=coef.columns)
+            return c
+        else:
+            return coef
