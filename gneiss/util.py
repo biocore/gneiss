@@ -1,48 +1,71 @@
-def match(x, y, intersect=False):
-    """ Sorts samples in metadata and contingency table in the same order.
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the GPLv3 License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
+import warnings
+
+
+def match(table, metadata):
+    """ Matches samples between a contingency table and a metadata table.
+
+    Sorts samples in metadata and contingency table in the same order.
+    If there are sames contained in the contigency table, but not in metadata
+    or vice versa, the intersection of samples in the contingency table and the
+    metadata table will returned.
 
     Parameters
     ----------
-    x : pd.DataFrame
+    table : pd.DataFrame
         Contingency table where samples correspond to rows and
         features correspond to columns.
-    y: pd.DataFrame
+    metadata: pd.DataFrame
         Metadata table where samples correspond to rows and
         explanatory metadata variables correspond to columns.
-    intersect : bool, optional
-        Specifies if only the intersection of samples in the
-        contingency table and the metadata table will returned.
 
     Returns
     -------
-    _x : pd.DataFrame
-        Filtered dataframe
-    _y : pd.DataFrame
-        Filtered dataframe
+    pd.DataFrame :
+        Filtered contingency table.
+    pd.DataFrame :
+        Filtered metadata table
+
+    Raises
+    ------
+    ValueError:
+        Raised if duplicate sample ids are present in `table`.
+    ValueError:
+        Raised if duplicate sample ids are present in `metadata`.
+    ValueError:
+        Raised if `table` and `metadata` have incompatible sizes.
+
     """
-    _x = x.sort_index()
-    _y = y.sort_index()
-    if intersect:
-        idx = set(_x.index) & set(_y.index)
-        idx = sorted(idx)
-        return _x.loc[idx], _y.loc[idx]
-    else:
-        if len(_x.index) != len(_y.index):
-            raise ValueError("`x` and `y` have incompatible sizes, "
-                             "`x` has %d rows, `y` has %d rows.  "
-                             "Consider setting `intersect=True`." %
-                             (len(_x.index), len(_y.index)))
-        return _x, _y
+    subtableids = set(table.index)
+    submetadataids = set(metadata.index)
+    if len(subtableids) != len(table.index):
+        raise ValueError("`table` has duplicate sample ids.")
+    if len(submetadataids) != len(metadata.index):
+        raise ValueError("`metadata` has duplicate sample ids.")
+
+    idx = subtableids & submetadataids
+    subtable = table.loc[idx]
+    submetadata = metadata.loc[idx]
+    return subtable, submetadata
 
 
-def match_tips(table, tree, intersect=False):
-    """ Returns the OTU table and tree with matched tips.
+def match_tips(table, tree):
+    """ Returns the contingency table and tree with matched tips.
 
-    Sorts the columns of the OTU table to match the tips in
-    the tree.  If the tree is multi-furcating, then the
-    tree is reduced to a bifurcating tree by randomly inserting
-    internal nodes.
+    Sorts the columns of the contingency table to match the tips in
+    the tree.  The ordering of the tips is in post-traversal order.
 
+    If the tree is multi-furcating, then the tree is reduced to a
+    bifurcating tree by randomly inserting internal nodes.
+
+    The intersection of samples in the contingency table and the
+    tree will returned.
 
     Parameters
     ----------
@@ -51,9 +74,6 @@ def match_tips(table, tree, intersect=False):
         features correspond to columns.
     tree : skbio.TreeNode
         Tree object where the leafs correspond to the features.
-    intersect : bool, optional
-        Specifies if only the intersection of samples in the
-        contingency table and the tree will returned.
 
     Returns
     -------
@@ -61,35 +81,36 @@ def match_tips(table, tree, intersect=False):
         Subset of the original contingency table with the common features.
     skbio.TreeNode :
         Sub-tree with the common features.
+
+    Raises
+    ------
+    ValueError:
+        Raised if `table` and `tree` have incompatible sizes.
+
+    See Also
+    --------
+    skbio.TreeNode.bifurcate
+    skbio.TreeNode.tips
     """
     tips = [x.name for x in tree.tips()]
     common_tips = list(set(tips) & set(table.columns))
 
-    if intersect:
-        _table = table.loc[:, common_tips]
-        _tree = tree.shear(names=common_tips)
-    else:
-        if len(tips) != len(table.columns):
-            raise ValueError("`table` and `tree` have incompatible sizes, "
-                             "`table` has %d columns, `tree` has %d tips.  "
-                             "Consider setting `intersect=True`." %
-                             (len(table.columns), len(tips)))
-
-        _table = table
-        _tree = tree
+    _table = table.loc[:, common_tips]
+    _tree = tree.shear(names=common_tips)
 
     _tree.bifurcate()
     _tree.prune()
     sorted_features = [n.name for n in _tree.tips()]
     _table = _table.reindex_axis(sorted_features, axis=1)
+
     return _table, _tree
 
 
-def rename_tips(tree, names=None):
-    """ Names the tree tips according to level ordering.
+def rename_internal_nodes(tree, names=None, inplace=False):
+    """ Names the internal according to level ordering.
 
-    The tree will be traversed from top-down, left to right.
-    If there `names` is not specified, the node with the smallest label (y0)
+    The tree will be traversed in level order (i.e. top-down, left to right).
+    If `names` is not specified, the node with the smallest label (y0)
     will be located at the root of the tree, and the node with the largest
     label will be located at bottom right corner of the tree.
 
@@ -99,19 +120,43 @@ def rename_tips(tree, names=None):
         Tree object where the leafs correspond to the features.
     names : list, optional
         List of labels to rename the tip names.  It is assumed that the
-        names are listed in level ordering.
+        names are listed in level ordering, and the length of the list
+        is at least as long as the number of internal nodes.
+    inplace : bool, optional
+        Specifies if the operation should be done on the original tree or not.
 
     Returns
     -------
     skbio.TreeNode
        Tree with renamed internal nodes.
+
+    Raises
+    ------
+    ValueError:
+        Raised if `tree` and `name` have incompatible sizes.
     """
+    if inplace:
+        _tree = tree
+    else:
+        _tree = tree.copy()
+
+    non_tips = [n for n in _tree.levelorder() if not n.is_tip()]
+    if names is not None and len(non_tips) != len(names):
+        raise ValueError("`_tree` and `names` have incompatible sizes, "
+                         "`_tree` has %d tips, `names` has %d elements." %
+                         (len(non_tips), len(names)))
+
     i = 0
-    for n in tree.levelorder():
+    for n in _tree.levelorder():
         if not n.is_tip():
             if names is None:
-                n.name = 'y%i' % i
+                label = 'y%i' % i
             else:
-                n.name = names[i]
+                label = names[i]
+            if n.name is not None and label == n.name:
+                warnings.warn("Warning. Internal node (%s) has been replaced "
+                              "with (%s)" % (n.name, label))
+
+            n.name = label
             i += 1
-    return tree
+    return _tree
