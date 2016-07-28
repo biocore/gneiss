@@ -100,9 +100,6 @@ class TestRegressionResults(unittest.TestCase):
                                check_less_precise=True)
 
     def test_regression_results_coefficient_project_error(self):
-        exp_coef = pd.DataFrame({'Intercept' : [1.447368, -0.052632],
-                                 'X' : [0.539474, 1.289474]},
-                                index=['Y1', 'Y2'])
         res = RegressionResults(self.results)
         with self.assertRaises(ValueError):
             res.coefficients(project=True)
