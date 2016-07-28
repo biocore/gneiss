@@ -27,7 +27,7 @@ class RegressionResults():
         ----------
         stat_results : list, sm.RegressionResults
             List of RegressionResults objects.
-        feature_names : array_list, str
+        feature_names : array_like, str
             List of original names for features.
         basis : np.array, optional
             Orthonormal basis in the Aitchison simplex.
