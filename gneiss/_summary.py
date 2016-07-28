@@ -8,7 +8,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
-from skbio.stats.composition import ilr_inv
 
 
 class RegressionResults():

@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 import pandas.util.testing as pdt
-import numpy as np
 import statsmodels.formula.api as smf
 import unittest
 from gneiss._summary import RegressionResults
-from skbio.stats.composition import (_gram_schmidt_basis, ilr_inv)
 
 
 class TestRegressionResults(unittest.TestCase):
@@ -22,7 +20,8 @@ class TestRegressionResults(unittest.TestCase):
         self.data = pd.DataFrame([[1, 3, 4, 5, 2, 3, 4],
                                   list(range(1, 8)),
                                   [1, 3, 2, 4, 3, 5, 4]],
-                                 columns=['s1', 's2', 's3', 's4', 's5', 's6', 's7'],
+                                 columns=['s1', 's2', 's3', 's4',
+                                          's5', 's6', 's7'],
                                  index=['Y1', 'Y2', 'X']).T
         model1 = smf.ols(formula="Y1 ~ X", data=self.data)
         model2 = smf.ols(formula="Y2 ~ X", data=self.data)
@@ -36,10 +35,10 @@ class TestRegressionResults(unittest.TestCase):
                                      's5': [3.065789, 3.815789],
                                      's6': [4.144737, 6.394737],
                                      's7': [3.605263, 5.105263]},
-                                    index=['Y1','Y2']).T
+                                    index=['Y1', 'Y2']).T
         m = self.data.mean(axis=0)
         sse = ((fittedvalues - self.data.iloc[:, :2])**2).sum().sum()
-        ssr = ((fittedvalues - m)**2).sum().sum()
+        # ssr = ((fittedvalues - m)**2).sum().sum()
         sst = ((m - self.data.iloc[:, :2])**2).sum().sum()
         exp_r2 = 1 - (sse / sst)
 
@@ -49,9 +48,9 @@ class TestRegressionResults(unittest.TestCase):
     def test_regression_results_pvalues(self):
         # checks to see if pvalues are calculated correctly.
         res = RegressionResults(self.results)
-        exp = pd.DataFrame({'Intercept':[0.307081, 0.972395],
+        exp = pd.DataFrame({'Intercept': [0.307081, 0.972395],
                             'X': [0.211391, 0.029677]},
-                            index=['Y1', 'Y2'])
+                           index=['Y1', 'Y2'])
         pdt.assert_frame_equal(res.pvalues, exp,
                                check_exact=False,
                                check_less_precise=True)
