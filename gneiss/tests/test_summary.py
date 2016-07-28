@@ -99,5 +99,45 @@ class TestRegressionResults(unittest.TestCase):
                                check_exact=False,
                                check_less_precise=True)
 
+    def test_regression_results_residuals_projection(self):
+        # aliasing np.array for the sake of pep8
+        A = np.array
+        exp_resid = pd.DataFrame({'s1': ilr_inv(A([-0.986842, -0.236842])),
+                                  's2': ilr_inv(A([-0.065789, -1.815789])),
+                                  's3': ilr_inv(A([1.473684,  0.473684])),
+                                  's4': ilr_inv(A([1.394737, -1.105263])),
+                                  's5': ilr_inv(A([-1.065789,  1.184211])),
+                                  's6': ilr_inv(A([-1.144737, -0.394737])),
+                                  's7': ilr_inv(A([0.394737,  1.894737]))},
+                                 index=['Z1', 'Z2', 'Z3'])
+        feature_names = ['Z1', 'Z2', 'Z3']
+        basis = _gram_schmidt_basis(3)
+        res = RegressionResults(self.results, basis=basis,
+                                feature_names=feature_names)
+        pdt.assert_frame_equal(res.residuals(project=True), exp_resid,
+                               check_exact=False,
+                               check_less_precise=True)
+
+    def test_regression_results_residuals(self):
+        exp_resid = pd.DataFrame({'s1': [-0.986842, -0.236842],
+                                  's2': [-0.065789, -1.815789],
+                                  's3': [1.473684,  0.473684],
+                                  's4': [1.394737, -1.105263],
+                                  's5': [-1.065789,  1.184211],
+                                  's6': [-1.144737, -0.394737],
+                                  's7': [0.394737,  1.894737]},
+                                 index=['Y1', 'Y2'])
+        res = RegressionResults(self.results)
+        pdt.assert_frame_equal(res.residuals(), exp_resid,
+                               check_exact=False,
+                               check_less_precise=True)
+
+    def test_regression_results_predict(self):
+        pass
+
+    def test_regression_results_predict_projection(self):
+        pass
+
+
 if __name__ == "__main__":
     unittest.main()

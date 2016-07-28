@@ -127,3 +127,67 @@ class RegressionResults():
             return c
         else:
             return coef
+
+    def residuals(self, project=False):
+        """ Returns calculated residuals.
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates.  If not specified, then the
+            fitted values calculated from training the model will be
+            returned.
+        project : bool, optional
+            Specifies if coefficients should be projected back into
+            the Aitchison simplex.  If false, the coefficients will be
+            represented as balances  (default: False).
+        Returns
+        -------
+        pd.DataFrame
+            A table of values where rows are coefficients, and the columns
+            are either balances or proportions, depending on the value of
+            `project`.
+        """
+        self._check_projection(project)
+
+        resid = pd.DataFrame()
+
+        for i in range(len(self.results)):
+            err = self.results[i].resid
+            err.name = self.results[i].model.endog_names
+            resid = resid.append(err)
+
+        if project:
+            # check=True due to type issue resolved here
+            # https://github.com/biocore/scikit-bio/pull/1396
+            proj_resid = ilr_inv(resid.values.T, basis=self.basis,
+                                 check=False).T
+            proj_resid = pd.DataFrame(proj_resid, index=self.feature_names,
+                                      columns=resid.columns)
+            return proj_resid
+        else:
+            return resid
+
+    def predict(self, X, project=False):
+        """ Performs a prediction based on model.
+
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates.  If not specified, then the
+            fitted values calculated from training the model will be
+            returned.
+        project : bool, optional
+            Specifies if coefficients should be projected back into
+            the Aitchison simplex.  If false, the coefficients will be
+            represented as balances  (default: False).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of values where rows are coefficients, and the columns
+            are either balances or proportions, depending on the value of
+            `project`.
+        """
+        self._check_projection(project)
+
+        pass
