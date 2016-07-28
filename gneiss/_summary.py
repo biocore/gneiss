@@ -101,9 +101,9 @@ class RegressionResults():
         self._check_projection(project)
         coef = pd.DataFrame()
 
-        for i in range(len(self.results)):
-            c = self.results[i].params
-            c.name = self.results[i].model.endog_names
+        for r in self.results:
+            c = r.params
+            c.name = r.model.endog_names
             coef = coef.append(c)
 
         if project:
