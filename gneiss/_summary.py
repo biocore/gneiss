@@ -37,22 +37,23 @@ class RegressionResults():
         self.basis = basis
         self.results = stat_results
 
-        # obtain pvalues
-        self.pvalues = pd.DataFrame()
-        for i in range(len(self.results)):
-            p = self.results[i].pvalues
-            p.name = self.results[i].model.endog_names
-            self.pvalues = self.pvalues.append(p)
-
-        # calculate the overall coefficient of determination (i.e. R2)
-
         # sum of squares error.  Also referred to as sum of squares residuals
-        sse = sum([r.ssr for r in self.results])
+        sse = 0
         # sum of squares regression. Also referred to as
         # explained sum of squares.
-        ssr = sum([r.ess for r in self.results])
+        ssr = 0
         # See `statsmodels.regression.linear_model.RegressionResults`
         # for more explanation on `ess` and `ssr`.
 
+        # obtain pvalues
+        self.pvalues = pd.DataFrame()
+        for r in self.results:
+            p = r.pvalues
+            p.name = r.model.endog_names
+            self.pvalues = self.pvalues.append(p)
+            sse += r.ssr
+            ssr += r.ess
+
+        # calculate the overall coefficient of determination (i.e. R2)
         sst = sse + ssr
         self.r2 = 1 - sse / sst
