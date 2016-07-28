@@ -26,7 +26,7 @@ class RegressionResults():
         ----------
         stat_results : list, sm.RegressionResults
             List of RegressionResults objects.
-        feature_names : array_like, str
+        feature_names : array_like, str, optional
             List of original names for features.
         basis : np.array, optional
             Orthonormal basis in the Aitchison simplex.
@@ -38,15 +38,22 @@ class RegressionResults():
         self.results = stat_results
 
         # obtain pvalues
-        pvals = pd.DataFrame()
+        self.pvalues = pd.DataFrame()
         for i in range(len(self.results)):
             p = self.results[i].pvalues
             p.name = self.results[i].model.endog_names
-            pvals = pvals.append(p)
-        self.pvalues = pvals
+            self.pvalues = pvals.append(p)
 
-        # calculate the overall R2 value
+        # calculate the overall coefficient of determination (i.e. R2)
+
+        # sum of squares error.  Also referred to as sum of squares residuals
         sse = sum([r.ssr for r in self.results])
+        # sum of squares regression. Also referred to as explained sum of squares.
         ssr = sum([r.ess for r in self.results])
+        # See `statsmodels.regression.linear_model.RegressionResults`
+        # for more explanation on `ess` and `ssr`.
+
         sst = sse + ssr
         self.r2 = 1 - sse / sst
+
+
