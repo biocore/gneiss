@@ -8,6 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+from skbio.stats.composition import ilr_inv
 
 
 class RegressionResults():
@@ -63,7 +64,9 @@ class RegressionResults():
         Parameters
         ----------
         project : bool
-           Specifies if a projection into the Aitchison simplex can be performed.
+           Specifies if a projection into the Aitchison simplex can be
+           performed.
+
         Raises
         ------
         ValueError:
@@ -97,6 +100,15 @@ class RegressionResults():
             A table of values where columns are coefficients, and the index
             is either balances or proportions, depending on the value of
             `project`.
+
+        Raises
+        ------
+        ValueError:
+            Cannot perform projection into Aitchison simplex if `basis`
+            is not specified.
+        ValueError:
+            Cannot perform projection into Aitchison simplex
+            if `feature_names` is not specified.
         """
         self._check_projection(project)
         coef = pd.DataFrame()
