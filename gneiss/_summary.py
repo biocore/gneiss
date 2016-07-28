@@ -8,6 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+from skbio.stats.composition import ilr_inv
 
 
 class RegressionResults():
@@ -46,7 +47,10 @@ class RegressionResults():
         self.pvalues = pvals
 
         # calculate the overall R2 value
-
+        sse = sum([r.ssr for r in self.results])
+        ssr = sum([r.ess for r in self.results])
+        sst = sse + ssr
+        self.r2 = 1 - sse / sst
 
     def _check_projection(self, project):
         """
@@ -58,15 +62,19 @@ class RegressionResults():
         Raises
         ------
         ValueError:
-
+            Cannot perform projection into Aitchison simplex if `basis`
+            is not specified.
         ValueError:
-
+            Cannot perform projection into Aitchison simplex
+            if `feature_names` is not specified.
         """
         if self.basis is None and project:
-            raise ValueError("")
+            raise ValueError("Cannot perform projection into Aitchison simplex"
+                             "if `basis` is not specified.")
 
         if self.feature_names is None and project:
-            raise ValueError("")
+            raise ValueError("Cannot perform projection into Aitchison simplex"
+                             "if `feature_names` is not specified.")
 
     def coefficients(self, project=False):
         """ Returns coefficients from fit.
@@ -81,22 +89,27 @@ class RegressionResults():
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
-            are either balances or proportions, depending on the value of
+            A table of values where columns are coefficients, and the index
+            is either balances or proportions, depending on the value of
             `project`.
         """
         self._check_projection(project)
-
         coef = pd.DataFrame()
+
         for i in range(len(self.results)):
-            if project:
-                c = ilr_inv(self.results[i].params, basis=self.basis)
-                c.index = self.feature_names
-            else:
-                c = self.results[i].params
+            c = self.results[i].params
             c.name = self.results[i].model.endog_names
             coef = coef.append(c)
-        return coef
+
+        if project:
+            # check=True due to type issue resolved here
+            # https://github.com/biocore/scikit-bio/pull/1396
+            c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
+            c = pd.DataFrame(c, index=self.feature_names,
+                             columns=coef.columns)
+            return c
+        else:
+            return coef
 
     def predict(self, X, project=False):
         """ Performs a prediction based on model.
@@ -146,7 +159,34 @@ class RegressionResults():
         """
         self._check_projection(project)
 
-        pass
+        resid = pd.DataFrame()
+
+        for i in range(len(self.results)):
+            err = self.results[i].resid
+            err.name = self.results[i].model.endog_names
+            resid = resid.append(err)
+
+        if project:
+            # check=True due to type issue resolved here
+            # https://github.com/biocore/scikit-bio/pull/1396
+            proj_resid = ilr_inv(resid.values.T, basis=self.basis,
+                                 check=False).T
+            proj_resid = pd.DataFrame(proj_resid, index=self.feature_names,
+                                      columns=resid.columns)
+            return proj_resid
+        else:
+            return resid
+
+    def summary(self):
+        """ Returns a summary of the RegressionResults.
+
+        Returns
+        -------
+        pd.DataFrame :
+            A table of coefficients, pvalues and statistics
+
+        """
+
 
 
 class DifferentialAbundanceResults():
