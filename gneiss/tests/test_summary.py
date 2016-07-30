@@ -19,12 +19,16 @@ from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 class TestRegressionResults(unittest.TestCase):
 
     def setUp(self):
-        self.data = pd.DataFrame([[1, 3, 4, 5, 2, 3, 4],
-                                  list(range(1, 8)),
-                                  [1, 3, 2, 4, 3, 5, 4]],
-                                 columns=['s1', 's2', 's3', 's4',
+        self.data = pd.DataFrame([[1, 1, 1],
+                                  [3, 2, 3],
+                                  [4, 3, 2],
+                                  [5, 4, 4],
+                                  [2, 5, 3],
+                                  [3, 6, 5],
+                                  [4, 7, 4]],
+                                 index=['s1', 's2', 's3', 's4',
                                           's5', 's6', 's7'],
-                                 index=['Y1', 'Y2', 'X']).T
+                                 columns=['Y1', 'Y2', 'X'])
         model1 = smf.ols(formula="Y1 ~ X", data=self.data)
         model2 = smf.ols(formula="Y2 ~ X", data=self.data)
         self.results = [model1.fit(), model2.fit()]
@@ -99,9 +103,13 @@ class TestRegressionResults(unittest.TestCase):
                                check_exact=False,
                                check_less_precise=True)
 
+    def test_regression_results_coefficient_project_error(self):
+        res = RegressionResults(self.results)
+        with self.assertRaises(ValueError):
+            res.coefficients(project=True)
+
     def test_regression_results_residuals_projection(self):
-        # aliasing np.array for the sake of pep8
-        A = np.array
+        A = np.array # aliasing np.array for the sake of pep8
         exp_resid = pd.DataFrame({'s1': ilr_inv(A([-0.986842, -0.236842])),
                                   's2': ilr_inv(A([-0.065789, -1.815789])),
                                   's3': ilr_inv(A([1.473684,  0.473684])),
@@ -133,11 +141,67 @@ class TestRegressionResults(unittest.TestCase):
                                check_less_precise=True)
 
     def test_regression_results_predict(self):
-        pass
+        model = RegressionResults(self.results)
+        res_predict = model.predict(self.data[['X']])
+
+        exp_predict = pd.DataFrame({'s1': [1.986842, 1.236842],
+                                    's2': [3.065789, 3.815789],
+                                    's3': [2.526316, 2.526316],
+                                    's4': [3.605263, 5.105263],
+                                    's5': [3.065789, 3.815789],
+                                    's6': [4.144737, 6.394737],
+                                    's7': [3.605263, 5.105263]},
+                                   index=['Y1', 'Y2']).T
+
+        pdt.assert_frame_equal(res_predict, exp_predict)
+
+    def test_regression_results_predict_extrapolate(self):
+        model = RegressionResults(self.results)
+        extrapolate = pd.DataFrame({'X': [8, 9, 10]},
+                                   index = ['k1', 'k2', 'k3'])
+
+        res_predict = model.predict(extrapolate)
+
+        exp_predict = pd.DataFrame({'k1': [5.76315789, 10.26315789],
+                                    'k2': [6.30263158, 11.55263158],
+                                    'k3': [6.84210526, 12.84210526]},
+                                   index=['Y1', 'Y2']).T
+
+        pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_projection(self):
-        pass
+        feature_names = ['Z1', 'Z2', 'Z3']
+        basis = _gram_schmidt_basis(3)
+        model = RegressionResults(self.results, basis=basis,
+                                  feature_names=feature_names)
 
+        res_predict = model.predict(self.data[['X']], project=True)
+        A = np.array # aliasing np.array for the sake of pep8
+        exp_predict = pd.DataFrame({'s1': ilr_inv(A([1.986842, 1.236842])),
+                                    's2': ilr_inv(A([3.065789, 3.815789])),
+                                    's3': ilr_inv(A([2.526316, 2.526316])),
+                                    's4': ilr_inv(A([3.605263, 5.105263])),
+                                    's5': ilr_inv(A([3.065789, 3.815789])),
+                                    's6': ilr_inv(A([4.144737, 6.394737])),
+                                    's7': ilr_inv(A([3.605263, 5.105263]))},
+                                   index=feature_names).T
+
+        pdt.assert_frame_equal(res_predict, exp_predict)
+
+    def test_regression_results_predict_none(self):
+        model = RegressionResults(self.results)
+        res_predict = model.predict()
+
+        exp_predict = pd.DataFrame({'s1': [1.986842, 1.236842],
+                                    's2': [3.065789, 3.815789],
+                                    's3': [2.526316, 2.526316],
+                                    's4': [3.605263, 5.105263],
+                                    's5': [3.065789, 3.815789],
+                                    's6': [4.144737, 6.394737],
+                                    's7': [3.605263, 5.105263]},
+                                   index=['Y1', 'Y2']).T
+
+        pdt.assert_frame_equal(res_predict, exp_predict)
 
 if __name__ == "__main__":
     unittest.main()
