@@ -8,7 +8,7 @@
 import pandas as pd
 import statsmodels.formula.api as smf
 from skbio.stats.composition import ilr
-from gneiss.util import match, match_tips
+from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
 
@@ -26,6 +26,17 @@ def _process(table, metadata, tree):
     if any(non_tips_no_name):
         _tree = rename_internal_nodes(_tree)
     return _table, _metadata, _tree
+
+
+def _transform(table, tree):
+    non_tips = [n.name for n in tree.levelorder() if not n.is_tip()]
+    basis, _ = balance_basis(tree)
+
+    mat = ilr(table.values, basis=basis)
+    ilr_table = pd.DataFrame(mat,
+                             columns=non_tips,
+                             index=table.index)
+    return ilr_table, basis
 
 
 def ols(formula, table, metadata, tree, **kwargs):
@@ -64,14 +75,7 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     """
     _table, _metadata, _tree = _process(table, metadata, tree)
-    basis, _ = balance_basis(_tree)
-    non_tips = [n.name for n in _tree.levelorder() if not n.is_tip()]
-
-    mat = ilr(_table.values, basis=basis)
-    ilr_table = pd.DataFrame(mat,
-                             columns=non_tips,
-                             index=table.index)
-
+    ilr_table, basis = _transform(_table, _tree)
     data = pd.merge(ilr_table, _metadata, left_index=True, right_index=True)
 
     fits = []

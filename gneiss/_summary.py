@@ -163,11 +163,10 @@ class RegressionResults():
             # https://github.com/biocore/scikit-bio/pull/1396
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
-            proj_resid = pd.DataFrame(proj_resid, index=self.feature_names,
-                                      columns=resid.columns)
-            return proj_resid
+            return pd.DataFrame(proj_resid, index=self.feature_names,
+                                columns=resid.columns).T
         else:
-            return resid
+            return resid.T
 
     def predict(self, X=None, project=False, **kwargs):
         """ Performs a prediction based on model.
@@ -210,9 +209,8 @@ class RegressionResults():
             # https://github.com/biocore/scikit-bio/pull/1396
             proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
                                       check=False)
-            proj_prediction = pd.DataFrame(proj_prediction,
-                                           columns=self.feature_names,
-                                           index=prediction.columns)
-            return proj_prediction
+            return pd.DataFrame(proj_prediction,
+                                columns=self.feature_names,
+                                index=prediction.columns).T
 
         return prediction.T

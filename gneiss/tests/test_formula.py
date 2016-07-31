@@ -10,10 +10,8 @@
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-import statsmodels.formula.api as smf
 import unittest
-from gneiss._summary import RegressionResults
-from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
+from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from gneiss._formula import ols
 
