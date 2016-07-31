@@ -1,2 +1,3 @@
 coveralls
 ete3
+statsmodels
