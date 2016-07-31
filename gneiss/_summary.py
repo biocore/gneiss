@@ -145,7 +145,7 @@ class RegressionResults():
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
+            A table of values where rows are samples, and the columns
             are either balances or proportions, depending on the value of
             `project`.
         """
@@ -163,11 +163,10 @@ class RegressionResults():
             # https://github.com/biocore/scikit-bio/pull/1396
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
-            proj_resid = pd.DataFrame(proj_resid, index=self.feature_names,
-                                      columns=resid.columns)
-            return proj_resid
+            return  pd.DataFrame(proj_resid, index=self.feature_names,
+                                 columns=resid.columns).T
         else:
-            return resid
+            return resid.T
 
     def predict(self, X=None, project=False, **kwargs):
         """ Performs a prediction based on model.
