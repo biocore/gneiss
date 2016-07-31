@@ -163,8 +163,8 @@ class RegressionResults():
             # https://github.com/biocore/scikit-bio/pull/1396
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
-            return  pd.DataFrame(proj_resid, index=self.feature_names,
-                                 columns=resid.columns).T
+            return pd.DataFrame(proj_resid, index=self.feature_names,
+                                columns=resid.columns).T
         else:
             return resid.T
 
@@ -209,9 +209,7 @@ class RegressionResults():
             # https://github.com/biocore/scikit-bio/pull/1396
             proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
                                       check=False)
-            proj_prediction = pd.DataFrame(proj_prediction,
-                                           columns=self.feature_names,
-                                           index=prediction.columns)
-            return proj_prediction
-
+            return pd.DataFrame(proj_prediction,
+                                columns=self.feature_names,
+                                index=prediction.columns)
         return prediction.T
