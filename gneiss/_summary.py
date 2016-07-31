@@ -122,8 +122,7 @@ class RegressionResults():
             # `check=True` due to type issue resolved here
             # https://github.com/biocore/scikit-bio/pull/1396
             c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
-            c = pd.DataFrame(c, index=self.feature_names,
-                             columns=coef.columns)
-            return c
+            return pd.DataFrame(c, index=self.feature_names,
+                                columns=coef.columns)
         else:
             return coef
