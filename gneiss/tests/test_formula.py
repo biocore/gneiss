@@ -10,10 +10,8 @@
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-import statsmodels.formula.api as smf
 import unittest
-from gneiss._summary import RegressionResults
-from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
+from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from gneiss._formula import ols
 
@@ -59,6 +57,37 @@ class TestOLS(unittest.TestCase):
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
+
+class TestMixedLM(unittest.TestCase):
+
+    def setUp(self):
+        A = np.array  # aliasing for the sake of pep8
+        self.table = pd.DataFrame({
+            'x1': ilr_inv(A([1., 1.])),
+            'x2': ilr_inv(A([1., 2.])),
+            'x3': ilr_inv(A([1., 3.])),
+            'y1': ilr_inv(A([1., 2.])),
+            'y2': ilr_inv(A([1., 3.])),
+            'y3': ilr_inv(A([1., 4.])),
+            'z1': ilr_inv(A([1., 5.])),
+            'z2': ilr_inv(A([1., 6.])),
+            'z3': ilr_inv(A([1., 7.]))},
+            'u1': ilr_inv(A([1., 6.])),
+            'u2': ilr_inv(A([1., 7.])),
+            'u3': ilr_inv(A([1., 8.]))},
+            index=['a', 'b', 'c']).T
+        self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        self.metadata = pd.DataFrame({
+            'patient': [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+            'treatment': [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
+            'time': [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+        }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
+                  'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
+
+    def test_mixedlm(self):
+        res = mixedlm('time', self.table, self.metadata, self.tree, groups=)
+
+        pass
 
 if __name__ == '__main__':
     unittest.main()
