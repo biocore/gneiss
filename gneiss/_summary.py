@@ -120,7 +120,7 @@ class RegressionResults():
 
         if project:
             # `check=False`, due to a problem with error handling
-            # address here https://github.com/biocore/scikit-bio/pull/1396
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
             # This will need to be fixed here: 
             # https://github.com/biocore/gneiss/issues/34
             c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
