@@ -7,11 +7,13 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import statsmodels.formula.api as smf
 import unittest
 from gneiss._summary import RegressionResults
+from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 
 
 class TestRegressionResults(unittest.TestCase):
@@ -54,6 +56,53 @@ class TestRegressionResults(unittest.TestCase):
         pdt.assert_frame_equal(res.pvalues, exp,
                                check_exact=False,
                                check_less_precise=True)
+
+    def test_check_projection(self):
+        feature_names = ['Z1', 'Z2', 'Z3']
+        basis = _gram_schmidt_basis(3)
+        res = RegressionResults(self.results, basis=basis,
+                                feature_names=feature_names)
+
+        feature_names = ['Z1', 'Z2', 'Z3']
+        basis = _gram_schmidt_basis(3)
+
+        # Test if feature_names is checked for
+        res = RegressionResults(self.results, basis=basis)
+        with self.assertRaises(ValueError):
+            res._check_projection(True)
+
+        # Test if basis is checked for
+        res = RegressionResults(self.results, feature_names=feature_names)
+        with self.assertRaises(ValueError):
+            res._check_projection(True)
+
+    def test_regression_results_coefficient(self):
+        exp_coef = pd.DataFrame({'Intercept': [1.447368, -0.052632],
+                                 'X': [0.539474, 1.289474]},
+                                index=['Y1', 'Y2'])
+        res = RegressionResults(self.results)
+        pdt.assert_frame_equal(res.coefficients(), exp_coef,
+                               check_exact=False,
+                               check_less_precise=True)
+
+    def test_regression_results_coefficient_projection(self):
+        exp_coef = pd.DataFrame(
+            {'Intercept': ilr_inv(np.array([[1.447368, -0.052632]])),
+             'X': ilr_inv(np.array([[0.539474, 1.289474]]))},
+            index=['Z1', 'Z2', 'Z3'])
+        feature_names = ['Z1', 'Z2', 'Z3']
+        basis = _gram_schmidt_basis(3)
+        res = RegressionResults(self.results, basis=basis,
+                                feature_names=feature_names)
+
+        pdt.assert_frame_equal(res.coefficients(project=True), exp_coef,
+                               check_exact=False,
+                               check_less_precise=True)
+
+    def test_regression_results_coefficient_project_error(self):
+        res = RegressionResults(self.results)
+        with self.assertRaises(ValueError):
+            res.coefficients(project=True)
 
 if __name__ == "__main__":
     unittest.main()
