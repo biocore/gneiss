@@ -160,8 +160,10 @@ class RegressionResults():
             resid = resid.append(err)
 
         if project:
-            # check=True due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here:
+            # https://github.com/biocore/gneiss/issues/34
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
             return pd.DataFrame(proj_resid, index=self.feature_names,
@@ -206,8 +208,10 @@ class RegressionResults():
             prediction = prediction.append(p)
 
         if project:
-            # check=True due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here:
+            # https://github.com/biocore/gneiss/issues/34
             proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
                                       check=False)
             return pd.DataFrame(proj_prediction,
