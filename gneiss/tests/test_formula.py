@@ -13,7 +13,7 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss._formula import ols
+from gneiss._formula import ols, mixedlm
 
 
 class TestOLS(unittest.TestCase):
@@ -71,7 +71,7 @@ class TestMixedLM(unittest.TestCase):
             'y3': ilr_inv(A([1., 4.])),
             'z1': ilr_inv(A([1., 5.])),
             'z2': ilr_inv(A([1., 6.])),
-            'z3': ilr_inv(A([1., 7.]))},
+            'z3': ilr_inv(A([1., 7.])),
             'u1': ilr_inv(A([1., 6.])),
             'u2': ilr_inv(A([1., 7.])),
             'u3': ilr_inv(A([1., 8.]))},
@@ -85,7 +85,7 @@ class TestMixedLM(unittest.TestCase):
                   'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
 
     def test_mixedlm(self):
-        res = mixedlm('time', self.table, self.metadata, self.tree, groups=)
+        res = mixedlm('time', self.table, self.metadata, self.tree, groups=patient)
 
         pass
 
