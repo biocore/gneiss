@@ -119,8 +119,10 @@ class RegressionResults():
             coef = coef.append(c)
 
         if project:
-            # `check=True` due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # address here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here: 
+            # https://github.com/biocore/gneiss/issues/34
             c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
             return pd.DataFrame(c, index=self.feature_names,
                                 columns=coef.columns)
