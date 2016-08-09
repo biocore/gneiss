@@ -92,7 +92,7 @@ class RegressionResults():
         ----------
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
 
         Returns
@@ -110,6 +110,11 @@ class RegressionResults():
         ValueError:
             Cannot perform projection into Aitchison simplex
             if `feature_names` is not specified.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
         coef = pd.DataFrame()
@@ -141,7 +146,7 @@ class RegressionResults():
             returned.
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
         Returns
         -------
@@ -149,6 +154,11 @@ class RegressionResults():
             A table of values where rows are samples, and the columns
             are either balances or proportions, depending on the value of
             `project`.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
 
@@ -182,7 +192,7 @@ class RegressionResults():
             calculated from training the model will be returned.
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
         **kwargs : dict
             Other arguments to be passed into the model prediction.
@@ -193,6 +203,11 @@ class RegressionResults():
             A table of values where rows are coefficients, and the columns
             are either balances or proportions, depending on the value of
             `project`.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
 
