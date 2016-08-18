@@ -11,7 +11,8 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss._formula import ols
+from gneiss._formula import ols, mixedlm
+from random import seed
 
 
 class TestOLS(unittest.TestCase):
@@ -148,6 +149,54 @@ class TestOLS(unittest.TestCase):
         }, index=['s1', 's2', 's3', 's4', 's5'])
         with self.assertRaises(ValueError):
             ols('real + lame', table, metadata, tree)
+
+class TestMixedLM(unittest.TestCase):
+
+    def setUp(self):
+        A = np.array  # aliasing for the sake of pep8
+        self.table = pd.DataFrame({
+            'x1': ilr_inv(A([1., 1.])),
+            'x2': ilr_inv(A([1., 2.])),
+            'x3': ilr_inv(A([1., 3.])),
+            'y1': ilr_inv(A([1., 2.])),
+            'y2': ilr_inv(A([1., 3.])),
+            'y3': ilr_inv(A([1., 4.])),
+            'z1': ilr_inv(A([1., 5.])),
+            'z2': ilr_inv(A([1., 6.])),
+            'z3': ilr_inv(A([1., 7.])),
+            'u1': ilr_inv(A([1., 6.])),
+            'u2': ilr_inv(A([1., 7.])),
+            'u3': ilr_inv(A([1., 8.]))},
+            index=['a', 'b', 'c']).T
+        self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        self.metadata = pd.DataFrame({
+            'patient': [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+            'treatment': [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
+            'time': [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+        }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
+                  'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
+
+    def test_mixedlm(self):
+        np.random.seed(0)
+        seed(0)
+        res = mixedlm('time', self.table, self.metadata, self.tree, groups='patient')
+
+
+        exp_pvals = pd.DataFrame([[0.015293, 0.193931, 0.012249],
+                                  [0.000000, 0.579045, 0.909983]],
+                                 index=['Y1', 'Y2'],
+                                 columns=['Intercept', 'Intercept RE', 'time'])
+
+        exp_coefs = pd.DataFrame([[2.600000, 42.868869, 0.9750],
+                                  [1.016667, 0.216595, 0.0125]],
+                                 index=['Y1', 'Y2'],
+                                 columns=['Intercept', 'Intercept RE', 'time'])
+
+        pdt.assert_index_equal(exp_pvals.index, res.pvalues.index)
+        pdt.assert_index_equal(exp_pvals.columns, res.pvalues.columns)
+
+        pdt.assert_index_equal(exp_coefs.index, res.coefficients().index)
+        pdt.assert_index_equal(exp_coefs.columns, res.coefficients().columns)
 
 
 if __name__ == '__main__':

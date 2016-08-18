@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
@@ -53,12 +51,14 @@ class RegressionResults():
             p = r.pvalues
             p.name = r.model.endog_names
             self.pvalues = self.pvalues.append(p)
-            sse += r.ssr
-            ssr += r.ess
 
+    @property
+    def r2(self):
+        ssr = sum([r.ssr for r in self.results])
+        sse = sum([r.sse for r in self.results])
         # calculate the overall coefficient of determination (i.e. R2)
         sst = sse + ssr
-        self.r2 = 1 - sse / sst
+        return 1 - sse / sst
 
     def _check_projection(self, project):
         """
