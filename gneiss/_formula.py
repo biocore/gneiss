@@ -88,30 +88,3 @@ def ols(formula, table, metadata, tree, **kwargs):
         fits.append(mdf)
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns)
-
-
-def glm(formula, table, metadata, tree, **kwargs):
-    """ Generalized Linear Models applied to balances.
-
-    Parameters
-    ----------
-    """
-    pass
-
-
-def mixedlm(formula, table, metadata, tree, **kwargs):
-    """ Linear Mixed Models applied to balances.
-
-    Parameters
-    ----------
-    """
-    pass
-
-
-def gee(formula, table, metadata, tree, **kwargs):
-    """ Generalized Estimating Equations applied to balances.
-
-    Parameters
-    ----------
-    """
-    pass
