@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 # ----------------------------------------------------------------------------
@@ -183,7 +184,7 @@ class TestRegressionResults(unittest.TestCase):
                                     's5': ilr_inv(A([3.065789, 3.815789])),
                                     's6': ilr_inv(A([4.144737, 6.394737])),
                                     's7': ilr_inv(A([3.605263, 5.105263]))},
-                                   index=feature_names)
+                                   index=feature_names).T
 
         pdt.assert_frame_equal(res_predict, exp_predict)
 
