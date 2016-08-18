@@ -14,7 +14,7 @@ import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from gneiss._formula import ols, mixedlm
-
+from random import seed
 
 class TestOLS(unittest.TestCase):
 
@@ -85,9 +85,26 @@ class TestMixedLM(unittest.TestCase):
                   'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
 
     def test_mixedlm(self):
-        res = mixedlm('time', self.table, self.metadata, self.tree, groups=patient)
+        np.random.seed(0)
+        seed(0)
+        res = mixedlm('time', self.table, self.metadata, self.tree, groups='patient')
 
-        pass
+        exp_pvals = pd.DataFrame([[0.015293, 0.193931, 0.012249],
+                                  [0.000000, 0.579045, 0.909983]],
+                                 index=['Y1', 'Y2'],
+                                 columns=['Intercept', 'Intercept RE', 'time'])
+
+        exp_coefs = pd.DataFrame([[2.600000, 42.868869, 0.9750],
+                                  [1.016667, 0.216595, 0.0125]],
+                                 index=['Y1', 'Y2'],
+                                 columns=['Intercept', 'Intercept RE', 'time'])
+
+        pdt.assert_index_equal(exp_pvals.index, res.pvalues.index)
+        pdt.assert_index_equal(exp_pvals.columns, res.pvalues.columns)
+
+        pdt.assert_index_equal(exp_coefs.index, res.coefficients().index)
+        pdt.assert_index_equal(exp_coefs.columns, res.coefficients().columns)
+
 
 if __name__ == '__main__':
     unittest.main()

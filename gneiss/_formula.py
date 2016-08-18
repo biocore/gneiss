@@ -124,8 +124,10 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         Tree object where the leaves correspond to the columns contained in
         the table.
     groups : str
-        Variable in `metadata` that specifies the groups.  Data from
-        different groups are different.
+        Variable in `metadata` that specifies the groups.  These groups are
+        often associated with individuals repeatedly sampled, typically
+        longitudinally.
+
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
@@ -140,7 +142,11 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     >>> import numpy as np
     >>> from skbio.stats.composition import ilr_inv
     >>> from skbio import TreeNode
-    >>> from gneiss._formula import mixedlm
+    >>> from gneiss import mixedlm
+
+    Here, we will define a table of proportions with 3 features
+    `a`, `b`, and `c` across 12 samples.
+
     >>> table = pd.DataFrame({
     ...         'x1': ilr_inv(np.array([1.1, 1.1])),
     ...         'x2': ilr_inv(np.array([1., 2.])),
@@ -155,13 +161,40 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     ...         'u2': ilr_inv(np.array([1., 7.])),
     ...         'u3': ilr_inv(np.array([1.1, 8.1]))},
     ...         index=['a', 'b', 'c']).T
-    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+
+    Now we are going to define some of the external variables to
+    test for in the model.  Here we will be testing a hypothetical
+    longitudinal study across 3 time points, with 4 patients
+    `x`, `y`, `z` and `u`, where `x` and `y` were given treatment `1`
+    and `z` and `u` were given treatment `2`.
+
     >>> metadata = pd.DataFrame({
     ...         'patient': [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
     ...         'treatment': [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
     ...         'time': [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
     ...     }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
     ...               'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
+
+    Finally, we need to define a bifurcating tree used to convert the
+    proportions to balances.  If the internal nodes aren't labels,
+    a default labeling will be applied (i.e. `y1`, `y2`, ...)
+
+    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+    >>> print(tree.ascii_art())
+              /-c
+    -Y1------|
+             |          /-b
+              \Y2------|
+                        \-a
+
+    Now we can run the linear mixed effects model on the proportions.
+    Underneath the hood, the proportions will be transformed into balance,
+    so that the linear mixed effects models can be run directly on balances.
+    Since each patient was  sampled repeatedly, we'll specify them separately
+    in the groups.  In the linear mixed effects  model `time` and `treatment`
+    will be simultaneously tested for with respect to the balances.
+
+    >>> res = mixedlm('time + treatment', table, metadata, tree, groups='patient')
 
     See Also
     --------
