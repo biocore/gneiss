@@ -202,5 +202,6 @@ class TestRegressionResults(unittest.TestCase):
 
         pdt.assert_frame_equal(res_predict, exp_predict)
 
+
 if __name__ == "__main__":
     unittest.main()
