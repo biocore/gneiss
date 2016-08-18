@@ -11,7 +11,6 @@ from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
-import numpy as np
 
 
 def _intersect_of_table_metadata_tree(table, metadata, tree):
@@ -227,7 +226,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         Tree object where the leaves correspond to the columns contained in
         the table.
     groups : str
-        Variable in `metadata` that specifies the groups.  These groups are
+        Column names in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
         longitudinally.
     **kwargs : dict
@@ -290,36 +289,35 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                         \-a
 
     Now we can run the linear mixed effects model on the proportions.
-    Underneath the hood, the proportions will be transformed into balance,
+    Underneath the hood, the proportions will be transformed into balances,
     so that the linear mixed effects models can be run directly on balances.
     Since each patient was  sampled repeatedly, we'll specify them separately
     in the groups.  In the linear mixed effects  model `time` and `treatment`
     will be simultaneously tested for with respect to the balances.
 
-    >>> res = mixedlm('time + treatment', table, metadata, tree, groups='patient')
+    >>> res = mixedlm('time + treatment', table, metadata, tree,
+    ...               groups='patient')
 
     See Also
     --------
     statsmodels.regression.linear_model.MixedLM
+    ols
+
     """
-    _table, _metadata, _tree = _intersect_of_table_metadata_tree(table,
-                                                                 metadata,
-                                                                 tree)
-    ilr_table, basis = _to_balances(_table, _tree)
-    data = pd.merge(ilr_table, _metadata, left_index=True, right_index=True)
+    table, metadata, tree = _intersect_of_table_metadata_tree(table,
+                                                              metadata,
+                                                              tree)
+    ilr_table, basis = _to_balances(table, tree)
+    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     fits = []
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
-        np.random.seed(0)
         mdf = smf.mixedlm(stats_formula, data=data,
                           groups=data[groups],
                           **kwargs).fit()
-        print(mdf.pvalues)
         fits.append(mdf)
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns)
-
-
