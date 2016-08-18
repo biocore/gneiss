@@ -35,7 +35,25 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
     return _table, _metadata, _tree
 
 
-def _transform(table, tree):
+def _to_balances(table, tree):
+    """ Converts a table of abundances to balances given a tree.
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Contingency table where samples correspond to rows and
+        features correspond to columns.
+    tree : skbio.TreeNode
+        Tree object where the leaves correspond to the columns contained in
+        the table.
+
+    Returns
+    -------
+    pd.DataFrame :
+        Contingency table where samples correspond to rows and
+        balances correspond to columns.
+    np.array :
+        Orthonormal basis in the Aitchison simplex generated from `tree`.
+    """
     non_tips = [n.name for n in tree.levelorder() if not n.is_tip()]
     basis, _ = balance_basis(tree)
 
@@ -170,7 +188,7 @@ def ols(formula, table, metadata, tree, **kwargs):
     _table, _metadata, _tree = _intersect_of_table_metadata_tree(table,
                                                                  metadata,
                                                                  tree)
-    ilr_table, basis = _transform(_table, _tree)
+    ilr_table, basis = _to_balances(_table, _tree)
     data = pd.merge(ilr_table, _metadata, left_index=True, right_index=True)
 
     fits = []
