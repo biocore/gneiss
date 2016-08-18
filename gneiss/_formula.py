@@ -11,6 +11,7 @@ from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
+import numpy as np
 
 
 def _intersect_of_table_metadata_tree(table, metadata, tree):
@@ -312,7 +313,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
-
+        np.random.seed(0)
         mdf = smf.mixedlm(stats_formula, data=data,
                           groups=data[groups],
                           **kwargs).fit()

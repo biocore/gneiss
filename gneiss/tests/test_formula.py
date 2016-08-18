@@ -14,6 +14,7 @@ from skbio import TreeNode
 from gneiss._formula import ols, mixedlm
 from random import seed
 
+
 class TestOLS(unittest.TestCase):
 
     def setUp(self):
@@ -149,7 +150,6 @@ class TestOLS(unittest.TestCase):
         with self.assertRaises(ValueError):
             ols('real + lame', table, metadata, tree)
 
-
 class TestMixedLM(unittest.TestCase):
 
     def setUp(self):
@@ -180,6 +180,7 @@ class TestMixedLM(unittest.TestCase):
         np.random.seed(0)
         seed(0)
         res = mixedlm('time', self.table, self.metadata, self.tree, groups='patient')
+
 
         exp_pvals = pd.DataFrame([[0.015293, 0.193931, 0.012249],
                                   [0.000000, 0.579045, 0.909983]],
