@@ -17,6 +17,29 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
     """ Matches tips, features and samples between the table, metadata
     and tree.  This module returns the features and samples that are
     contained in all 3 objects.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Contingency table where samples correspond to rows and
+        features correspond to columns.
+    metadata: pd.DataFrame
+        Metadata table that contains information about the samples contained
+        in the `table` object.  Samples correspond to rows and covariates
+        correspond to columns.
+    tree : skbio.TreeNode
+        Tree object where the leaves correspond to the columns contained in
+        the table.
+
+    Returns
+    -------
+    pd.DataFrame
+        Subset of `table` with common row names as `metadata`
+        and common columns as `tree.tips()`
+    pd.DataFrame
+        Subset of `metadata` with common row names as `table`
+    skbio.TreeNode
+        Subtree of `tree` with common tips as `table`
     """
     _table, _metadata = match(table, metadata)
     _table, _tree = match_tips(_table, tree)
@@ -37,6 +60,7 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
 
 def _to_balances(table, tree):
     """ Converts a table of abundances to balances given a tree.
+
     Parameters
     ----------
     table : pd.DataFrame
@@ -48,10 +72,10 @@ def _to_balances(table, tree):
 
     Returns
     -------
-    pd.DataFrame :
+    pd.DataFrame
         Contingency table where samples correspond to rows and
         balances correspond to columns.
-    np.array :
+    np.array
         Orthonormal basis in the Aitchison simplex generated from `tree`.
     """
     non_tips = [n.name for n in tree.levelorder() if not n.is_tip()]
@@ -185,11 +209,11 @@ def ols(formula, table, metadata, tree, **kwargs):
     --------
     statsmodels.regression.linear_model.OLS
     """
-    _table, _metadata, _tree = _intersect_of_table_metadata_tree(table,
-                                                                 metadata,
-                                                                 tree)
-    ilr_table, basis = _to_balances(_table, _tree)
-    data = pd.merge(ilr_table, _metadata, left_index=True, right_index=True)
+    table, metadata, tree = _intersect_of_table_metadata_tree(table,
+                                                              metadata,
+                                                              tree)
+    ilr_table, basis = _to_balances(table, tree)
+    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     fits = []
     for b in ilr_table.columns:
