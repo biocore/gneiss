@@ -37,6 +37,7 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
 
 def _to_balances(table, tree):
     """ Converts a table of abundances to balances given a tree.
+
     Parameters
     ----------
     table : pd.DataFrame
@@ -203,19 +204,8 @@ def ols(formula, table, metadata, tree, **kwargs):
                              feature_names=table.columns)
 
 
-def glm(formula, table, metadata, tree, **kwargs):
-    """ Generalized Linear Models applied to balances.
-
-    Parameters
-    ----------
-    """
-    pass
-
-
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
-
-    An Linear Mixed Effects model is applied to each balance.
 
     Parameters
     ----------
@@ -239,7 +229,6 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         Variable in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
         longitudinally.
-
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
@@ -312,8 +301,10 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     --------
     statsmodels.regression.linear_model.MixedLM
     """
-    _table, _metadata, _tree = _process(table, metadata, tree)
-    ilr_table, basis = _transform(_table, _tree)
+    _table, _metadata, _tree = _intersect_of_table_metadata_tree(table,
+                                                                 metadata,
+                                                                 tree)
+    ilr_table, basis = _to_balances(_table, _tree)
     data = pd.merge(ilr_table, _metadata, left_index=True, right_index=True)
 
     fits = []
@@ -330,10 +321,3 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                              feature_names=table.columns)
 
 
-def gee(formula, table, metadata, tree, **kwargs):
-    """ Generalized Estimating Equations applied to balances.
-
-    Parameters
-    ----------
-    """
-    pass
