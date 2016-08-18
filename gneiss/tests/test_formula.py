@@ -65,7 +65,7 @@ class TestOLS(unittest.TestCase):
         exp_coef = pd.DataFrame(
             {'Intercept': [0, 1.00],
              'real': [1.0, 0]},
-            index=['Y1', 'Y2'])
+            index=['y0', 'y1'])
 
         pdt.assert_frame_equal(res_coef, exp_coef,
                                check_exact=False,
@@ -80,7 +80,7 @@ class TestOLS(unittest.TestCase):
                                   [0., 0.],
                                   [0., 0.]],
                                  index=['s1', 's2', 's3', 's4', 's5'],
-                                 columns=['Y1', 'Y2'])
+                                 columns=['y0', 'y1'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
 

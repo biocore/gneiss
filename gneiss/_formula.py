@@ -21,7 +21,7 @@ def _process(table, metadata, tree):
     _table, _metadata = match(table, metadata)
     _table, _tree = match_tips(table, tree)
     non_tips_no_name = [(n.name is None) for n in tree.levelorder()
-                        if n.is_tip()]
+                        if not n.is_tip()]
 
     if any(non_tips_no_name):
         _tree = rename_internal_nodes(_tree)
