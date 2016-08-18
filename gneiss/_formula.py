@@ -230,7 +230,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         often associated with individuals repeatedly sampled, typically
         longitudinally.
     **kwargs : dict
-        Other arguments accepted into `statsmodels.regression.linear_model.MixedLM`
+        Other arguments accepted into
+        `statsmodels.regression.linear_model.MixedLM`
 
     Returns
     -------
