@@ -8,7 +8,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from gneiss._formula import mixedlm
+from gneiss._formula import mixedlm, ols
 
-__all__ = ['mixedlm']
+__all__ = ['ols', 'mixedlm']
+
 __version__ = "0.0.2"

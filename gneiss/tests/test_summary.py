@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
@@ -117,7 +117,7 @@ class TestRegressionResults(unittest.TestCase):
                                   's5': ilr_inv(A([-1.065789, 1.184211])),
                                   's6': ilr_inv(A([-1.144737, -0.394737])),
                                   's7': ilr_inv(A([0.394737, 1.894737]))},
-                                 index=['Z1', 'Z2', 'Z3'])
+                                 index=['Z1', 'Z2', 'Z3']).T
         feature_names = ['Z1', 'Z2', 'Z3']
         basis = _gram_schmidt_basis(3)
         res = RegressionResults(self.results, basis=basis,
@@ -134,7 +134,7 @@ class TestRegressionResults(unittest.TestCase):
                                   's5': [-1.065789, 1.184211],
                                   's6': [-1.144737, -0.394737],
                                   's7': [0.394737, 1.894737]},
-                                 index=['Y1', 'Y2'])
+                                 index=['Y1', 'Y2']).T
         res = RegressionResults(self.results)
         pdt.assert_frame_equal(res.residuals(), exp_resid,
                                check_exact=False,
@@ -201,6 +201,7 @@ class TestRegressionResults(unittest.TestCase):
                                    index=['Y1', 'Y2']).T
 
         pdt.assert_frame_equal(res_predict, exp_predict)
+
 
 if __name__ == "__main__":
     unittest.main()

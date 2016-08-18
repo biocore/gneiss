@@ -94,7 +94,7 @@ class RegressionResults():
         ----------
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
 
         Returns
@@ -112,6 +112,11 @@ class RegressionResults():
         ValueError:
             Cannot perform projection into Aitchison simplex
             if `feature_names` is not specified.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
         coef = pd.DataFrame()
@@ -122,12 +127,13 @@ class RegressionResults():
             coef = coef.append(c)
 
         if project:
-            # `check=True` due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here:
+            # https://github.com/biocore/gneiss/issues/34
             c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
-            c = pd.DataFrame(c, index=self.feature_names,
-                             columns=coef.columns)
-            return c
+            return pd.DataFrame(c, index=self.feature_names,
+                                columns=coef.columns)
         else:
             return coef
 
@@ -142,14 +148,19 @@ class RegressionResults():
             returned.
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
+            A table of values where rows are samples, and the columns
             are either balances or proportions, depending on the value of
             `project`.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
 
@@ -161,15 +172,16 @@ class RegressionResults():
             resid = resid.append(err)
 
         if project:
-            # check=True due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here:
+            # https://github.com/biocore/gneiss/issues/34
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
-            proj_resid = pd.DataFrame(proj_resid, index=self.feature_names,
-                                      columns=resid.columns)
-            return proj_resid
+            return pd.DataFrame(proj_resid, index=self.feature_names,
+                                columns=resid.columns).T
         else:
-            return resid
+            return resid.T
 
     def predict(self, X=None, project=False, **kwargs):
         """ Performs a prediction based on model.
@@ -182,7 +194,7 @@ class RegressionResults():
             calculated from training the model will be returned.
         project : bool, optional
             Specifies if coefficients should be projected back into
-            the Aitchison simplex.  If false, the coefficients will be
+            the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
         **kwargs : dict
             Other arguments to be passed into the model prediction.
@@ -193,6 +205,11 @@ class RegressionResults():
             A table of values where rows are coefficients, and the columns
             are either balances or proportions, depending on the value of
             `project`.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
         """
         self._check_projection(project)
 
@@ -208,13 +225,13 @@ class RegressionResults():
             prediction = prediction.append(p)
 
         if project:
-            # check=True due to type issue resolved here
-            # https://github.com/biocore/scikit-bio/pull/1396
+            # `check=False`, due to a problem with error handling
+            # addressed here https://github.com/biocore/scikit-bio/pull/1396
+            # This will need to be fixed here:
+            # https://github.com/biocore/gneiss/issues/34
             proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
                                       check=False)
-            proj_prediction = pd.DataFrame(proj_prediction,
-                                           columns=self.feature_names,
-                                           index=prediction.columns)
-            return proj_prediction
-
+            return pd.DataFrame(proj_prediction,
+                                columns=self.feature_names,
+                                index=prediction.columns)
         return prediction.T
