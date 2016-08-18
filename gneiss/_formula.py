@@ -317,6 +317,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         mdf = smf.mixedlm(stats_formula, data=data,
                           groups=data[groups],
                           **kwargs).fit()
+        print(mdf.pvalues)
         fits.append(mdf)
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns)
