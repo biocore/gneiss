@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
@@ -39,26 +37,29 @@ class RegressionResults():
         self.basis = basis
         self.results = stat_results
 
-        # sum of squares error.  Also referred to as sum of squares residuals
-        sse = 0
-        # sum of squares regression. Also referred to as
-        # explained sum of squares.
-        ssr = 0
-        # See `statsmodels.regression.linear_model.RegressionResults`
-        # for more explanation on `ess` and `ssr`.
-
         # obtain pvalues
         self.pvalues = pd.DataFrame()
         for r in self.results:
             p = r.pvalues
             p.name = r.model.endog_names
             self.pvalues = self.pvalues.append(p)
-            sse += r.ssr
-            ssr += r.ess
 
+    @property
+    def r2(self):
+        """ Calculates the coefficients of determination """
+        # Reason why we wanted to move this out was because not
+        # all types of statsmodels regressions have this property.
+
+        # See `statsmodels.regression.linear_model.RegressionResults`
+        # for more explanation on `ess` and `ssr`.
+        # sum of squares regression. Also referred to as
+        # explained sum of squares.
+        ssr = sum([r.ess for r in self.results])
+        # sum of squares error.  Also referred to as sum of squares residuals
+        sse = sum([r.ssr for r in self.results])
         # calculate the overall coefficient of determination (i.e. R2)
         sst = sse + ssr
-        self.r2 = 1 - sse / sst
+        return 1 - sse / sst
 
     def _check_projection(self, project):
         """
