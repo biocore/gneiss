@@ -230,7 +230,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         often associated with individuals repeatedly sampled, typically
         longitudinally.
     **kwargs : dict
-        Other arguments accepted into `statsmodels.regression.linear_model.OLS`
+        Other arguments accepted into `statsmodels.regression.linear_model.MixedLM`
 
     Returns
     -------
@@ -291,8 +291,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     Now we can run the linear mixed effects model on the proportions.
     Underneath the hood, the proportions will be transformed into balances,
     so that the linear mixed effects models can be run directly on balances.
-    Since each patient was  sampled repeatedly, we'll specify them separately
-    in the groups.  In the linear mixed effects  model `time` and `treatment`
+    Since each patient was sampled repeatedly, we'll specify them separately
+    in the groups.  In the linear mixed effects model `time` and `treatment`
     will be simultaneously tested for with respect to the balances.
 
     >>> res = mixedlm('time + treatment', table, metadata, tree,
