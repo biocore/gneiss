@@ -279,6 +279,89 @@ class TestMixedLM(unittest.TestCase):
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
 
+        exp_coefficients = pd.DataFrame(
+            [[4.211451,  -0.305906, 1.022008, 0.924873],
+             [0.211451,  -0.305906, 1.022008, 0.924873]],
+            columns=['Intercept', 'Intercept RE', 'x1', 'x2'],
+            index=['Y1', 'Y2'])
+
+        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
+                               check_less_precise=True)
+
+    def test_mixedlm_balances_vcf(self):
+        np.random.seed(6241)
+        n = 1600
+        exog = np.random.normal(size=(n, 2))
+        groups = np.kron(np.arange(n / 16), np.ones(16))
+
+        # Build up the random error vector
+        errors = 0
+
+        # The random effects
+        exog_re = np.random.normal(size=(n, 2))
+        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
+        errors += slopes.sum(1)
+
+        # First variance component
+        subgroups1 = np.kron(np.arange(n / 4), np.ones(4))
+        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
+
+        # Second variance component
+        subgroups2 = np.kron(np.arange(n / 2), np.ones(2))
+        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
+
+        # iid errors
+        errors += np.random.normal(size=n)
+
+        endog = exog.sum(1) + errors
+
+        df = pd.DataFrame(index=range(n))
+        df["y1"] = endog
+        df["y2"] = endog + 2 * 2
+        df["groups"] = groups
+        df["x1"] = exog[:, 0]
+        df["x2"] = exog[:, 1]
+        df["z1"] = exog_re[:, 0]
+        df["z2"] = exog_re[:, 1]
+        df["v1"] = subgroups1
+        df["v2"] = subgroups2
+
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        iv = ilr_inv(df[["y1", "y2"]].values)
+        table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
+        metadata = df[['x1', 'x2', 'z1', 'z2', 'v1', 'v2', 'groups']]
+
+        res = mixedlm("x1 + x2", table, metadata, tree, groups="groups",
+                      re_formula="0+z1+z2")
+
+        exp_pvalues = pd.DataFrame(
+            [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
+             [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
+            index=['Y1', 'Y2'],
+            columns=['Intercept', 'Intercept RE', 'x1', 'x2'])
+
+        exp_pvalues = pd.DataFrame([
+            [0.000000, 3.858750e-39, 2.245068e-33,
+             2.434437e-35, 0.776775, 6.645741e-34],
+            [0.038015, 3.858750e-39, 2.245068e-33,
+             2.434437e-35, 0.776775, 6.645741e-34]],
+            columns=['Intercept', 'x1', 'x2', 'z1 RE',
+                     'z1 RE x z2 RE', 'z2 RE'],
+            index=['Y1', 'Y2'])
+        exp_coefficients = pd.DataFrame(
+            [[4.163141, 1.030013, 0.935514, 0.339239, -0.005792, 0.38456],
+             [0.163141, 1.030013, 0.935514, 0.339239, -0.005792, 0.38456]],
+            columns=['Intercept', 'x1', 'x2', 'z1 RE',
+                     'z1 RE x z2 RE', 'z2 RE'],
+            index=['Y1', 'Y2'])
+
+        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
+                               check_less_precise=True)
+
+        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
+                               check_less_precise=True)
+
 
 if __name__ == '__main__':
     unittest.main()
