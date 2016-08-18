@@ -111,8 +111,44 @@ class TestOLS(unittest.TestCase):
         self.assertEqual(str(table), str(exp_table))
         self.assertEqual(str(exp_tree), str(tree))
 
-    def test_ols_empty(self):
-        pass
+    def test_ols_empty_table(self):
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': ilr_inv(A([1., 1.])),
+            's2': ilr_inv(A([1., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([1., 4.])),
+            's5': ilr_inv(A([1., 5.])),
+            's6': ilr_inv(A([1., 5.]))},
+            index=['x', 'y', 'z']).T
+
+        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            ols('real + lame', table, metadata, tree)
+
+    def test_ols_empty_metadata(self):
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            'k1': ilr_inv(A([1., 1.])),
+            'k2': ilr_inv(A([1., 2.])),
+            'k3': ilr_inv(A([1., 3.])),
+            'k4': ilr_inv(A([1., 4.])),
+            'k5': ilr_inv(A([1., 5.])),
+            'k6': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+
+        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            ols('real + lame', table, metadata, tree)
+
 
 if __name__ == '__main__':
     unittest.main()
