@@ -8,5 +8,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+from gneiss._formula import ols
+
+__all__ = ['ols']
 
 __version__ = "0.0.2"
