@@ -62,7 +62,8 @@ class RegressionResults():
         return 1 - sse / sst
 
     def _check_projection(self, project):
-        """
+        """ Checks to make sure that the `ilr_inv` can be performed.
+
         Parameters
         ----------
         project : bool
@@ -149,6 +150,7 @@ class RegressionResults():
             Specifies if coefficients should be projected back into
             the Aitchison simplex [1]_.  If false, the coefficients will be
             represented as balances  (default: False).
+
         Returns
         -------
         pd.DataFrame

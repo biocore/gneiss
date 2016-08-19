@@ -113,7 +113,7 @@ class TestOLS(unittest.TestCase):
         self.assertEqual(str(table), str(exp_table))
         self.assertEqual(str(exp_tree), str(tree))
 
-    def test_ols_empty_table(self):
+    def test_ols_empty_table_error(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
             's1': ilr_inv(A([1., 1.])),
@@ -132,7 +132,7 @@ class TestOLS(unittest.TestCase):
         with self.assertRaises(ValueError):
             ols('real + lame', table, metadata, tree)
 
-    def test_ols_empty_metadata(self):
+    def test_ols_empty_metadata_error(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
             'k1': ilr_inv(A([1., 1.])),
@@ -141,6 +141,24 @@ class TestOLS(unittest.TestCase):
             'k4': ilr_inv(A([1., 4.])),
             'k5': ilr_inv(A([1., 5.])),
             'k6': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+
+        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            ols('real + lame', table, metadata, tree)
+
+    def test_ols_zero_error(self):
+        table = pd.DataFrame({
+            's1': [0, 0, 0],
+            's2': [0, 0, 0],
+            's3': [0, 0, 0],
+            's4': [0, 0, 0],
+            's5': [0, 0, 0],
+            's6': [0, 0, 0]},
             index=['a', 'b', 'c']).T
 
         tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
@@ -362,6 +380,23 @@ class TestMixedLM(unittest.TestCase):
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
 
+    def test_mixedlm_zero_error(self):
+        table = pd.DataFrame({
+            's1': [0, 0, 0],
+            's2': [0, 0, 0],
+            's3': [0, 0, 0],
+            's4': [0, 0, 0],
+            's5': [0, 0, 0],
+            's6': [0, 0, 0]},
+            index=['a', 'b', 'c']).T
+
+        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 2, 2],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            mixedlm('real + lame', table, metadata, tree, groups='lame')
 
 if __name__ == '__main__':
     unittest.main()

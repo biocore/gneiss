@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from skbio.stats.composition import ilr
@@ -41,6 +42,11 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
     skbio.TreeNode
         Subtree of `tree` with common tips as `table`
     """
+    if np.any(table <= 0):
+        raise ValueError('Cannot handle zeros or negative values in `table`. '
+                         'Use pseudocounts or ``multiplicative_replacement``.'
+                         )
+
     _table, _metadata = match(table, metadata)
     _table, _tree = match_tips(_table, tree)
     non_tips_no_name = [(n.name is None) for n in _tree.levelorder()
@@ -91,7 +97,16 @@ def _to_balances(table, tree):
 def ols(formula, table, metadata, tree, **kwargs):
     """ Ordinary Least Squares applied to balances.
 
-    An ordinary least square regression is applied to each balance.
+    A ordinary least square regression is performed on nonzero relative
+    abundance data given a list of covariates, or explanatory variables
+    such as ph, treatment, etc to test for specific effects. The relative
+    abundance data is transformed into balances using the ILR transformation,
+    using a tree to specify the groupings of the features. The regression
+    is then performed on each balance separately. Only positive data will
+    be accepted, so if there are zeros present, consider using a zero
+    imputation method such as ``multiplicative_replacement`` or add a
+    pseudocount.
+
 
     Parameters
     ----------
@@ -208,7 +223,9 @@ def ols(formula, table, metadata, tree, **kwargs):
     See Also
     --------
     statsmodels.regression.linear_model.OLS
+    skbio.stats.composition.multiplicative_replacement
     """
+
     table, metadata, tree = _intersect_of_table_metadata_tree(table,
                                                               metadata,
                                                               tree)
@@ -229,6 +246,16 @@ def ols(formula, table, metadata, tree, **kwargs):
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
+
+    A linear mixed effects model is performed on nonzero relative abundance
+    data given a list of covariates, or explanatory variables such as ph,
+    treatment, etc to test for specific effects. The relative abundance data
+    is transformed into balances using the ILR transformation, using a tree to
+    specify the groupings of the features. The linear mixed effects model is
+    applied to each balance separately. Only positive data will be accepted,
+    so if there are zeros present, consider using a zero imputation method
+    such as ``skbio.stats.composition.multiplicative_replacement`` or
+    add a pseudocount.
 
     Parameters
     ----------
@@ -325,6 +352,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     See Also
     --------
     statsmodels.regression.linear_model.MixedLM
+    skbio.stats.composition.multiplicative_replacement
     ols
 
     """
