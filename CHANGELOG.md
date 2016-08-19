@@ -1,8 +1,6 @@
 # gneiss changelog
-## Version 0.1.0  (changes since 0.1.0 go here)
 
-
-## Version 0.0.2  (changes since 0.0.2 go here)
+## Version 0.0.2
 
 ### Features
 * Added statsmodels inference [#22](https://github.com/biocore/gneiss/pull/22)
