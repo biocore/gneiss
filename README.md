@@ -6,3 +6,9 @@
 Canonically pronouced *nice*
 
 A compositional statistics and visualization toolbox
+
+You can install Gneiss via pip
+
+```
+pip install gneiss
+```
