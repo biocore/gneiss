@@ -6,8 +6,7 @@
 Canonically pronouced *nice*
 
 
- compositional statistics and visualization toolbox
-+gneiss is a compositional statistics and visualization toolbox.  
+gneiss is a compositional statistics and visualization toolbox.  
  
 Note that gneiss is not compatible with python 2, and is compatible with Python 3.4 or later.
 gneiss is currently in alpha.  We are actively developing it, and __backward-incompatible interface changes can and will arise__.
