@@ -19,12 +19,6 @@ To install this package, it is recommended to use conda as follows
 conda install -c biocore gneiss
 ```
 
-You can also install Gneiss via pip
-
-```
-pip install gneiss
-```
-
 To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
 These packages can be installed with conda as follows
 ```
