@@ -36,7 +36,7 @@ if USE_CYTHON:
 
 classes = """
     Development Status :: 3 - Alpha
-    License :: OSI Approved :: GPLv3 License
+    License :: OSI Approved :: GNU General Public License v3 (GPLv3)
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
