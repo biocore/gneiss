@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the GPLv3 License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ if USE_CYTHON:
 
 classes = """
     Development Status :: 3 - Alpha
-    License :: OSI Approved :: BSD License
+    License :: OSI Approved :: GPLv3 License
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
@@ -64,7 +64,7 @@ with open('gneiss/__init__.py', 'rb') as f:
 
 setup(name='gneiss',
       version=version,
-      license='BSD',
+      license='GPLv3',
       description=description,
       long_description=long_description,
       author="gneiss development team",
