@@ -32,3 +32,10 @@ source activate gneiss
 conda install seaborn h5py
 pip install biom-format
 ```
+
+# Examples
+
+IPython notebooks demonstrating some of the modules in gneiss can be found as follows
+
+* [What are balances](https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb)
+* [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils.ipynb)
