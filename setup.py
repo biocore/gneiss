@@ -64,7 +64,7 @@ with open('gneiss/__init__.py', 'rb') as f:
 
 setup(name='gneiss',
       version=version,
-      license='BSD',
+      license='GPLv3',
       description=description,
       long_description=long_description,
       author="gneiss development team",
