@@ -19,12 +19,6 @@ To install this package, it is recommended to use conda as follows
 conda install -c biocore gneiss
 ```
 
-You can also install Gneiss via pip
-
-```
-pip install gneiss
-```
-
 To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
 These packages can be installed with conda as follows
 ```
@@ -39,3 +33,4 @@ IPython notebooks demonstrating some of the modules in gneiss can be found as fo
 
 * [What are balances](https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb)
 * [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils.ipynb)
+* [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy.ipynb)
