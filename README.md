@@ -22,7 +22,13 @@ conda create -n gneiss_env python=3
 gneiss then can be installed as follows
 ```
 source activate gneiss_env
+conda install pyqt
 pip install gneiss
+```
+
+gneiss can also be installed through conda
+```
+conda install -c biocore gneiss
 ```
 
 To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
