@@ -36,7 +36,7 @@ if USE_CYTHON:
 
 classes = """
     Development Status :: 3 - Alpha
-    License :: OSI Approved :: GPLv3 License
+    License :: OSI Approved :: GNU General Public License v3 (GPLv3)
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
@@ -64,7 +64,7 @@ with open('gneiss/__init__.py', 'rb') as f:
 
 setup(name='gneiss',
       version=version,
-      license='BSD',
+      license='GPLv3',
       description=description,
       long_description=long_description,
       author="gneiss development team",
