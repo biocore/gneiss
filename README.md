@@ -13,8 +13,20 @@ gneiss is currently in alpha.  We are actively developing it, and __backward-inc
 
 # Installation
 
-To install this package, it is recommended to use conda as follows
+To install this package, it is recommended to use conda.  An environment can installed as follows
 
+```
+conda create -n gneiss_env python=3
+```
+
+gneiss then can be installed as follows
+```
+source activate gneiss_env
+conda install pyqt
+pip install gneiss
+```
+
+gneiss can also be installed through conda
 ```
 conda install -c biocore gneiss
 ```
@@ -22,7 +34,6 @@ conda install -c biocore gneiss
 To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
 These packages can be installed with conda as follows
 ```
-source activate gneiss
 conda install seaborn h5py
 pip install biom-format
 ```
