@@ -14,6 +14,7 @@ from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
 
 
+
 def _intersect_of_table_metadata_tree(table, metadata, tree):
     """ Matches tips, features and samples between the table, metadata
     and tree.  This module returns the features and samples that are
@@ -93,8 +94,15 @@ def _to_balances(table, tree):
                              index=table.index)
     return ilr_table, basis
 
+def _single_ols(b, formula, data, **kwargs):
+    # mixed effects code is obtained here:
+    # http://stackoverflow.com/a/22439820/1167475
+    stats_formula = '%s ~ %s' % (b, formula)
+    mdf = smf.ols(stats_formula, data=data, **kwargs).fit()
+    return mdf
 
-def ols(formula, table, metadata, tree, **kwargs):
+
+def ols(formula, table, metadata, tree, n_jobs=1, **kwargs):
     """ Ordinary Least Squares applied to balances.
 
     A ordinary least square regression is performed on nonzero relative
@@ -126,6 +134,8 @@ def ols(formula, table, metadata, tree, **kwargs):
     tree : skbio.TreeNode
         Tree object where the leaves correspond to the columns contained in
         the table.
+    njobs : int
+        Number of jobs to run in parallel.
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
@@ -233,18 +243,35 @@ def ols(formula, table, metadata, tree, **kwargs):
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     fits = []
-    for b in ilr_table.columns:
-        # mixed effects code is obtained here:
-        # http://stackoverflow.com/a/22439820/1167475
-        stats_formula = '%s ~ %s' % (b, formula)
 
-        mdf = smf.ols(stats_formula, data=data, **kwargs).fit()
-        fits.append(mdf)
+    if n_jobs == 1:
+        for b in ilr_table.columns:
+            # mixed effects code is obtained here:
+            # http://stackoverflow.com/a/22439820/1167475
+            stats_formula = '%s ~ %s' % (b, formula)
+
+            mdf = smf.ols(stats_formula, data=data, **kwargs).fit()
+            fits.append(mdf)
+    else:
+        from joblib import Parallel, delayed
+        fits = Parallel(n_jobs=n_jobs)(
+            delayed(_single_ols)(
+                b=b, formula=formula, data=data, **kwargs)
+             for b in ilr_table.columns)
+
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns)
 
+def _single_mixedlm(b, formula, data, groups, **kwargs):
+    # mixed effects code is obtained here:
+    # http://stackoverflow.com/a/22439820/1167475
+    stats_formula = '%s ~ %s' % (b, formula)
+    mdf = smf.mixedlm(stats_formula, data=data,
+                      groups=data[groups],
+                      **kwargs).fit()
+    return mdf
 
-def mixedlm(formula, table, metadata, tree, groups, **kwargs):
+def mixedlm(formula, table, metadata, tree, groups, n_jobs=1, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -362,14 +389,23 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     ilr_table, basis = _to_balances(table, tree)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
+
     fits = []
-    for b in ilr_table.columns:
-        # mixed effects code is obtained here:
-        # http://stackoverflow.com/a/22439820/1167475
-        stats_formula = '%s ~ %s' % (b, formula)
-        mdf = smf.mixedlm(stats_formula, data=data,
-                          groups=data[groups],
-                          **kwargs).fit()
-        fits.append(mdf)
+    if n_jobs == 1:
+        for b in ilr_table.columns:
+            # mixed effects code is obtained here:
+            # http://stackoverflow.com/a/22439820/1167475
+            stats_formula = '%s ~ %s' % (b, formula)
+            mdf = smf.mixedlm(stats_formula, data=data,
+                              groups=data[groups],
+                              **kwargs).fit()
+            fits.append(mdf)
+    else:
+        from joblib import Parallel, delayed
+        fits = Parallel(n_jobs=n_jobs)(
+            delayed(_single_mixedlm)(
+                b=b, formula=formula, data=data, groups=groups, **kwargs)
+             for b in ilr_table.columns)
+
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns)
