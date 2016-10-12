@@ -6,10 +6,12 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pandas.util.testing as pdt
 import statsmodels.formula.api as smf
 import unittest
+import skbio
 from gneiss._summary import RegressionResults
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 
@@ -30,6 +32,15 @@ class TestRegressionResults(unittest.TestCase):
         model1 = smf.ols(formula="Y1 ~ X", data=self.data)
         model2 = smf.ols(formula="Y2 ~ X", data=self.data)
         self.results = [model1.fit(), model2.fit()]
+
+    def test_balances(self):
+        res = RegressionResults(self.results, balances=np.arange(7))
+        npt.assert_almost_equal(res.balances, np.arange(7))
+
+    def test_tree(self):
+        t = skbio.TreeNode.read([u"a;"])
+        res = RegressionResults(self.results, tree=t)
+        self.assertEqual(str(t), "a;\n")
 
     def test_r2(self):
         fittedvalues = pd.DataFrame({'s1': [1.986842, 1.236842],

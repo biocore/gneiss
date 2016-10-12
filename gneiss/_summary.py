@@ -16,7 +16,9 @@ class RegressionResults():
     def __init__(self,
                  stat_results,
                  feature_names=None,
-                 basis=None):
+                 basis=None,
+                 balances=None,
+                 tree=None):
         """ Reorganizes statsmodels regression results modules.
 
         Accepts a list of statsmodels RegressionResults objects
@@ -36,6 +38,8 @@ class RegressionResults():
         self.feature_names = feature_names
         self.basis = basis
         self.results = stat_results
+        self.tree = tree
+        self.balances = balances
 
         # obtain pvalues
         self.pvalues = pd.DataFrame()
