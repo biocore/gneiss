@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/biocore/gneiss.png?branch=master)](https://travis-ci.org/biocore/gneiss)
 [![Coverage Status](https://coveralls.io/repos/biocore/gneiss/badge.svg)](https://coveralls.io/r/biocore/gneiss)
+[![Gitter](https://badges.gitter.im/biocore/gneiss.svg)](https://gitter.im/biocore/gneiss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Canonically pronouced *nice*
 
@@ -22,7 +23,13 @@ conda create -n gneiss_env python=3
 gneiss then can be installed as follows
 ```
 source activate gneiss_env
+conda install pyqt
 pip install gneiss
+```
+
+gneiss can also be installed through conda
+```
+conda install -c biocore gneiss
 ```
 
 To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
@@ -39,3 +46,4 @@ IPython notebooks demonstrating some of the modules in gneiss can be found as fo
 * [What are balances](https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb)
 * [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils.ipynb)
 * [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy.ipynb)
+* [Linear mixed effects models on balances in a PTSD study](https://github.com/biocore/gneiss/blob/master/ipynb/ptsd_mice.ipynb)
