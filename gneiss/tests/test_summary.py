@@ -40,7 +40,7 @@ class TestRegressionResults(unittest.TestCase):
     def test_tree(self):
         t = skbio.TreeNode.read([u"a;"])
         res = RegressionResults(self.results, tree=t)
-        self.assertEqual(str(t), "a;\n")
+        self.assertEqual(str(res.tree), "a;\n")
 
     def test_r2(self):
         fittedvalues = pd.DataFrame({'s1': [1.986842, 1.236842],
