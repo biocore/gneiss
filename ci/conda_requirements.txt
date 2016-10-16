@@ -6,3 +6,4 @@ IPython<4.0.0
 notebook
 scikit-bio
 joblib
+pyqt=4.11.4
