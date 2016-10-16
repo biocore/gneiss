@@ -5,3 +5,4 @@ flake8
 IPython<4.0.0
 notebook
 scikit-bio
+joblib
