@@ -271,7 +271,6 @@ def ols(formula, table, metadata, tree, n_jobs=1, **kwargs):
                              tree=tree)
 
 
-
 def _single_mixedlm(batch, formula, data, groups, **kwargs):
     # mixed effects code is obtained here:
     # http://stackoverflow.com/a/22439820/1167475
