@@ -416,7 +416,8 @@ def mixedlm(formula, table, metadata, tree, groups, n_jobs=1, **kwargs):
         batch_size = len(ilr_table.columns) // n_jobs
         fits = Parallel(n_jobs=n_jobs)(
             delayed(_single_mixedlm)(
-                batch=b_batch, formula=formula, data=data, groups=groups, **kwargs)
+                batch=b_batch, formula=formula, data=data,
+                groups=groups, **kwargs)
             for b_batch in np.array_split(ilr_table.columns, n_jobs))
         fits = list(itertools.chain.from_iterable(fits))
 
