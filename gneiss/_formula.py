@@ -257,7 +257,6 @@ def ols(formula, table, metadata, tree, n_jobs=1, **kwargs):
             fits.append(mdf)
     else:
         from joblib import Parallel, delayed
-        batch_size = len(ilr_table.columns) // n_jobs
 
         fits = Parallel(n_jobs=n_jobs)(
             delayed(_single_ols)(
@@ -413,7 +412,7 @@ def mixedlm(formula, table, metadata, tree, groups, n_jobs=1, **kwargs):
             fits.append(mdf)
     else:
         from joblib import Parallel, delayed
-        batch_size = len(ilr_table.columns) // n_jobs
+
         fits = Parallel(n_jobs=n_jobs)(
             delayed(_single_mixedlm)(
                 batch=b_batch, formula=formula, data=data,
