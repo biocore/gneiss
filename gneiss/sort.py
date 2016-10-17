@@ -123,15 +123,12 @@ def ladderize(tree, ascending=True):
     Parameters
     ----------
     tree : skbio.TreeNode
-       Input tree where leafs correspond to features
-       contained in the index in `grouping1.
-    gradient : pd.Series
-       Gradient where the index correspond to features.
+       Input tree where leafs correspond to features.
 
     Returns
     -------
     skbio.TreeNode
-       A tree whose tips are sorted along the gradient.
+       A tree whose tips are sorted according to subtree size.
 
     Examples
     --------
@@ -160,19 +157,18 @@ def ladderize(tree, ascending=True):
                                   \-h
     """
     sorted_tree = tree.copy()
-    # Note that this is an extremely slow
+    # Note that this is operation is not optimal
     # See https://github.com/biocore/gneiss/issues/58
     for n in sorted_tree.postorder(include_self=True):
         sizes = [len(list(k.tips())) for k in n.children]
-        if ascending:
-            idx = np.argsort(sizes)
-        else:
-            idx = np.argsort(sizes)[::-1]
+        idx = np.argsort(sizes)
+        if not ascending:
+            idx = idx[::-1]
         n.children = [n.children[i] for i in idx]
     return sorted_tree
 
 
-def order_tips(tree, gradient, ascending=True):
+def gradient_sort(tree, gradient, ascending=True):
     """
     Sorts tree according to ordering in tree.
 
@@ -181,7 +177,7 @@ def order_tips(tree, gradient, ascending=True):
     tree : skbio.TreeNode
        Input tree where leafs correspond to features
        contained in the index in `gradient`.
-    gradient : pd.Series
+    gradient : pd.Series, numeric
        Gradient where the index correspond to feature names.
        The index in the gradient must be consistent with
        names of the tips in the `tree`.
@@ -220,13 +216,16 @@ def order_tips(tree, gradient, ascending=True):
                         \-b
     """
     sorted_tree = tree.copy()
-    # Note that this is an extremely slow
+    if not np.issubdtype(gradient, np.number):
+        raise ValueError('`gradient` needs to be numeric, not %s' %
+                         gradient.dtype)
+
+    # Note that this operation is not optimal
     # See https://github.com/biocore/gneiss/issues/58
     for n in sorted_tree.postorder(include_self=True):
         means = [gradient.loc[list(k.subset())].mean() for k in n.children]
-        if ascending:
-            idx = np.argsort(means)
-        else:
-            idx = np.argsort(means)[::-1]
+        idx = np.argsort(means)
+        if not ascending:
+            idx = idx[::-1]
         n.children = [n.children[i] for i in idx]
     return sorted_tree
