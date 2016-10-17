@@ -3,7 +3,7 @@
 ## Version 0.1.2
 
 ### Features
-* Added `ladderize` and `order_tips` [#53](https://github.com/biocore/gneiss/issues/53)
+* Adding parallelization in `ols` and `mixedlm` [#53](https://github.com/biocore/gneiss/issues/53)
 
 ### Bug fixes
 
