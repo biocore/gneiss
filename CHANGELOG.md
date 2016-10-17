@@ -3,6 +3,14 @@
 ## Version 0.0.2
 
 ### Features
+* Added `ladderize` and `order_tips` [#29](https://github.com/biocore/gneiss/issues/29)
+
+### Bug fixes
+
+
+## Version 0.0.2
+
+### Features
 * Added statsmodels inference [#22](https://github.com/biocore/gneiss/pull/22)
 * Added support for ordinary least squares regression [#33](https://github.com/biocore/gneiss/pull/33)
 * Added support for linear mixed effects models [#38](https://github.com/biocore/gneiss/pull/38)
