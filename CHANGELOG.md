@@ -1,5 +1,12 @@
 # gneiss changelog
 
+## Version 0.1.2
+
+### Features
+* Added `ladderize` and `order_tips` [#53](https://github.com/biocore/gneiss/issues/53)
+
+### Bug fixes
+
 ## Version 0.0.2
 
 ### Features
