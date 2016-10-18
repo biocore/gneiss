@@ -203,7 +203,7 @@ def gradient_sort(tree, gradient, ascending=True):
               \d-------|          \-h
                        |
                         \-f
-    >>> res = order_tips(tree, x)
+    >>> res = gradient_sort(tree, x)
     >>> print(res.ascii_art())
                                   /-g
                         /e-------|
