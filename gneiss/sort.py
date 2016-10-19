@@ -116,6 +116,15 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
     return table
 
 
+def _cache_ntips(tree):
+    for n in tree.postorder(include_self=True):
+        if n.is_tip():
+            n._n_tips = 1
+        else:
+            n._n_tips = sum(c._n_tips for c in n.children)
+    return tree
+
+
 def ladderize(tree, ascending=True):
     """
     Sorts tree according to the size of the subtrees.
@@ -157,10 +166,10 @@ def ladderize(tree, ascending=True):
                                   \-h
     """
     sorted_tree = tree.copy()
-    # Note that this is operation is not optimal
-    # See https://github.com/biocore/gneiss/issues/58
+    sorted_tree = _cache_ntips(tree)
+
     for n in sorted_tree.postorder(include_self=True):
-        sizes = [len(list(k.tips())) for k in n.children]
+        sizes = [k._n_tips for k in n.children]
         idx = np.argsort(sizes)
         if not ascending:
             idx = idx[::-1]
