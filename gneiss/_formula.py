@@ -126,8 +126,6 @@ def ols(formula, table, metadata, tree, **kwargs):
     tree : skbio.TreeNode
         Tree object where the leaves correspond to the columns contained in
         the table.
-    njobs : int
-        Number of jobs to run in parallel.
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
