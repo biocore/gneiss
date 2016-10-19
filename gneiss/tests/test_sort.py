@@ -8,8 +8,10 @@
 import numpy as np
 import pandas as pd
 import unittest
-from gneiss.sort import niche_sort, mean_niche_estimator
+from gneiss.sort import (niche_sort, mean_niche_estimator,
+                         ladderize, gradient_sort)
 import pandas.util.testing as pdt
+from skbio import TreeNode
 
 
 class TestSort(unittest.TestCase):
@@ -172,6 +174,53 @@ class TestSort(unittest.TestCase):
         niche_sort(table, gradient)
         pdt.assert_frame_equal(exp_table, table)
         pdt.assert_series_equal(exp_gradient, gradient)
+
+    def test_ladderize1(self):
+        # Makes sure that 1 subtree is ordered
+        tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+        exp = '((a,b)c,(f,(g,h)e)d)r;\n'
+        res = str(ladderize(tree))
+        self.assertEqual(exp, res)
+
+    def test_ladderize2(self):
+        # Makes sure that 2 subtrees are ordered
+        tree = TreeNode.read([u'(((n,m)a,b)c, ((g,(i,j)h)e,f)d)r;'])
+        exp = '((b,(n,m)a)c,(f,(g,(i,j)h)e)d)r;\n'
+        res = str(ladderize(tree))
+        self.assertEqual(exp, res)
+
+    def test_ladderize_descending(self):
+        # Makes sure that 2 subtrees are ordered
+        tree = TreeNode.read([u'(((n,m)a,b)c, ((g,(i,j)h)e,f)d)r;'])
+        exp = '((((j,i)h,g)e,f)d,((m,n)a,b)c)r;\n'
+        res = str(ladderize(tree, ascending=False))
+        self.assertEqual(exp, res)
+
+    def test_gradient_sort(self):
+        # Makes sure that the tree is sorted according
+        # a pre-set ordering
+        tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+        exp = '(((g,h)e,f)d,(a,b)c)r;\n'
+        x = pd.Series({'f': 3, 'g': 1, 'h': 2, 'a': 4, 'b': 5})
+        res = str(gradient_sort(tree, x))
+        self.assertEqual(exp, res)
+
+    def test_gradient_sort_descending(self):
+        # Makes sure that the tree is sorted according
+        # a pre-set ordering in descending order
+        tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+        exp = '((b,a)c,(f,(h,g)e)d)r;\n'
+        x = pd.Series({'f': 3, 'g': 1, 'h': 2, 'a': 4, 'b': 5})
+        res = str(gradient_sort(tree, x, ascending=False))
+        self.assertEqual(exp, res)
+
+    def test_gradient_sort_error(self):
+        # Makes sure that the tree is sorted according
+        # a pre-set ordering
+        tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+        x = pd.Series({'f': 'x', 'g': 'y', 'h': 'z', 'a': 'u', 'b': 'dz'})
+        with self.assertRaises(ValueError):
+            gradient_sort(tree, x)
 
 
 if __name__ == '__main__':
