@@ -170,7 +170,7 @@ def ladderize(tree, ascending=True):
 
 def gradient_sort(tree, gradient, ascending=True):
     """
-    Sorts tree according to ordering in tree.
+    Sorts tree according to ordering in gradient.
 
     Parameters
     ----------
