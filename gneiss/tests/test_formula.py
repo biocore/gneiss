@@ -58,31 +58,6 @@ class TestOLS(unittest.TestCase):
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
-    def test_ols_parallel(self):
-        res = ols('real', self.table, self.metadata, self.tree,
-                  n_jobs=3)
-        res_coef = res.coefficients()
-        exp_coef = pd.DataFrame(
-            {'Intercept': [0, 1.00],
-             'real': [1.0, 0]},
-            index=['Y1', 'Y2'])
-
-        pdt.assert_frame_equal(res_coef, exp_coef,
-                               check_exact=False,
-                               check_less_precise=True)
-        # Double check to make sure the fit is perfect
-        self.assertAlmostEqual(res.r2, 1)
-
-        # Double check to make sure residuals are zero
-        exp_resid = pd.DataFrame([[0., 0.],
-                                  [0., 0.],
-                                  [0., 0.],
-                                  [0., 0.],
-                                  [0., 0.]],
-                                 index=['s1', 's2', 's3', 's4', 's5'],
-                                 columns=['Y1', 'Y2'])
-        pdt.assert_frame_equal(exp_resid, res.residuals())
-
     def test_ols_rename(self):
         res = ols('real', self.table, self.metadata,
                   self.unannotated_tree)
@@ -313,64 +288,6 @@ class TestMixedLM(unittest.TestCase):
         metadata = df[['x1', 'x2', 'groups']]
 
         res = mixedlm("x1 + x2", table, metadata, tree, groups="groups")
-        exp_pvalues = pd.DataFrame(
-            [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
-             [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
-            index=['Y1', 'Y2'],
-            columns=['Intercept', 'Intercept RE', 'x1', 'x2'])
-
-        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
-                               check_less_precise=True)
-
-        exp_coefficients = pd.DataFrame(
-            [[4.211451,  -0.305906, 1.022008, 0.924873],
-             [0.211451,  -0.305906, 1.022008, 0.924873]],
-            columns=['Intercept', 'Intercept RE', 'x1', 'x2'],
-            index=['Y1', 'Y2'])
-
-        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
-                               check_less_precise=True)
-
-    def test_mixedlm_balances_parallel(self):
-        np.random.seed(6241)
-        n = 1600
-        exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
-
-        # Build up the random error vector
-        errors = 0
-
-        # The random effects
-        exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
-        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
-        errors += slopes.sum(1)
-
-        # First variance component
-        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
-
-        # Second variance component
-        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
-
-        # iid errors
-        errors += np.random.normal(size=n)
-
-        endog = exog.sum(1) + errors
-
-        df = pd.DataFrame(index=range(n))
-        df["y1"] = endog
-        df["y2"] = endog + 2 * 2
-        df["groups"] = groups
-        df["x1"] = exog[:, 0]
-        df["x2"] = exog[:, 1]
-
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-        iv = ilr_inv(df[["y1", "y2"]].values)
-        table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
-        metadata = df[['x1', 'x2', 'groups']]
-
-        res = mixedlm("x1 + x2", table, metadata, tree, groups="groups",
-                      n_jobs=3)
         exp_pvalues = pd.DataFrame(
             [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
              [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
