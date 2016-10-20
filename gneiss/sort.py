@@ -114,3 +114,127 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
     table = table.reindex(index=gradient.index,
                           columns=est_niche.index)
     return table
+
+
+def _cache_ntips(tree):
+    for n in tree.postorder(include_self=True):
+        if n.is_tip():
+            n._n_tips = 1
+        else:
+            n._n_tips = sum(c._n_tips for c in n.children)
+    return tree
+
+
+def ladderize(tree, ascending=True):
+    """
+    Sorts tree according to the size of the subtrees.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+       Input tree where leafs correspond to features.
+
+    Returns
+    -------
+    skbio.TreeNode
+       A tree whose tips are sorted according to subtree size.
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+    >>> print(tree.ascii_art())
+                        /-a
+              /c-------|
+             |          \-b
+    -r-------|
+             |                    /-g
+             |          /e-------|
+              \d-------|          \-h
+                       |
+                        \-f
+    >>> sorted_tree = ladderize(tree)
+    >>> print(sorted_tree.ascii_art())
+                        /-a
+              /c-------|
+             |          \-b
+    -r-------|
+             |          /-f
+              \d-------|
+                       |          /-g
+                        \e-------|
+                                  \-h
+    """
+    sorted_tree = tree.copy()
+    sorted_tree = _cache_ntips(tree)
+
+    for n in sorted_tree.postorder(include_self=True):
+        sizes = [k._n_tips for k in n.children]
+        idx = np.argsort(sizes)
+        if not ascending:
+            idx = idx[::-1]
+        n.children = [n.children[i] for i in idx]
+    return sorted_tree
+
+
+def gradient_sort(tree, gradient, ascending=True):
+    """
+    Sorts tree according to ordering in gradient.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+       Input tree where leafs correspond to features
+       contained in the index in `gradient`.
+    gradient : pd.Series, numeric
+       Gradient where the index correspond to feature names.
+       The index in the gradient must be consistent with
+       names of the tips in the `tree`.
+
+    Returns
+    -------
+    skbio.TreeNode
+       A tree whose tips are sorted along the gradient.
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> import pandas as pd
+    >>> tree = TreeNode.read([u'((a,b)c, ((g,h)e,f)d)r;'])
+    >>> x = pd.Series({'f':3, 'g':1, 'h':2, 'a':4, 'b':5})
+    >>> print(tree.ascii_art())
+                        /-a
+              /c-------|
+             |          \-b
+    -r-------|
+             |                    /-g
+             |          /e-------|
+              \d-------|          \-h
+                       |
+                        \-f
+    >>> res = gradient_sort(tree, x)
+    >>> print(res.ascii_art())
+                                  /-g
+                        /e-------|
+              /d-------|          \-h
+             |         |
+    -r-------|          \-f
+             |
+             |          /-a
+              \c-------|
+                        \-b
+    """
+    sorted_tree = tree.copy()
+    if not np.issubdtype(gradient, np.number):
+        raise ValueError('`gradient` needs to be numeric, not %s' %
+                         gradient.dtype)
+
+    # Note that this operation is not optimal
+    # See https://github.com/biocore/gneiss/issues/58
+    for n in sorted_tree.postorder(include_self=True):
+        means = [gradient.loc[list(k.subset())].mean() for k in n.children]
+        idx = np.argsort(means)
+        if not ascending:
+            idx = idx[::-1]
+        n.children = [n.children[i] for i in idx]
+    return sorted_tree

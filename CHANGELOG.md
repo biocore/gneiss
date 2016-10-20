@@ -1,5 +1,13 @@
 # gneiss changelog
 
+## Version 0.1.2
+
+### Features
+* Added `ladderize` and `gradient_sort` [#29](https://github.com/biocore/gneiss/issues/29)
+
+### Bug fixes
+
+
 ## Version 0.0.2
 
 ### Features
