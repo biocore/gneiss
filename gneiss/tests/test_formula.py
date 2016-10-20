@@ -11,9 +11,16 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss._formula import ols, mixedlm
-import statsmodels.formula.api as smf
+from gneiss._formula import ols, mixedlm, gee
+
 import numpy.testing as npt
+
+import statsmodels.formula.api as smf
+from statsmodels.compat import lrange
+from statsmodels.genmod.generalized_estimating_equations import GEE
+from statsmodels.genmod.cov_struct import (Exchangeable, Independence,
+                                           GlobalOddsRatio, Autoregressive)
+from statsmodels.genmod.families import Gaussian, Binomial, Poisson
 
 
 class TestOLS(unittest.TestCase):
@@ -398,5 +405,65 @@ class TestMixedLM(unittest.TestCase):
         with self.assertRaises(ValueError):
             mixedlm('real + lame', table, metadata, tree, groups='lame')
 
+
+class TestGEE(unittest.TestCase):
+
+    def test_formulas(self):
+        # Obtained from statsmodels tests for gee
+        np.random.seed(0)
+        n = 100
+        y = np.random.normal(size=n)
+        y_ = y.reshape((len(y), 1))
+        y_ = np.hstack((y_*2, y_))
+
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+
+        Y = ilr_inv(y_)
+
+        X1 = np.random.normal(size=n)
+        mat = np.concatenate((np.ones((n, 1)), X1[:, None]), axis=1)
+        Time = np.random.uniform(size=n)
+        groups = np.kron(lrange(20), np.ones(5))
+
+        table = pd.DataFrame(Y, columns=['a', 'b', 'c'])
+        from gneiss.util import match_tips
+        xt, xr = match_tips(table, tree)
+
+        metadata = pd.DataFrame({"X1": X1, "Time": Time, "groups": groups})
+
+        va = Autoregressive()
+        family = Gaussian()
+
+        mod1 = GEE(y, mat, groups, time=Time, family=family,
+                   cov_struct=va)
+        rslt1 = mod1.fit()
+
+        mod2 = gee("X1", table, metadata, tree,
+                   groups=groups, time=Time, family=family,
+                   cov_struct=va)
+        rslt2 = mod2.results[0]
+
+        mod3 = gee("X1", table, metadata, tree,
+                   groups=groups, time="Time", family=family,
+                   cov_struct=va)
+        rslt3 = mod3.results[0]
+
+        mod4 = gee("X1", table, metadata, tree,
+                   groups="groups", time=Time,
+                   family=family, cov_struct=va)
+        rslt4 = mod4.results[0]
+
+        mod5 = gee("X1", table, metadata, tree,
+                   groups="groups", time="Time",
+                   family=family, cov_struct=va)
+        rslt5 = mod5.results[0]
+
+        npt.assert_almost_equal(rslt1.params, rslt2.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt3.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt4.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt5.params, decimal=8)
+
+
 if __name__ == '__main__':
     unittest.main()
+
