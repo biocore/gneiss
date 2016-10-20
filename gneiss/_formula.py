@@ -381,6 +381,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                              balances=ilr_table,
                              tree=tree)
 
+
 def gee(formula, table, metadata, tree, groups, **kwargs):
     """ Generalized Estimating Equations applied to balances.
 
