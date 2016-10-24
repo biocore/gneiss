@@ -233,6 +233,7 @@ def ols(formula, table, metadata, tree, **kwargs):
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     fits = []
+
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
@@ -240,8 +241,11 @@ def ols(formula, table, metadata, tree, **kwargs):
 
         mdf = smf.ols(stats_formula, data=data, **kwargs).fit()
         fits.append(mdf)
+
     return RegressionResults(fits, basis=basis,
-                             feature_names=table.columns)
+                             feature_names=table.columns,
+                             balances=ilr_table,
+                             tree=tree)
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -371,5 +375,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                           groups=data[groups],
                           **kwargs).fit()
         fits.append(mdf)
+
     return RegressionResults(fits, basis=basis,
-                             feature_names=table.columns)
+                             feature_names=table.columns,
+                             balances=ilr_table,
+                             tree=tree)
