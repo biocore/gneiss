@@ -14,6 +14,7 @@ from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
 from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
+
 def _intersect_of_table_metadata_tree(table, metadata, tree):
     """ Matches tips, features and samples between the table, metadata
     and tree.  This module returns the features and samples that are
@@ -382,7 +383,6 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
 
 
 def glm(formula, table, metadata, tree, groups, **kwargs):
-
     """ General Linear Models applied to balances.
     
      Parameters
@@ -409,21 +409,17 @@ def glm(formula, table, metadata, tree, groups, **kwargs):
     Returns
     -------
     RegressionResults
-        Container object that holds information about the overall fit.
-    
+        Container object that holds information about the overall fit.    
     """
-    
     table, metadata, tree = _intersect_of_table_metadata_tree(table,
                                                               metadata,
                                                               tree)
     
     ilr_table, basis = _to_balances(table, tree)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
-    
     fits = []
     #one-time creation of exogenous data matrix allows for faster run-time
     exog_data = dmatrix(formula, data, return_type='dataframe')
-    
     for b in ilr_table.columns:
         endog_data = data[b]
         try:
@@ -436,5 +432,3 @@ def glm(formula, table, metadata, tree, groups, **kwargs):
                              feature_names=table.columns,
                              balances=ilr_table,
                              tree=tree)
-    
-    
