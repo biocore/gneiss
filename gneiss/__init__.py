@@ -12,4 +12,4 @@ from gneiss._formula import mixedlm, ols, gee
 
 __all__ = ['ols', 'mixedlm', 'gee']
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
