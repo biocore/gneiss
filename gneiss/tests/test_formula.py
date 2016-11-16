@@ -11,9 +11,15 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss._formula import ols, mixedlm
-import statsmodels.formula.api as smf
+from gneiss._formula import ols, mixedlm, gee
+
 import numpy.testing as npt
+
+import statsmodels.formula.api as smf
+from statsmodels.compat import lrange
+from statsmodels.genmod.generalized_estimating_equations import GEE
+from statsmodels.genmod.cov_struct import Autoregressive
+from statsmodels.genmod.families import Gaussian
 
 
 class TestOLS(unittest.TestCase):
@@ -397,6 +403,145 @@ class TestMixedLM(unittest.TestCase):
         }, index=['s1', 's2', 's3', 's4', 's5'])
         with self.assertRaises(ValueError):
             mixedlm('real + lame', table, metadata, tree, groups='lame')
+
+
+class TestGEE(unittest.TestCase):
+
+    def test_gee_basic(self):
+        # Obtained from statsmodels tests for gee
+        np.random.seed(0)
+        n = 100
+        y = np.random.normal(size=n)
+        y_ = y.reshape((len(y), 1))
+        y_ = np.hstack((y_*2, y_))
+
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+
+        Y = ilr_inv(y_)
+
+        X1 = np.random.normal(size=n)
+        mat = np.concatenate((np.ones((n, 1)), X1[:, None]), axis=1)
+        Time = np.random.uniform(size=n)
+        groups = np.kron(lrange(20), np.ones(5))
+
+        table = pd.DataFrame(Y, columns=['a', 'b', 'c'])
+        from gneiss.util import match_tips
+        xt, xr = match_tips(table, tree)
+
+        metadata = pd.DataFrame({"X1": X1, "Time": Time, "groups": groups})
+
+        va = Autoregressive()
+        family = Gaussian()
+
+        mod1 = GEE(y, mat, groups, time=Time, family=family,
+                   cov_struct=va)
+        rslt1 = mod1.fit()
+
+        mod2 = gee("X1", table, metadata, tree,
+                   groups=groups, time=Time, family=family,
+                   cov_struct=va)
+        rslt2 = mod2.results[0]
+
+        mod3 = gee("X1", table, metadata, tree,
+                   groups=groups, time="Time", family=family,
+                   cov_struct=va)
+        rslt3 = mod3.results[0]
+
+        mod4 = gee("X1", table, metadata, tree,
+                   groups="groups", time=Time,
+                   family=family, cov_struct=va)
+        rslt4 = mod4.results[0]
+
+        mod5 = gee("X1", table, metadata, tree,
+                   groups="groups", time="Time",
+                   family=family, cov_struct=va)
+        rslt5 = mod5.results[0]
+
+        npt.assert_almost_equal(rslt1.params, rslt2.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt3.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt4.params, decimal=8)
+        npt.assert_almost_equal(rslt1.params, rslt5.params, decimal=8)
+
+    def test_predict(self):
+        # Copied from statsmodels
+        n = 50
+        np.random.seed(4324)
+        X1 = np.random.normal(size=n)
+        X2 = np.random.normal(size=n)
+        groups = np.kron(np.arange(n / 2), np.r_[1, 1])
+        offset = np.random.uniform(1, 2, size=n)
+        Y = np.random.normal(0.1 * (X1 + X2) + offset, size=n)
+        data = pd.DataFrame({"Y": Y, "X1": X1, "X2": X2, "groups": groups,
+                             "offset": offset})
+
+        fml = "Y ~ X1 + X2"
+        model = GEE.from_formula(fml, groups, data, family=Gaussian(),
+                                 offset="offset")
+        result = model.fit()
+        npt.assert_equal(result.converged, True)
+
+        pred1 = result.predict()
+        pred2 = result.predict(offset=data.offset)
+        pred3 = result.predict(exog=data[["X1", "X2"]], offset=data.offset)
+        pred4 = result.predict(exog=data[["X1", "X2"]], offset=0 * data.offset)
+        pred5 = result.predict(offset=0 * data.offset)
+
+        npt.assert_allclose(pred1, pred2)
+        npt.assert_allclose(pred1, pred3)
+        npt.assert_allclose(pred1, pred4 + data.offset)
+        npt.assert_allclose(pred1, pred5 + data.offset)
+
+        x1_new = np.random.normal(size=10)
+        x2_new = np.random.normal(size=10)
+        new_exog = pd.DataFrame({"X1": x1_new, "X2": x2_new})
+        pred6 = result.predict(exog=new_exog)
+        params = result.params
+        pred6_correct = params[0] + params[1] * x1_new + params[2] * x2_new
+        npt.assert_allclose(pred6, pred6_correct)
+
+        # Test these results against the balances
+        Y = np.random.normal(0.1 * (X1 + X2) + offset, size=n)
+        y_ = Y.reshape((len(Y), 1))
+        y_ = np.hstack((y_*2, y_))
+        metadata = pd.DataFrame({"X1": X1, "X2": X2, "groups": groups,
+                                 "offset": offset})
+
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+
+        table = pd.DataFrame(ilr_inv(y_), columns=['a', 'b', 'c'])
+        res = gee("X1 + X2", table, metadata, tree, groups='groups',
+                  offset='offset')
+        npt.assert_equal(res.results[0].converged, True)
+
+        pred1 = res.predict()
+        pred2 = res.predict(offset=data.offset)
+        pred3 = res.predict(data[["X1", "X2"]], offset=data.offset)
+        pred4 = res.predict(data[["X1", "X2"]], offset=0 * data.offset)
+        pred5 = res.predict(offset=0 * data.offset)
+
+        npt.assert_allclose(pred1, pred2)
+        npt.assert_allclose(pred1, pred3)
+        npt.assert_allclose(pred1.Y1, pred4.Y1 + data.offset)
+        npt.assert_allclose(pred1.Y1, pred5.Y1 + data.offset)
+
+    def test_gee_zero_error(self):
+        table = pd.DataFrame({
+            's1': [0, 0, 0],
+            's2': [0, 0, 0],
+            's3': [0, 0, 0],
+            's4': [0, 0, 0],
+            's5': [0, 0, 0],
+            's6': [0, 0, 0]},
+            index=['a', 'b', 'c']).T
+
+        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 2, 2],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+        with self.assertRaises(ValueError):
+            gee('real + lame', table, metadata, tree, groups='lame')
+
 
 if __name__ == '__main__':
     unittest.main()

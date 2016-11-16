@@ -52,7 +52,7 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
     non_tips_no_name = [(n.name is None) for n in _tree.levelorder()
                         if not n.is_tip()]
     if len(non_tips_no_name) == 0:
-        raise ValueError('There are no internal nodes in `tree` after'
+        raise ValueError('There are no internal nodes in `tree` after '
                          'intersection with `table`.')
 
     if len(_table.index) == 0:
@@ -374,6 +374,139 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         mdf = smf.mixedlm(stats_formula, data=data,
                           groups=data[groups],
                           **kwargs).fit()
+        fits.append(mdf)
+
+    return RegressionResults(fits, basis=basis,
+                             feature_names=table.columns,
+                             balances=ilr_table,
+                             tree=tree)
+
+
+def gee(formula, table, metadata, tree, groups, **kwargs):
+    """ Generalized Estimating Equations applied to balances.
+
+    Generalized Estimating Equations are performed on nonzero relative
+    abundance data given a list of covariates, or explanatory variables
+    such as ph, treatment, etc to test for specific effects. The relative
+    abundance data is transformed into balances using the ILR transformation,
+    using a tree to specify the groupings of the features. The linear mixed
+    effects model is applied to each balance separately. Only positive data
+    will be accepted, so if there are zeros present, consider using a zero
+    imputation method such as adding a pseudocount or applying
+    ``skbio.stats.composition.multiplicative_replacement``.
+
+    Parameters
+    ----------
+    formula : str
+        Formula representing the statistical equation to be evaluated.
+        These strings are similar to how equations are handled in R.
+        Note that the dependent variable in this string should not be
+        specified, since this method will be run on each of the individual
+        balances. See `patsy` for more details.
+    table : pd.DataFrame
+        Contingency table where samples correspond to rows and
+        features correspond to columns.
+    metadata: pd.DataFrame
+        Metadata table that contains information about the samples contained
+        in the `table` object.  Samples correspond to rows and covariates
+        correspond to columns.
+    tree : skbio.TreeNode
+        Tree object where the leaves correspond to the columns contained in
+        the table.
+    groups : str
+        Column names in `metadata` that specifies the groups.  These groups are
+        often associated with individuals within a cluster (i.e. mice
+        within the same cage).
+    **kwargs : dict
+        Other arguments accepted into
+        `statsmodels.genmod.generalized_estimating_equations`
+
+    Returns
+    -------
+    RegressionResults
+        Container object that holds information about the overall fit.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> from skbio.stats.composition import ilr_inv
+    >>> from skbio import TreeNode
+    >>> from gneiss import gee
+
+    Here, we will define a table of proportions with 3 features
+    `a`, `b`, and `c` across 12 samples.
+
+    >>> table = pd.DataFrame({
+    ...         'x1': ilr_inv(np.array([1.1, 1.1])),
+    ...         'x2': ilr_inv(np.array([1., 2.])),
+    ...         'x3': ilr_inv(np.array([1.1, 3.])),
+    ...         'y1': ilr_inv(np.array([1., 2.1])),
+    ...         'y2': ilr_inv(np.array([1., 3.1])),
+    ...         'y3': ilr_inv(np.array([1., 4.])),
+    ...         'z1': ilr_inv(np.array([1.1, 5.])),
+    ...         'z2': ilr_inv(np.array([1., 6.1])),
+    ...         'z3': ilr_inv(np.array([1.1, 7.])),
+    ...         'u1': ilr_inv(np.array([1., 6.1])),
+    ...         'u2': ilr_inv(np.array([1., 7.])),
+    ...         'u3': ilr_inv(np.array([1.1, 8.1]))},
+    ...         index=['a', 'b', 'c']).T
+
+    Now we are going to define some of the external variables to
+    test for in the model.  Here we will be testing a hypothetical
+    longitudinal study across 3 time points, with 4 patients
+    `x`, `y`, `z` and `u`, where `x` and `y` were given treatment `1`
+    and `z` and `u` were given treatment `2`.
+
+    >>> metadata = pd.DataFrame({
+    ...         'patient': [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+    ...         'treatment': [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
+    ...         'time': [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+    ...     }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
+    ...               'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
+
+    Finally, we need to define a bifurcating tree used to convert the
+    proportions to balances.  If the internal nodes aren't labels,
+    a default labeling will be applied (i.e. `y1`, `y2`, ...)
+
+    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+    >>> print(tree.ascii_art())
+              /-c
+    -Y1------|
+             |          /-b
+              \Y2------|
+                        \-a
+
+    Now we can run the linear mixed effects model on the proportions.
+    Underneath the hood, the proportions will be transformed into balances,
+    so that the linear mixed effects models can be run directly on balances.
+    Since each patient was sampled repeatedly, we'll specify them separately
+    in the groups.  In the linear mixed effects model `time` and `treatment`
+    will be simultaneously tested for with respect to the balances.
+
+    >>> res = gee('time + treatment', table, metadata, tree,
+    ...           groups='patient')
+
+    See Also
+    --------
+    statsmodels.regression.linear_model.MixedLM
+    skbio.stats.composition.multiplicative_replacement
+    ols
+    mixedlm
+    """
+    table, metadata, tree = _intersect_of_table_metadata_tree(table,
+                                                              metadata,
+                                                              tree)
+    ilr_table, basis = _to_balances(table, tree)
+    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+
+    fits = []
+    for b in ilr_table.columns:
+        # mixed effects code is obtained here:
+        # http://stackoverflow.com/a/22439820/1167475
+        stats_formula = '%s ~ %s' % (b, formula)
+        mdf = smf.gee(stats_formula, data=data, groups=groups,
+                      **kwargs).fit()
         fits.append(mdf)
 
     return RegressionResults(fits, basis=basis,

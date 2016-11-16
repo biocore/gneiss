@@ -3,6 +3,7 @@
 ## Version 0.1.2
 
 ### Features
+* Added `gee` to support Generalized Estimating Equations [#61](https://github.com/biocore/gneiss/issues/61)
 * Added `ladderize` and `gradient_sort` [#29](https://github.com/biocore/gneiss/issues/29)
 
 ### Bug fixes
