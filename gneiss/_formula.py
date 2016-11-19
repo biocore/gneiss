@@ -46,18 +46,17 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
         raise ValueError('Cannot handle zeros or negative values in `table`. '
                          'Use pseudocounts or ``multiplicative_replacement``.'
                          )
-
-    _table, _metadata = match(table, metadata)
-    _table, _tree = match_tips(_table, tree)
-    non_tips_no_name = [(n.name is None) for n in _tree.levelorder()
-                        if not n.is_tip()]
-    if len(non_tips_no_name) == 0:
+    # check to see if there are overlapping nodes in tree and table
+    overlap = {n.name for n in tree.traverse()} & set(table.columns)
+    if len(overlap) == 0:
         raise ValueError('There are no internal nodes in `tree` after'
                          'intersection with `table`.')
 
-    if len(_table.index) == 0:
-        raise ValueError('There are no internal nodes in `table` after '
-                         'intersection with `metadata`.')
+    _table, _metadata = match(table, metadata)
+    print(tree)
+    _table, _tree = match_tips(_table, tree)
+    non_tips_no_name = [(n.name is None) for n in _tree.levelorder()
+                        if not n.is_tip()]
 
     if any(non_tips_no_name):
         _tree = rename_internal_nodes(_tree)
