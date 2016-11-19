@@ -58,8 +58,8 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
                         if not n.is_tip()]
 
     if len(non_tips_no_name) == 0:
-         raise ValueError('There are no internal nodes in `tree` after'
-                          'intersection with `table`.')
+        raise ValueError('There are no internal nodes in `tree` after'
+                         'intersection with `table`.')
     if any(non_tips_no_name):
         _tree = rename_internal_nodes(_tree)
     return _table, _metadata, _tree
