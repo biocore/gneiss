@@ -38,7 +38,10 @@ class RegressionResults():
         self.feature_names = feature_names
         # basis is now handled differently
         # https://github.com/biocore/scikit-bio/pull/1396
-        self.basis = clr_inv(basis)
+        if basis is not None:
+            self.basis = clr_inv(basis)
+        else:
+            self.basis = basis
         self.results = stat_results
         self.tree = tree
         self.balances = balances
