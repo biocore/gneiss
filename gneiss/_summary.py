@@ -6,7 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
-from skbio.stats.composition import ilr_inv
+from skbio.stats.composition import ilr_inv, clr_inv
 
 
 class RegressionResults():
@@ -36,7 +36,12 @@ class RegressionResults():
             be enabled in `coefficients` or `predict`.
         """
         self.feature_names = feature_names
-        self.basis = basis
+        # basis is now handled differently
+        # https://github.com/biocore/scikit-bio/pull/1396
+        if basis is not None:
+            self.basis = clr_inv(basis)
+        else:
+            self.basis = basis
         self.results = stat_results
         self.tree = tree
         self.balances = balances
