@@ -261,6 +261,10 @@ class RegressionResults():
 
     @classmethod
     def read_pickle(self, filename):
+        """
+        Warning: Loading pickled data received from untrusted
+        sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
+        """
         with open(filename, 'rb') as fh:
             res = pickle.load(fh)
         return res
