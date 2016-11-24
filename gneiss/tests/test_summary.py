@@ -222,8 +222,6 @@ class TestRegressionResults(unittest.TestCase):
         exp = RegressionResults(self.results, tree=self.tree)
         exp.write_pickle(self.pickle_fname)
         res = RegressionResults.read_pickle(self.pickle_fname)
-        print('res tree', res.tree)
-        print('exp tree', exp.tree)
         self.assertEqual(str(res.tree), str(exp.tree))
         pdt.assert_frame_equal(res.pvalues, exp.pvalues)
 
