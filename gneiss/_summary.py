@@ -261,7 +261,15 @@ class RegressionResults():
 
     @classmethod
     def read_pickle(self, filename):
-        """
+        """ Reads RegressionResults object from pickle file.
+
+        Parameters
+        ----------
+        filename : str
+            Input file to unpickle.
+
+        Notes
+        -----
         Warning: Loading pickled data received from untrusted
         sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
         """
@@ -270,5 +278,13 @@ class RegressionResults():
         return res
 
     def write_pickle(self, filename):
+        """ Writes RegressionResults object to pickle file.
+
+        Parameters
+        ----------
+        filename : str
+            Output file to store pickled object.
+        """
+
         with open(filename, 'wb') as fh:
             pickle.dump(self, fh)
