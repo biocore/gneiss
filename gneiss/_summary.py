@@ -268,6 +268,10 @@ class RegressionResults():
         filename : str
             Input file to unpickle.
 
+        Returns
+        -------
+        RegressionResults
+
         Notes
         -----
         Warning: Loading pickled data received from untrusted
