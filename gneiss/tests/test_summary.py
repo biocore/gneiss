@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
@@ -32,6 +33,12 @@ class TestRegressionResults(unittest.TestCase):
         model1 = smf.ols(formula="Y1 ~ X", data=self.data)
         model2 = smf.ols(formula="Y2 ~ X", data=self.data)
         self.results = [model1.fit(), model2.fit()]
+        self.pickle_fname = "test.pickle"
+        self.tree = '(a,b)r;'
+
+    def tearDown(self):
+        if os.path.exists(self.pickle_fname):
+            os.remove(self.pickle_fname)
 
     def test_balances(self):
         res = RegressionResults(self.results, balances=np.arange(7))
@@ -210,6 +217,13 @@ class TestRegressionResults(unittest.TestCase):
                                    index=['Y1', 'Y2']).T
 
         pdt.assert_frame_equal(res_predict, exp_predict)
+
+    def test_read_write(self):
+        exp = RegressionResults(self.results, tree=self.tree)
+        exp.write_pickle(self.pickle_fname)
+        res = RegressionResults.read_pickle(self.pickle_fname)
+        self.assertEqual(str(res.tree), str(exp.tree))
+        pdt.assert_frame_equal(res.pvalues, exp.pvalues)
 
 
 if __name__ == "__main__":

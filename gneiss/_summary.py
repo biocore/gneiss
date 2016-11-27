@@ -7,6 +7,8 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 from skbio.stats.composition import ilr_inv, clr_inv
+import pickle
+from skbio import TreeNode
 
 
 class RegressionResults():
@@ -34,6 +36,12 @@ class RegressionResults():
             Orthonormal basis in the Aitchison simplex.
             If this is not specified, then `project` cannot
             be enabled in `coefficients` or `predict`.
+        balances : np.array, optional
+            A table of balances where samples are rows and
+            balances are columns.  These balances were calculated
+            using `tree`.
+        tree : skbio.TreeNode
+            A tree object used to guide the balance calculations.
         """
         self.feature_names = feature_names
         # basis is now handled differently
@@ -43,7 +51,8 @@ class RegressionResults():
         else:
             self.basis = basis
         self.results = stat_results
-        self.tree = tree
+
+        self._tree = str(tree)
         self.balances = balances
 
         # obtain pvalues
@@ -245,3 +254,41 @@ class RegressionResults():
                                 columns=self.feature_names,
                                 index=prediction.columns)
         return prediction.T
+
+    @property
+    def tree(self):
+        return TreeNode.read([self._tree])
+
+    @classmethod
+    def read_pickle(self, filename):
+        """ Reads RegressionResults object from pickle file.
+
+        Parameters
+        ----------
+        filename : str
+            Input file to unpickle.
+
+        Returns
+        -------
+        RegressionResults
+
+        Notes
+        -----
+        Warning: Loading pickled data received from untrusted
+        sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
+        """
+        with open(filename, 'rb') as fh:
+            res = pickle.load(fh)
+        return res
+
+    def write_pickle(self, filename):
+        """ Writes RegressionResults object to pickle file.
+
+        Parameters
+        ----------
+        filename : str
+            Output file to store pickled object.
+        """
+
+        with open(filename, 'wb') as fh:
+            pickle.dump(self, fh)
