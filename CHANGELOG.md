@@ -1,5 +1,10 @@
 # gneiss changelog
 
+## Version 0.1.3
+
+### Features
+* Added write and read io for RegressionResults object [#72](https://github.com/biocore/gneiss/issues/72)
+
 ## Version 0.1.2
 
 ### Features
