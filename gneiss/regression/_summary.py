@@ -14,6 +14,33 @@ from skbio import TreeNode
 class RegressionResults():
     """
     Summary object for storing regression results.
+
+    A `RegressionResults` object stores information about the
+    individual balances used in the regression, the coefficients,
+    residuals. This object can be used to perform predictions.
+    In addition, summary statistics such as the coefficient
+    of determination for the overall fit can be calculated.
+
+    Parameters
+    ----------
+    stat_results : list, sm.RegressionResults
+        List of RegressionResults objects.
+    feature_names : array_like, str, optional
+        List of original names for features that are found in `tree`.
+    basis : np.array, optional
+        Orthonormal basis in the Aitchison simplex.
+        If this is not specified, then `project` cannot
+        be enabled in `coefficients` or `predict`.
+    balances : np.array, optional
+        A table of balances where samples are rows and
+        balances are columns.  These balances were calculated
+        using `tree`.
+    tree : skbio.TreeNode
+        Bifurcating tree that defines `basis`
+
+
+    Methods
+    -------
     """
     def __init__(self,
                  stat_results,
@@ -21,28 +48,6 @@ class RegressionResults():
                  basis=None,
                  balances=None,
                  tree=None):
-        """ Reorganizes statsmodels regression results modules.
-
-        Accepts a list of statsmodels RegressionResults objects
-        and performs some addition summary statistics.
-
-        Parameters
-        ----------
-        stat_results : list, sm.RegressionResults
-            List of RegressionResults objects.
-        feature_names : array_like, str, optional
-            List of original names for features.
-        basis : np.array, optional
-            Orthonormal basis in the Aitchison simplex.
-            If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        balances : np.array, optional
-            A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
-            using `tree`.
-        tree : skbio.TreeNode
-            A tree object used to guide the balance calculations.
-        """
         self.feature_names = feature_names
         # basis is now handled differently
         # https://github.com/biocore/scikit-bio/pull/1396
@@ -64,7 +69,7 @@ class RegressionResults():
 
     @property
     def r2(self):
-        """ Calculates the coefficients of determination """
+        """ Coefficient of determination for overall fit"""
         # Reason why we wanted to move this out was because not
         # all types of statsmodels regressions have this property.
 
@@ -257,6 +262,7 @@ class RegressionResults():
 
     @property
     def tree(self):
+        """ Bifurcating tree used to calculate ilr transform."""
         return TreeNode.read([self._tree])
 
     @classmethod
