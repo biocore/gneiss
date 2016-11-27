@@ -12,6 +12,7 @@ from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss._summary import RegressionResults
 from gneiss.balances import balance_basis
+from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
 
 def _intersect_of_table_metadata_tree(table, metadata, tree):
@@ -236,7 +237,6 @@ def ols(formula, table, metadata, tree, **kwargs):
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
-
         mdf = smf.ols(stats_formula, data=data, **kwargs).fit()
         fits.append(mdf)
 
@@ -374,6 +374,58 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                           **kwargs).fit()
         fits.append(mdf)
 
+    return RegressionResults(fits, basis=basis,
+                             feature_names=table.columns,
+                             balances=ilr_table,
+                             tree=tree)
+
+
+def glm(formula, table, metadata, tree, groups, **kwargs):
+    """ General Linear Models applied to balances.
+    
+     Parameters
+    ----------
+    formula : str
+        Formula representing the statistical equation to be evaluated.
+        These strings are similar to how equations are handled in R and
+        statsmodels. Note that the dependent variable in this string should
+        not be specified, since this method will be run on each of the
+        individual balances. See `patsy` for more details.
+    table : pd.DataFrame
+        Contingency table where samples correspond to rows and
+        features correspond to columns.
+    metadata: pd.DataFrame
+        Metadata table that contains information about the samples contained
+        in the `table` object.  Samples correspond to rows and covariates
+        correspond to columns.
+    tree : skbio.TreeNode
+        Tree object where the leaves correspond to the columns contained in
+        the table.
+    **kwargs : dict
+        Other arguments accepted into `statsmodels.regression.linear_model.GLM`
+
+    Returns
+    -------
+    RegressionResults
+        Container object that holds information about the overall fit.    
+    """
+    table, metadata, tree = _intersect_of_table_metadata_tree(table,
+                                                              metadata,
+                                                              tree)
+    
+    ilr_table, basis = _to_balances(table, tree)
+    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+    fits = []
+    #one-time creation of exogenous data matrix allows for faster run-time
+    exog_data = dmatrix(formula, data, return_type='dataframe')
+    for b in ilr_table.columns:
+        endog_data = data[b]
+        try:
+            mdf = smf.GLM(endog=endog_data, exog=exog_data, **kwargs).fit()
+        except PerfectSeparationError:
+            continue
+        fits.append(mdf)
+        
     return RegressionResults(fits, basis=basis,
                              feature_names=table.columns,
                              balances=ilr_table,
