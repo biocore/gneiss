@@ -1,3 +1,22 @@
+"""
+Regression (:mod:`gneiss.regression`)
+=====================================
+
+.. currentmodule:: gneiss.regression
+
+This module provides functions to perform regression on balances.
+
+
+Functions
+---------
+
+.. autosummary::
+   :toctree: generated/
+
+   ols
+   mixedlm
+
+"""
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
@@ -5,6 +24,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+
+
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf

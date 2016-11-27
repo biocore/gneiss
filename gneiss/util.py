@@ -1,3 +1,22 @@
+"""
+Utility functions (:mod:`gneiss.util`)
+======================================
+
+.. currentmodule:: gneiss.util
+
+This module contains helper functions for aligning metadata tables,
+contingency tables and trees.
+
+Functions
+---------
+
+.. autosummary::
+   :toctree: generated/
+
+   match
+   match_tips
+   rename_internal_nodes
+"""
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #

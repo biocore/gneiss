@@ -11,6 +11,28 @@ from functools import partial
 from gneiss.util import match
 
 
+"""
+Sort functions (:mod:`gneiss.sort`)
+===================================
+
+.. currentmodule:: gneiss.util
+
+This module contains sorting functions that sort contingency tables
+in addition to trees.
+
+Functions
+---------
+
+.. autosummary::
+   :toctree: generated/
+
+   mean_niche_estimator
+   niche_sort
+   ladderize
+   gradient_sort
+"""
+
+
 def mean_niche_estimator(abundances, gradient):
     """ Estimates the mean niche of an organism.
 
