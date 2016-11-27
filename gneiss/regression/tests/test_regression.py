@@ -11,7 +11,7 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss._formula import ols, mixedlm
+from gneiss.regression import ols, mixedlm
 import statsmodels.formula.api as smf
 import numpy.testing as npt
 

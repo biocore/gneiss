@@ -1,22 +1,3 @@
-"""
-Regression (:mod:`gneiss.regression`)
-=====================================
-
-.. currentmodule:: gneiss.regression
-
-This module provides functions to perform regression on balances.
-
-
-Functions
----------
-
-.. autosummary::
-   :toctree: generated/
-
-   ols
-   mixedlm
-
-"""
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
@@ -31,7 +12,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
-from gneiss._summary import RegressionResults
+from gneiss.regression._summary import RegressionResults
 from gneiss.balances import balance_basis
 
 
@@ -155,7 +136,7 @@ def ols(formula, table, metadata, tree, **kwargs):
 
     Example
     -------
-    >>> from gneiss import ols
+    >>> from gneiss.regression import ols
     >>> from skbio import TreeNode
     >>> import pandas as pd
 
@@ -317,7 +298,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     >>> import numpy as np
     >>> from skbio.stats.composition import ilr_inv
     >>> from skbio import TreeNode
-    >>> from gneiss import mixedlm
+    >>> from gneiss.regression import mixedlm
 
     Here, we will define a table of proportions with 3 features
     `a`, `b`, and `c` across 12 samples.
