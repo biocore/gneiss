@@ -1,4 +1,0 @@
-coveralls
-ete3
-statsmodels
-sphinx
