@@ -13,6 +13,7 @@ Contents:
 
    balances
    regression
+   sort
    util
 
 
