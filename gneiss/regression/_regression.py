@@ -5,12 +5,14 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+
+
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
-from gneiss._summary import RegressionResults
+from gneiss.regression._summary import RegressionResults
 from gneiss.balances import balance_basis
 
 
@@ -134,7 +136,7 @@ def ols(formula, table, metadata, tree, **kwargs):
 
     Example
     -------
-    >>> from gneiss import ols
+    >>> from gneiss.regression import ols
     >>> from skbio import TreeNode
     >>> import pandas as pd
 
@@ -296,24 +298,24 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     >>> import numpy as np
     >>> from skbio.stats.composition import ilr_inv
     >>> from skbio import TreeNode
-    >>> from gneiss import mixedlm
+    >>> from gneiss.regression import mixedlm
 
     Here, we will define a table of proportions with 3 features
     `a`, `b`, and `c` across 12 samples.
 
     >>> table = pd.DataFrame({
-    ...         'x1': ilr_inv(np.array([1.1, 1.1])),
-    ...         'x2': ilr_inv(np.array([1., 2.])),
-    ...         'x3': ilr_inv(np.array([1.1, 3.])),
-    ...         'y1': ilr_inv(np.array([1., 2.1])),
-    ...         'y2': ilr_inv(np.array([1., 3.1])),
-    ...         'y3': ilr_inv(np.array([1., 4.])),
-    ...         'z1': ilr_inv(np.array([1.1, 5.])),
-    ...         'z2': ilr_inv(np.array([1., 6.1])),
-    ...         'z3': ilr_inv(np.array([1.1, 7.])),
-    ...         'u1': ilr_inv(np.array([1., 6.1])),
-    ...         'u2': ilr_inv(np.array([1., 7.])),
-    ...         'u3': ilr_inv(np.array([1.1, 8.1]))},
+    ...         'u1':  [0.804248, 0.195526, 0.000226],
+    ...         'u2':  [0.804369, 0.195556, 0.000075],
+    ...         'u3':  [0.825711, 0.174271, 0.000019],
+    ...         'x1':  [0.751606, 0.158631, 0.089763],
+    ...         'x2':  [0.777794, 0.189095, 0.033111],
+    ...         'x3':  [0.817855, 0.172613, 0.009532],
+    ...         'y1':  [0.780774, 0.189819, 0.029406],
+    ...         'y2':  [0.797332, 0.193845, 0.008824],
+    ...         'y3':  [0.802058, 0.194994, 0.002948],
+    ...         'z1':  [0.825041, 0.174129, 0.000830],
+    ...         'z2':  [0.804248, 0.195526, 0.000226],
+    ...         'z3':  [0.825667, 0.174261, 0.000072]}
     ...         index=['a', 'b', 'c']).T
 
     Now we are going to define some of the external variables to

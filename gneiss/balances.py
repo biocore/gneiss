@@ -1,3 +1,22 @@
+"""
+Balances (:mod:`gneiss.balances`)
+=================================
+
+.. currentmodule:: gneiss.balances
+
+This module contains modules for calculating balances and creating ETE
+objects to visualize these balances on a tree.
+
+Functions
+---------
+
+.. autosummary::
+   :toctree: generated/
+
+   balance_basis
+   balanceplot
+
+"""
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
@@ -5,6 +24,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+
 
 from __future__ import division
 import numpy as np
@@ -41,7 +61,7 @@ def _balance_basis(tree_node):
 
 def balance_basis(tree_node):
     """
-    Determines the basis based on binary tree.
+    Determines the basis based on bifurcating tree.
 
     This is commonly referred to as sequential binary partition.
     Given a binary tree relating a list of features, this module can
@@ -51,7 +71,8 @@ def balance_basis(tree_node):
     Parameters
     ----------
     treenode : skbio.TreeNode
-        Binary tree.  Must be a strictly bifurcating tree.
+        Input bifurcating tree.  Must be strictly bifurcating
+        (i.e. every internal node needs to have exactly 2 children).
 
     Returns
     -------
@@ -90,7 +111,8 @@ def balance_basis(tree_node):
     References
     ----------
     .. [1] J.J. Egozcue and V. Pawlowsky-Glahn "Exploring Compositional Data
-    with the CoDa-Dendrogram" (2011)
+        with the CoDa-Dendrogram" (2011)
+
     """
     basis, nodes = _balance_basis(tree_node)
     basis = clr_inv(basis)
@@ -203,10 +225,10 @@ def balanceplot(balances, tree,
     mode : str
         Type of display to show the tree. ('c': circular, 'r': rectangular).
 
-    Note
-    ----
+    Notes
+    -----
     The `tree` is assumed to strictly bifurcating and whose tips match
-    `balances.  It is not recommended to attempt to plot trees with a
+    `balances`.  It is not recommended to attempt to plot trees with a
     ton of leaves (i.e. more than 4000 leaves).
 
 

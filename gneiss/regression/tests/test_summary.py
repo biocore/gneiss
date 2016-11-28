@@ -13,7 +13,7 @@ import pandas.util.testing as pdt
 import statsmodels.formula.api as smf
 import unittest
 import skbio
-from gneiss._summary import RegressionResults
+from gneiss.regression import RegressionResults
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 
 
