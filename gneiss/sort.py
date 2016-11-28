@@ -1,21 +1,8 @@
-# ----------------------------------------------------------------------------
-# Copyright (c) 2016--, gneiss development team.
-#
-# Distributed under the terms of the GPLv3 License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-# ----------------------------------------------------------------------------
-import numpy as np
-import pandas as pd
-from functools import partial
-from gneiss.util import match
-
-
 """
 Sort functions (:mod:`gneiss.sort`)
 ===================================
 
-.. currentmodule:: gneiss.util
+.. currentmodule:: gneiss.sort
 
 This module contains sorting functions that sort contingency tables
 in addition to trees.
@@ -31,20 +18,34 @@ Functions
    ladderize
    gradient_sort
 """
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the GPLv3 License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
+import numpy as np
+import pandas as pd
+from functools import partial
+from gneiss.util import match
+
+
 
 
 def mean_niche_estimator(abundances, gradient):
-    """ Estimates the mean niche of an organism.
+    r""" Estimates the mean niche along a gradient of an organism.
 
     Calculates the mean niche of an organism along a gradient.
-    This is done by calculating the expected value of an organism
-    across the gradient.
+    This is done by calculating the mean gradient values that
+    an organism is observed in.
 
     Specifically, this module calculates the following
 
     .. math::
-        E[g | x] =
+        f(g , x) =
          \sum\limits_{i=1}^N g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}
+
 
     Where :math:`N` is the number of samples, :math:`x_i` is the proportion of
     species :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value
@@ -53,8 +54,7 @@ def mean_niche_estimator(abundances, gradient):
     Parameters
     ----------
     abundances : pd.Series, np.float
-        Vector of fraction abundances of an organism over
-        a list of samples.
+        Vector of fraction abundances of an organism over a list of samples.
     gradient : pd.Series, np.float
         Vector of numerical gradient values.
 
@@ -95,8 +95,8 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
     Parameters
     ----------
     table : pd.DataFrame
-        Contingency table where samples are rows and
-        features (i.e. OTUs) are columns.
+        Contingency table where samples are rows and features (i.e. OTUs)
+        are columns.
     gradient : pd.Series
         Vector of numerical gradient values.
     niche_estimator : function, optional
@@ -120,9 +120,7 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
         raise ValueError("`niche_estimator` is not a function.")
 
     table, gradient = match(table, gradient)
-
-    niche_estimator = partial(niche_estimator,
-                              gradient=gradient)
+    niche_estimator = partial(niche_estimator, gradient=gradient)
 
     # normalizes feature abundances to sum to 1, for each sample.
     # (i.e. scales values in each row to sum to 1).
