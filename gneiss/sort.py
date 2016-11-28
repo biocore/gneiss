@@ -31,8 +31,6 @@ from functools import partial
 from gneiss.util import match
 
 
-
-
 def mean_niche_estimator(abundances, gradient):
     r""" Estimates the mean niche along a gradient of an organism.
 
