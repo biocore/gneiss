@@ -1,0 +1,6 @@
+gneiss.util.match_tips
+======================
+
+.. currentmodule:: gneiss.util
+
+.. autofunction:: match_tips

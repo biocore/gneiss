@@ -1,0 +1,6 @@
+gneiss.balances.balanceplot
+===========================
+
+.. currentmodule:: gneiss.balances
+
+.. autofunction:: balanceplot

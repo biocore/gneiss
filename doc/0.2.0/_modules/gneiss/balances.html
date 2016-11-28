@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.balances &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.balances</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Balances (:mod:`gneiss.balances`)</span>
+<span class="sd">=================================</span>
+
+<span class="sd">.. currentmodule:: gneiss.balances</span>
+
+<span class="sd">This module contains modules for calculating balances and creating ETE</span>
+<span class="sd">objects to visualize these balances on a tree.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :toctree: generated/</span>
+
+<span class="sd">   balance_basis</span>
+<span class="sd">   balanceplot</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the GPLv3 License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">skbio.stats.composition</span> <span class="k">import</span> <span class="n">clr_inv</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">ete3</span> <span class="k">import</span> <span class="n">Tree</span><span class="p">,</span> <span class="n">TreeStyle</span>
+<span class="kn">from</span> <span class="nn">gneiss.layouts</span> <span class="k">import</span> <span class="n">default_layout</span>
+
+
+<span class="k">def</span> <span class="nf">_balance_basis</span><span class="p">(</span><span class="n">tree_node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper method for calculating balance basis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counts</span><span class="p">,</span> <span class="n">n_tips</span> <span class="o">=</span> <span class="n">_count_matrix</span><span class="p">(</span><span class="n">tree_node</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span> <span class="n">counts</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                          <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">is_tip</span><span class="p">()])</span>
+    <span class="n">nds</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;r&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nds</span><span class="p">])</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nds</span><span class="p">])</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nds</span><span class="p">])</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nds</span><span class="p">])</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="o">+</span><span class="n">s</span><span class="p">)))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r</span> <span class="o">/</span> <span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="o">+</span><span class="n">s</span><span class="p">)))</span>
+
+    <span class="n">basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_tips</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_tips</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nds</span><span class="p">)):</span>
+        <span class="n">basis</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">*</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="c1"># Make sure that the basis is in level order</span>
+    <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">basis</span><span class="p">,</span> <span class="n">nds</span>
+
+
+<div class="viewcode-block" id="balance_basis"><a class="viewcode-back" href="../../generated/gneiss.balances.balance_basis.html#gneiss.balances.balance_basis">[docs]</a><span class="k">def</span> <span class="nf">balance_basis</span><span class="p">(</span><span class="n">tree_node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determines the basis based on bifurcating tree.</span>
+
+<span class="sd">    This is commonly referred to as sequential binary partition.</span>
+<span class="sd">    Given a binary tree relating a list of features, this module can</span>
+<span class="sd">    be used to calculate an orthonormal basis, which is used to</span>
+<span class="sd">    calculate the ilr transform.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    treenode : skbio.TreeNode</span>
+<span class="sd">        Input bifurcating tree.  Must be strictly bifurcating</span>
+<span class="sd">        (i.e. every internal node needs to have exactly 2 children).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    basis : np.array</span>
+<span class="sd">        Returns a set of orthonormal bases in the Aitchison simplex</span>
+<span class="sd">        corresponding to the tree. The order of the</span>
+<span class="sd">        basis is index by the level order of the internal nodes.</span>
+<span class="sd">    nodes : list, skbio.TreeNode</span>
+<span class="sd">        List of tree nodes indicating the ordering in the basis.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        The tree doesn&#39;t contain two branches.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.balances import balance_basis</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; tree = u&quot;((b,c)a, d)root;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t = TreeNode.read([tree])</span>
+<span class="sd">    &gt;&gt;&gt; basis, nodes = balance_basis(t)</span>
+<span class="sd">    &gt;&gt;&gt; basis</span>
+<span class="sd">    array([[ 0.18507216,  0.18507216,  0.62985567],</span>
+<span class="sd">           [ 0.14002925,  0.57597535,  0.28399541]])</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The tree must be strictly bifurcating, meaning that</span>
+<span class="sd">    every internal node has exactly 2 children.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    skbio.stats.composition.ilr</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] J.J. Egozcue and V. Pawlowsky-Glahn &quot;Exploring Compositional Data</span>
+<span class="sd">        with the CoDa-Dendrogram&quot; (2011)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">basis</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">_balance_basis</span><span class="p">(</span><span class="n">tree_node</span><span class="p">)</span>
+    <span class="n">basis</span> <span class="o">=</span> <span class="n">clr_inv</span><span class="p">(</span><span class="n">basis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">basis</span><span class="p">,</span> <span class="n">nodes</span></div>
+
+
+<span class="k">def</span> <span class="nf">_count_matrix</span><span class="p">(</span><span class="n">treenode</span><span class="p">):</span>
+    <span class="n">n_tips</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">treenode</span><span class="o">.</span><span class="n">levelorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="c1"># fill in the Ordered dictionary. Note that the</span>
+    <span class="c1"># elements of this Ordered dictionary are</span>
+    <span class="c1"># dictionaries.</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;tips&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">counts</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># fill in r and l.  This is done in reverse level order.</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;tips&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">n_tips</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">lchild</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">rchild</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;r&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">rchild</span><span class="p">][</span><span class="s1">&#39;tips&#39;</span><span class="p">]</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">lchild</span><span class="p">][</span><span class="s1">&#39;tips&#39;</span><span class="p">]</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;tips&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;r&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a strictly bifurcating tree!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># fill in k and t</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="c1"># left or right child</span>
+        <span class="c1"># left = 0, right = 1</span>
+        <span class="n">child_idx</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n</span> <span class="k">else</span> <span class="s1">&#39;r&#39;</span>
+        <span class="k">if</span> <span class="n">child_idx</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;r&#39;</span><span class="p">]</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">counts</span><span class="p">,</span> <span class="n">n_tips</span>
+
+
+<span class="k">def</span> <span class="nf">_attach_balances</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Appends the balances to each of the internal nodes</span>
+<span class="sd">    in the ete tree.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    balances : array_like, pd.Series</span>
+<span class="sd">        Vector of balances to plot on internal nodes of the tree.</span>
+<span class="sd">        If the balances is not in a `pd.Series`, it is assumed</span>
+<span class="sd">        to be stored in level order.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Bifurcating tree to plot balances on.</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    ete.Tree</span>
+<span class="sd">        The ETE representation of the tree with balances encoded</span>
+<span class="sd">        as node weights.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">traverse</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+    <span class="n">n_tips</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+    <span class="n">n_nontips</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_tips</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">balances</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_nontips</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;The number of balances (</span><span class="si">%d</span><span class="s1">) is not &#39;</span>
+                         <span class="s1">&#39;equal to the number of internal nodes &#39;</span>
+                         <span class="s1">&#39;in the tree (</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">balances</span><span class="p">),</span> <span class="n">n_nontips</span><span class="p">))</span>
+    <span class="n">ete_tree</span> <span class="o">=</span> <span class="n">Tree</span><span class="o">.</span><span class="n">from_skbio</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+    <span class="c1"># Some random features in all nodes</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ete_tree</span><span class="o">.</span><span class="n">traverse</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="n">balances</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="n">balances</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">ete_tree</span>
+
+
+<div class="viewcode-block" id="balanceplot"><a class="viewcode-back" href="../../generated/gneiss.balances.balanceplot.html#gneiss.balances.balanceplot">[docs]</a><span class="k">def</span> <span class="nf">balanceplot</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span>
+                <span class="n">layout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots balances on tree.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    balances : np.array</span>
+<span class="sd">        A vector of internal nodes and their associated real-valued balances.</span>
+<span class="sd">        The order of the balances will be assumed to be in level order.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        A strictly bifurcating tree defining a hierarchical relationship</span>
+<span class="sd">        between all of the features within `table`.</span>
+<span class="sd">    layout : function, optional</span>
+<span class="sd">        A layout for formatting the tree visualization. Must take a</span>
+<span class="sd">        `ete.tree` as a parameter.</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        Type of display to show the tree. (&#39;c&#39;: circular, &#39;r&#39;: rectangular).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The `tree` is assumed to strictly bifurcating and whose tips match</span>
+<span class="sd">    `balances`.  It is not recommended to attempt to plot trees with a</span>
+<span class="sd">    ton of leaves (i.e. more than 4000 leaves).</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.balances import balanceplot</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; tree = u&quot;((b,c)a, d)root;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t = TreeNode.read([tree])</span>
+<span class="sd">    &gt;&gt;&gt; balances = [10, -10]</span>
+<span class="sd">    &gt;&gt;&gt; tr, ts = balanceplot(balances, t)</span>
+<span class="sd">    &gt;&gt;&gt; print(tr.get_ascii())</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">           /-b</span>
+<span class="sd">        /a|</span>
+<span class="sd">    -root  \-c</span>
+<span class="sd">       |</span>
+<span class="sd">        \-d</span>
+
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    skbio.TreeNode.levelorder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ete_tree</span> <span class="o">=</span> <span class="n">_attach_balances</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+
+    <span class="c1"># Create an empty TreeStyle</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">TreeStyle</span><span class="p">()</span>
+
+    <span class="c1"># Set our custom layout function</span>
+    <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">layout_fn</span> <span class="o">=</span> <span class="n">default_layout</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">layout_fn</span> <span class="o">=</span> <span class="n">layout</span>
+    <span class="c1"># Draw a tree</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+    <span class="c1"># We will add node names manually</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_leaf_name</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># Show branch data</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_branch_length</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_branch_support</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">ete_tree</span><span class="p">,</span> <span class="n">ts</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
