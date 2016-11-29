@@ -7,9 +7,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <!-- <title>Welcome to gneiss’s documentation! &#8212; gneiss 0.2 documentatiogn</title> -->
-    <center>
-      <img id="logo" src="assets/logo.svg" width="30%">
-    </center>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
@@ -39,6 +36,24 @@
   </head>
   <body role="document">
 
+    <a href="https://github.com/biocore/gneiss"
+       class="visible-desktop hidden-xs"><img
+					    id="gh-banner"
+					    style="position: absolute; top: 0px; right: 0; border: 0;"
+					    src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+					    alt="Fork me on GitHub"></a>
+      <script>
+	// Adjust banner height.
+	$(function () {
+	var navHeight = $(".navbar .container").css("height");
+	$("#gh-banner").css("top", navHeight);
+	});
+      </script>
+
+
+    <center>
+      <img id="logo" src="assets/logo.svg" width="30%">
+    </center>
 
     <div class="document">
       <div class="documentwrapper">
@@ -46,8 +61,30 @@
 	  <div class="body" role="main">
 
   <div class="section" id="welcome-to-gneiss-s-documentation">
-<!-- <h1>Welcome to gneiss&#8217;s documentation!<a class="headerlink" href="#welcome-to-gneiss-s-documentation" title="Permalink to this headline">¶</a></h1> -->
-<p>Contents:</p>
+    <!-- <h1>Welcome to gneiss&#8217;s documentation!<a class="headerlink" href="#welcome-to-gneiss-s-documentation" title="Permalink to this headline">¶</a></h1> -->
+<p><strong>Introduction:</strong></p>
+Balances are an alternative technique to investigate relationships between proportions.  Rather than focusing on proportions, log ratios or <i>balances</i> are investigated in analyses.   This technique has many beneficial theoretical properties, while avoiding issues assoicated with compositionality in differential abundance, correlations and regression.  More details on balances can be found <a href="https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb">here.</a>
+
+<p><strong>Installation:</strong></p>
+To install this package, it is recommended to use conda. An environment can installed as follows
+<pre>
+  conda create -n gneiss_env python=3
+</pre>
+gneiss then can be installed as follows
+<pre>
+source activate gneiss_env
+conda install pyqt
+pip install gneiss
+</pre>
+
+<p><strong>Tutorials:</strong></p>
+<a href="https://github.com/biocore/gneiss/blob/master/ipynb/88soils.ipynb">Linear regression in soils study</a>
+<br>
+<a href="https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy.ipynb">Linear mixed effects models in CF study</a>
+<br>
+<a href="https://github.com/biocore/gneiss/blob/master/ipynb/ptsd_mice.ipynb">Linear mixed effects models in PTSD study</a>
+<br>
+<p><strong>API:</strong></p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="balances.html">Balances (<code class="docutils literal"><span class="pre">gneiss.balances</span></code>)</a></li>
