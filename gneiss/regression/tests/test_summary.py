@@ -225,6 +225,17 @@ class TestRegressionResults(unittest.TestCase):
         self.assertEqual(str(res.tree), str(exp.tree))
         pdt.assert_frame_equal(res.pvalues, exp.pvalues)
 
+    def test_read_write_handle(self):
+        fh = open(self.pickle_fname, 'wb')
+        exp = RegressionResults(self.results, tree=self.tree)
+        exp.write_pickle(fh)
+        fh.close()
+        fh = open(self.pickle_fname, 'rb')
+        res = RegressionResults.read_pickle(self.pickle_fname)
+        fh.close()
+        self.assertEqual(str(res.tree), str(exp.tree))
+        pdt.assert_frame_equal(res.pvalues, exp.pvalues)
+
 
 if __name__ == "__main__":
     unittest.main()
