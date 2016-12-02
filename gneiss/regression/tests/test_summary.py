@@ -231,7 +231,7 @@ class TestRegressionResults(unittest.TestCase):
         exp.write_pickle(fh)
         fh.close()
         fh = open(self.pickle_fname, 'rb')
-        res = RegressionResults.read_pickle(self.pickle_fname)
+        res = RegressionResults.read_pickle(fh)
         fh.close()
         self.assertEqual(str(res.tree), str(exp.tree))
         pdt.assert_frame_equal(res.pvalues, exp.pvalues)
