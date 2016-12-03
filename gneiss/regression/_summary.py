@@ -271,7 +271,7 @@ class RegressionResults():
 
         Parameters
         ----------
-        filename : str
+        filename : str or filehandle
             Input file to unpickle.
 
         Returns
@@ -283,8 +283,11 @@ class RegressionResults():
         Warning: Loading pickled data received from untrusted
         sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
         """
-        with open(filename, 'rb') as fh:
-            res = pickle.load(fh)
+        if isinstance(filename, str):
+            with open(filename, 'rb') as fh:
+                res = pickle.load(fh)
+        else:
+            res = pickle.load(filename)
         return res
 
     def write_pickle(self, filename):
@@ -292,9 +295,11 @@ class RegressionResults():
 
         Parameters
         ----------
-        filename : str
+        filename : str or filehandle
             Output file to store pickled object.
         """
-
-        with open(filename, 'wb') as fh:
-            pickle.dump(self, fh)
+        if isinstance(filename, str):
+            with open(filename, 'wb') as fh:
+                pickle.dump(self, fh)
+        else:
+            pickle.dump(self, filename)

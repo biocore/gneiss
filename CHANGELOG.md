@@ -1,5 +1,11 @@
 # gneiss changelog
 
+## Version 0.2.0
+
+### Features
+* Added filehandle support for write and read io in RegressionResults object [#72](https://github.com/biocore/gneiss/issues/77)
+
+
 ## Version 0.1.3
 
 ### Features
