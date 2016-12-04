@@ -23,7 +23,7 @@ conda create -n gneiss_env python=3
 gneiss then can be installed as follows
 ```
 source activate gneiss_env
-conda install pyqt
+conda install pyqt=4.11.4
 pip install gneiss
 ```
 
