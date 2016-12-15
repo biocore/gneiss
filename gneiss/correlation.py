@@ -75,5 +75,5 @@ def lovell_distance(X):
     if isinstance(X, pd.DataFrame):
         dm.ids = X.columns
 
-    dm = DistanceMatrix((1/2) * (dm.data + dm.data.T) , ids=dm.ids)
+    dm = DistanceMatrix((1/2) * (dm.data + dm.data.T), ids=dm.ids)
     return dm

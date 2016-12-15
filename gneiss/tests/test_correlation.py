@@ -8,8 +8,7 @@
 import numpy as np
 import pandas as pd
 import unittest
-from gneiss.correlation import  lovell_distance
-import pandas.util.testing as pdt
+from gneiss.correlation import lovell_distance
 from skbio import DistanceMatrix
 import numpy.testing as npt
 
@@ -50,5 +49,5 @@ class TestLovell(unittest.TestCase):
         npt.assert_allclose(exp_dm.data, res_dm.data)
 
 
-if __name__== '__main__':
+if __name__ == '__main__':
     unittest.main()
