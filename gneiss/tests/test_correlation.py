@@ -49,5 +49,6 @@ class TestLovell(unittest.TestCase):
         res_dm = lovell_distance(t.values)
         npt.assert_allclose(exp_dm.data, res_dm.data)
 
+
 if __name__== '__main__':
     unittest.main()

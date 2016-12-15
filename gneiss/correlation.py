@@ -1,5 +1,5 @@
 """
-Sort functions (:mod:`gneiss.correlation`)
+Correlation functions (:mod:`gneiss.correlation`)
 ===================================
 
 .. currentmodule:: gneiss.correlation
