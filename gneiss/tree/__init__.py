@@ -13,8 +13,9 @@ Functions
 .. autosummary::
    :toctree: generated/
 
-       hcpba
-       supgma
+       proportional_linkage
+       gradient_linkage
+
 """
 
 from ._pba import proportional_linkage, gradient_linkage
