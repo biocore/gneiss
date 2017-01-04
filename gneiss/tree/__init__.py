@@ -17,7 +17,7 @@ Functions
        supgma
 """
 
-from ._pba import hcpba, supgma
+from ._pba import proportional_linkage, gradient_linkage
 
 
-__all__ = ['hcpba', supgma]
+__all__ = ['proportional_linkage', 'gradient_linkage']
