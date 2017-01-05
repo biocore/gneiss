@@ -1,5 +1,4 @@
 import pandas as pd
-from skbio.stats.composition import ilr_inv, clr_inv
 import pickle
 from skbio import TreeNode
 import abc

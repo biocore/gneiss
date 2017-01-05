@@ -7,18 +7,12 @@
 # ----------------------------------------------------------------------------
 
 
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from skbio.stats.composition import ilr
 from skbio import TreeNode
-from gneiss.util import match, match_tips, rename_internal_nodes
-from gneiss.regression._summary import RegressionResults
-from gneiss.balances import balance_basis
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
-import statsmodels.api as sm
 
 
 # create some mock classes for testing
@@ -92,8 +86,6 @@ class TestModel(unittest.TestCase):
         res.fit()
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
-
-        exp = [exp1, exp2]
 
         self.assertEqual(str(res.results[0].summary()),
                          str(exp1.summary()))
