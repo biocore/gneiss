@@ -81,7 +81,7 @@ def gradient_linkage(X, y, method='average'):
     y : pd.Series
         Continuous vector representing some ordering of the features in X.
     method : str
-        Clustering method.  (default='ward')
+        Clustering method.  (default='average')
 
     Returns
     -------

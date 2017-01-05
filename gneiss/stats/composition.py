@@ -1,5 +1,6 @@
 import numpy as np
 from skbio import DistanceMatrix
+from skbio.stats.composition import closure
 
 
 def variation_matrix(X):
