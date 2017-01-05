@@ -34,7 +34,7 @@ def proportional_linkage(X, method='ward'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principal balance analysis
+        Tree generated from principal balance analysis.
 
     Refererences
     ------------
@@ -86,7 +86,7 @@ def gradient_linkage(X, y, method='average'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principal balance analysis
+        Tree generated from principal balance analysis.
 
     See Also
     --------

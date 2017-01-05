@@ -7,8 +7,8 @@ def variation_matrix(X):
     """ Calculate Aitchison variation matrix.
 
     This calculates the Aitchison variation matrix.  Given a compositional
-    matrix :math:`X`, row :math:`i` and column:math:`j`, in the variation
-    matrix of :math:`X` is given by
+    matrix :math:`X`, and columns :math:`i` and :math:`j`, the :math:`ij` entry
+    in the variation matrix of :math:`X` is given by
 
     .. math:
         V_{ij} = \frac{1}{2} var(\ln \frac{x_i}{x_j})
