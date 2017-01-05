@@ -6,13 +6,15 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-
+import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
+from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
+import os
 
 
 # create some mock classes for testing
@@ -50,6 +52,10 @@ class TestModel(unittest.TestCase):
                                   columns=['x', 'y'])
         self.tree = TreeNode.read(['(x, y)a;'])
         self.balances = pd.DataFrame({'a': [-1, 0, 1]})
+
+    def tearDown(self):
+        if os.path.exists(self.pickle_fname):
+            os.remove(self.pickle_fname)
 
     def test_init(self):
         submodels = [None, None]
