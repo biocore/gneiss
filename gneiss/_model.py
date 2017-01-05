@@ -32,7 +32,7 @@ class Model(metaclass=abc.ABCMeta):
         self.basis = basis
 
         # Make all nodes in the tree queriable
-        self._nodes = {n.name:n for n in tree.levelorder()}
+        self._nodes = {n.name: n for n in tree.levelorder()}
 
         self._tree = str(tree)
         self.balances = balances
@@ -59,7 +59,6 @@ class Model(metaclass=abc.ABCMeta):
         skbio.TreeNode
         """
         return TreeNode.read([self._tree])
-
 
     def inode(self, tname):
         """ Return the underlying subtree to tname.

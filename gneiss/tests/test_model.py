@@ -135,7 +135,6 @@ class TestModel(unittest.TestCase):
         exp = submock_ok(submodels=submodels, basis=self.basis,
                          tree=self.tree, balances=self.balances)
 
-
         exp.write_pickle(self.pickle_fname)
 
         res = submock_ok.read_pickle(self.pickle_fname)
@@ -154,7 +153,6 @@ class TestModel(unittest.TestCase):
                          str(exp1.summary()))
         self.assertEqual(str(res.results[1].summary()),
                          str(exp2.summary()))
-
 
     def test_read_write_handle(self):
         submodels = [self.model1, self.model2]
