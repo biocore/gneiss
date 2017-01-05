@@ -34,7 +34,7 @@ def proportional_linkage(X, method='ward'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principle balance analysis
+        Tree generated from principal balance analysis
 
     Refererences
     ------------
@@ -60,7 +60,7 @@ def gradient_linkage(X, y, method='average'):
          \sum\limits_{i=1}^N g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}
 
     Where :math:`N` is the number of samples, :math:`x_i` is the proportion of
-    species :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value
+    feature :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value
     at sample `i`.
 
     The distance between two features :math:`x` and :math:`y` can be defined as
@@ -80,11 +80,13 @@ def gradient_linkage(X, y, method='average'):
         are columns.
     y : pd.Series
         Continuous vector representing some ordering of the features in X.
+    method : str
+        Clustering method.  (default='ward')
 
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principle balance analysis
+        Tree generated from principal balance analysis
 
     See Also
     --------

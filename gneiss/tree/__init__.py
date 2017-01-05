@@ -2,7 +2,7 @@
 Tree building functions (:mod:`gneiss.tree`)
 ============================================
 
-.. currentmodule:: gneiss.correlation
+.. currentmodule:: gneiss.tree
 
 This module contains functions to build trees.
 
