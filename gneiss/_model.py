@@ -1,4 +1,3 @@
-import pandas as pd
 import pickle
 from skbio import TreeNode
 import abc
