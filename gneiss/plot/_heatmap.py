@@ -101,6 +101,10 @@ def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
     nameFace = AttrFace("name", fsize=fsize)
 
     def heatmap_layout(node):
+        # Run the layout passed in first before
+        # filling in the heatmap
+        layout(node)
+
         if node.is_leaf():
             profileFace = ProfileFace(
                 values_vector=table.loc[:, node.name].values,
