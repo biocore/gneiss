@@ -1,21 +1,10 @@
-"""
-Plotting functions (:mod:`gneiss.plot`)
-===============================================
-
-.. currentmodule:: gneiss.plot
-
-This module contains plotting functionality
-
-Functions
----------
-
-.. autosummary::
-   :toctree: generated/
-
-   heatmap
-
-"""
-
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the GPLv3 License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
 import numpy as np
 import pandas as pd
 from skbio.stats.composition import clr_inv
@@ -117,8 +106,3 @@ def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
     ts.layout_fn = heatmap_layout
 
     return tr, ts
-
-
-
-
-

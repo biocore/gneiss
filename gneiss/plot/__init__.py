@@ -13,10 +13,18 @@ Functions
    :toctree: generated/
 
    heatmap
-
+   blobtree
 """
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the GPLv3 License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
 
-from .heatmap import heatmap
+from ._heatmap import heatmap
+from ._blobtree import diamondtree
 
 
-__all__ = ["heatmap"]
+__all__ = ["heatmap", "diamondtree"]
