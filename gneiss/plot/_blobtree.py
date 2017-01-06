@@ -5,24 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import numpy as np
-import pandas as pd
-from skbio.stats.composition import clr_inv
-from collections import OrderedDict
-from ete3 import Tree, TreeStyle, AttrFace, ProfileFace
-from ete3 import ClusterNode
-from ete3.treeview.faces import add_face_to_node
-from gneiss.layouts import default_layout
-from gneiss.balances import _attach_balances
-import io
-
-from PyQt4.QtGui import (QGraphicsRectItem, QGraphicsLineItem,
-                         QGraphicsPolygonItem, QGraphicsEllipseItem,
-                         QPen, QColor, QBrush, QPolygonF, QFont,
-                         QPixmap, QFontMetrics, QPainter,
-                         QRadialGradient, QGraphicsSimpleTextItem, QGraphicsTextItem,
-                         QGraphicsItem)
-from PyQt4.QtCore import Qt,  QPointF, QRect, QRectF
+import ete3
+from ete3 import TreeStyle, AttrFace
+from ete3.treeview import faces
+from PyQt4.QtGui import (QGraphicsPolygonItem,
+                         QPen, QColor, QBrush, QPolygonF)
+from PyQt4.QtCore import QPointF
 from ete3.treeview.faces import StaticItemFace, Face
 
 
@@ -47,7 +35,6 @@ class _DiamondItem(QGraphicsPolygonItem):
 
         self.pol = QPolygonF()
 
-
         self.pol = QPolygonF()
         self.pol.append(QPointF(width / 2.0, 0))
         self.pol.append(QPointF(width, height / 2.0))
@@ -62,7 +49,7 @@ class _DiamondItem(QGraphicsPolygonItem):
         self.setPen(QPen(QColor(color)))
 
     def paint(self, p, option, widget):
-        super(_TriangleItem, self).paint(p, option, widget)
+        super(_DiamondItem, self).paint(p, option, widget)
         ete3.treeview.faces._label_painter(self, p, option, widget)
 
 
@@ -79,10 +66,9 @@ class CollapsedDiamondFace(StaticItemFace, Face):
         self.label = label
 
     def update_items(self):
-        t = _TriangleItem(width=self.width, height=self.height, label=self.label)
-        #print(dir(t))
-        #c = _SphereItem(10, )
-        self.item = t
+        self.item = _DiamondItem(width=self.width, height=self.height,
+                                 label=self.label, color=self.color)
+
     def _width(self):
         return self.width
 
@@ -92,8 +78,7 @@ class CollapsedDiamondFace(StaticItemFace, Face):
 
 def diamondtree(tree, collapsers=None, layout=None,
                 bgcolors=None, cladecolors=None, fgcolor='black',
-                nodelabel_size=None, leaflabel_size=None,
-                depth_scaling=20, breadth_scaling=10,
+                label_size=None, depth_scaling=20, breadth_scaling=10,
                 **kwargs):
     """ Plots collapsed tree with background coloring and clade coloring.
 
@@ -127,10 +112,8 @@ def diamondtree(tree, collapsers=None, layout=None,
     breadth_scaling : int
         Scaling factor for width of the subtrees represented by diamonds.
         (default : 10)
-    nodelabel_size : int
-        Size of labels of internal nodes.
-    leaflabel_size : int
-        Size of labels of leaf nodes.
+    label_size : int
+        Size of nodes labels.
 
     Returns
     -------
@@ -145,16 +128,20 @@ def diamondtree(tree, collapsers=None, layout=None,
        Nature Microbiology 1 (2016): 16048.
     """
 
-    N = AttrFace("name", fsize=fsize, fgcolor=fgcolor)
+    N = AttrFace("name", fsize=label_size, fgcolor=fgcolor)
 
     def diamond_layout(node):
+        # Run the layout passed in first before
+        # filling in the heatmap
+        layout(node)
+
         if node.name in collapsers:
             # scaling factor for approximating subtree depth
             w = node.get_farthest_node()[1]*depth_scaling
             # scaling factor for approximating for subtree width
             h = len(node)*breadth_scaling
             C = CollapsedDiamondFace(width=w, height=h)
-            node.img_style['draw_descendants']=False
+            node.img_style['draw_descendants'] = False
 
             # And place as a float face over the tree
             faces.add_face_to_node(C, node, 0, position="float")
@@ -164,4 +151,3 @@ def diamondtree(tree, collapsers=None, layout=None,
 
     ts = TreeStyle()
     ts.layout_fn = diamond_layout
-
