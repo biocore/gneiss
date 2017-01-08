@@ -23,7 +23,7 @@ from ete3.treeview.faces import add_face_to_node
 import io
 
 
-def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
+def heatmap(table, tree, cmap='viridis', **kwargs):
     """ Plots tree on heatmap
 
     Parameters
@@ -34,9 +34,6 @@ def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
     tree : skbio.TreeNode
         A strictly bifurcating tree defining a hierarchical relationship
         between all of the features within `table`.
-    layout : function, optional
-        A layout for formatting the tree visualization. Must take a
-        `ete.tree` as a parameter.
     cmap: matplotlib colormap
         String or function encoding matplotlib colormap.
     labelcolor: str
@@ -58,13 +55,21 @@ def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
     # TODO: Allow for the option to encode labels in different colors
     # (i.e. pass in a pandas series)
     params = {'rowlabel_size': 8, 'width': 200, 'height': 14,
-              'cmap': 'viridis', 'labelcolor': 'black'}
+              'cmap': 'viridis', 'labelcolor': 'black',
+              #TODO: Enable layout
+              # layout : function, optional
+              #    A layout for formatting the tree visualization. Must take a
+              #    `ete.tree` as a parameter.
+              'layout': lambda x: x
+    }
+
     for key in params.keys():
         params[key] = kwargs.get(key, params[key])
     fsize = params['rowlabel_size']
     width = params['width']
     height = params['height']
     colorscheme = params['cmap']
+    layout = params['layout']
 
     # Allow for matplotlib colors to be encoded in ETE3 heatmap
     # Originally from https://github.com/lthiberiol/virfac
