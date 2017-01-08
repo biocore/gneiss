@@ -46,7 +46,7 @@ def heatmap(table, tree, layout=None, cmap='viridis', **kwargs):
     width : int
         Heatmap cell width. (default 200)
     height : int
-        Heatmap cell height
+        Heatmap cell height (default 14)
 
     Returns
     -------
