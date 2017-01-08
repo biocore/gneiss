@@ -56,12 +56,11 @@ def heatmap(table, tree, cmap='viridis', **kwargs):
     # (i.e. pass in a pandas series)
     params = {'rowlabel_size': 8, 'width': 200, 'height': 14,
               'cmap': 'viridis', 'labelcolor': 'black',
-              #TODO: Enable layout
+              # TODO: Enable layout
               # layout : function, optional
               #    A layout for formatting the tree visualization. Must take a
               #    `ete.tree` as a parameter.
-              'layout': lambda x: x
-    }
+              'layout': lambda x: x}
 
     for key in params.keys():
         params[key] = kwargs.get(key, params[key])

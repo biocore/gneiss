@@ -19,7 +19,7 @@ class HeatmapTest(unittest.TestCase):
                           'c': [7, 8, 9]},
                          index=['x', 'y', 'z'])
         r = TreeNode.read([r"((a,b),c);"])
-        tr, ts = heatmap(t, r, cmap='viridis',rowlabel_size=14)
+        tr, ts = heatmap(t, r, cmap='viridis', rowlabel_size=14)
         tr.render(file_name=self.fname, tree_style=ts)
         self.assertTrue(os.path.exists(self.fname))
 
