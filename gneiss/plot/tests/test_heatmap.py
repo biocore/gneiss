@@ -22,6 +22,7 @@ class HeatmapTest(unittest.TestCase):
         tr, ts = heatmap(t, r, cmap='viridis', rowlabel_size=14)
         tr.render(file_name=self.fname, tree_style=ts)
         self.assertTrue(os.path.exists(self.fname))
+        self.assertTrue(os.path.getsize(self.fname) > 0)
 
 if __name__ == "__main__":
     unittest.main()
