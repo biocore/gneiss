@@ -16,7 +16,7 @@ Functions
 
 """
 
-from .heatmap import heatmap
+from ._heatmap import heatmap
 
 
 __all__ = ["heatmap"]
