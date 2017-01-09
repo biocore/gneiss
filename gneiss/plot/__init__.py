@@ -13,7 +13,7 @@ Functions
    :toctree: generated/
 
    heatmap
-   blobtree
+   diamondtree
 """
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
