@@ -15,22 +15,6 @@ from ete3.treeview.faces import StaticItemFace, Face
 import pandas as pd
 
 
-class QGraphicsBlobItem(QGraphicsPolygonItem):
-    def __init__(self, points):
-        """
-        Creates a blob from a list of points.
-
-        Parameters
-        ----------
-        points : list of tuple
-             List of points with (x, y) coordinates.
-        """
-        self.tri = QPolygonF()
-        for p in points:
-            self.tri.append(QPointF(*p))
-        QGraphicsPolygonItem.__init__(self, self.tri)
-
-
 class _DiamondItem(QGraphicsPolygonItem):
     def __init__(self, width, height, label, color='#0000FF'):
 
