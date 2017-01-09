@@ -126,7 +126,7 @@ def diamondtree(tree, collapsers=None, **kwargs):
               # For now just define a null function if no layout is defined
               # TODO: Learning scaling factors for depth and breadth
               'layout': lambda x: x}
-    for key in params.keys():
+    for key in params:
         params[key] = kwargs.get(key, params[key])
 
     bgcolors = params['bgcolors']
