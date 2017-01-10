@@ -1,6 +1,9 @@
 import pickle
 from skbio import TreeNode
 import abc
+from skbio.stats.composition import ilr_inv
+import numpy as np
+import pandas as pd
 
 
 class Model(metaclass=abc.ABCMeta):
@@ -32,7 +35,7 @@ class Model(metaclass=abc.ABCMeta):
         # Make all nodes in the tree queriable
         self._nodes = {n.name: n for n in tree.levelorder()}
 
-        self._tree = str(tree)
+        self.tree = tree
         self.balances = balances
         self.results = []
 
@@ -48,29 +51,31 @@ class Model(metaclass=abc.ABCMeta):
         """ Print summary results """
         pass
 
-    @property
-    def tree(self):
-        """ Return the underlying tree.
-
-        Returns
-        -------
-        skbio.TreeNode
+    def get_balance(self, balance_name):
         """
-        return TreeNode.read([self._tree])
-
-    def inode(self, tname):
-        """ Return the underlying subtree to tname.
-
         Parameters
         ----------
-        tname : str
-            name of the skbio.TreeNode to return
+        node : str
+             Name of internal node in the tree to be retrieved for
 
         Returns
         -------
-        skbio.TreeNode
+        pd.DataFrame
+            Dataframe where the first column contains the numerator and the
+            second column contains the deminator of the balance.
+
         """
-        return self._nodes[tname]
+        node = self.tree.find(balance_name)
+        left = node.children[0]
+        right = node.children[1]
+
+        b = np.expand_dims(self.balances[balance_name].values, axis=1)
+        # need to scale down by the number of children in subtrees
+        # there is an erroneous factor 1/sqrt(2) from the ilr_inv below
+        # so we'll need to remove that.
+        p = ilr_inv(b) * np.sqrt(2)
+        return pd.DataFrame(p, columns=[left.name, right.name],
+                            index=self.balances.index)
 
     @classmethod
     def read_pickle(self, filename):
@@ -90,11 +95,14 @@ class Model(metaclass=abc.ABCMeta):
         Warning: Loading pickled data received from untrusted
         sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
         """
+
         if isinstance(filename, str):
             with open(filename, 'rb') as fh:
                 res = pickle.load(fh)
         else:
             res = pickle.load(filename)
+        res.tree = TreeNode.read([res._tree])
+
         return res
 
     def write_pickle(self, filename):
@@ -105,6 +113,8 @@ class Model(metaclass=abc.ABCMeta):
         filename : str or filehandle
             Output file to store pickled object.
         """
+        self._tree = str(self.tree)
+        self.tree = None
         if isinstance(filename, str):
             with open(filename, 'wb') as fh:
                 pickle.dump(self, fh)

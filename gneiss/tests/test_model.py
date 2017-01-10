@@ -62,7 +62,7 @@ class TestModel(unittest.TestCase):
         # check basis
         pdt.assert_frame_equal(self.basis, res.basis)
         # check tree
-        self.assertEqual(str(self.tree), res._tree)
+        self.assertEqual(str(self.tree), str(res.tree))
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
@@ -105,18 +105,16 @@ class TestModel(unittest.TestCase):
         self.assertTrue(isinstance(res.tree, TreeNode))
         self.assertEqual(str(res.tree), str(self.tree))
 
-    def test_inode(self):
+    def test_get_balance(self):
         submodels = [None, None]
         res = submock_ok(submodels=submodels, basis=self.basis,
                          tree=self.tree, balances=self.balances)
-        res_node = res.inode('x')
-        self.assertEqual(res_node, self.tree.children[0])
-
-        res_node = res.inode('y')
-        self.assertEqual(res_node, self.tree.children[1])
-
-        res_node = res.inode('a')
-        self.assertEqual(res_node, self.tree)
+        res.get_balance('a')
+        exp = pd.DataFrame([[0.11920292, 0.88079708],
+                            [0.5, 0.5],
+                            [0.88079708, 0.11920292]]
+                           columns=['x', 'y'])
+        pdt.assert_frame_equal(exp, res.get_balance('a'))
 
     # pickle io tests
     def test_read_write(self):
