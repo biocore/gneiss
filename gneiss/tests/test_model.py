@@ -13,6 +13,7 @@ from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
+import numpy.testing as npt
 
 
 # create some mock classes for testing
@@ -86,10 +87,10 @@ class TestModel(unittest.TestCase):
         res.fit()
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
     def test_tree(self):
         # check tree
@@ -137,10 +138,10 @@ class TestModel(unittest.TestCase):
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
     def test_read_write_handle(self):
         submodels = [self.model1, self.model2]
@@ -164,10 +165,10 @@ class TestModel(unittest.TestCase):
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
 
 if __name__ == '__main__':
