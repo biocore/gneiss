@@ -86,7 +86,6 @@ class TestModel(unittest.TestCase):
         res.fit()
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
-
         self.assertEqual(str(res.results[0].summary()),
                          str(exp1.summary()))
         self.assertEqual(str(res.results[1].summary()),
@@ -105,16 +104,15 @@ class TestModel(unittest.TestCase):
         self.assertTrue(isinstance(res.tree, TreeNode))
         self.assertEqual(str(res.tree), str(self.tree))
 
-    def test_get_balance(self):
+    def test_split_balance(self):
         submodels = [None, None]
         res = submock_ok(submodels=submodels, basis=self.basis,
                          tree=self.tree, balances=self.balances)
-        res.get_balance('a')
-        exp = pd.DataFrame([[0.11920292, 0.88079708],
+        exp = pd.DataFrame([[0.19557032, 0.80442968],
                             [0.5, 0.5],
-                            [0.88079708, 0.11920292]]
+                            [0.80442968, 0.19557032]],
                            columns=['x', 'y'])
-        pdt.assert_frame_equal(exp, res.get_balance('a'))
+        pdt.assert_frame_equal(exp, res.split_balance('a'))
 
     # pickle io tests
     def test_read_write(self):

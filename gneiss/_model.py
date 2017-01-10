@@ -1,7 +1,7 @@
 import pickle
 from skbio import TreeNode
 import abc
-from skbio.stats.composition import ilr_inv
+from skbio.stats.composition import ilr_inv, closure
 import numpy as np
 import pandas as pd
 
@@ -51,7 +51,7 @@ class Model(metaclass=abc.ABCMeta):
         """ Print summary results """
         pass
 
-    def get_balance(self, balance_name):
+    def split_balance(self, balance_name):
         """
         Parameters
         ----------
@@ -73,7 +73,7 @@ class Model(metaclass=abc.ABCMeta):
         # need to scale down by the number of children in subtrees
         # there is an erroneous factor 1/sqrt(2) from the ilr_inv below
         # so we'll need to remove that.
-        p = ilr_inv(b) * np.sqrt(2)
+        p = closure(ilr_inv(b) * np.sqrt(2))
         return pd.DataFrame(p, columns=[left.name, right.name],
                             index=self.balances.index)
 
