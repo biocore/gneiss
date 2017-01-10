@@ -62,7 +62,7 @@ class CollapsedDiamondFace(StaticItemFace, Face):
         return self.height
 
 
-def diamondtree(tree, collapsers=None, **kwargs):
+def diamondtree(tree, collapsed_nodes=None, **kwargs):
     """ Plots collapsed tree with background coloring and clade coloring.
 
     This creates collapsed trees similar to the tree plots in the tree of
@@ -75,7 +75,7 @@ def diamondtree(tree, collapsers=None, **kwargs):
     tree : skbio.TreeNode
         A strictly bifurcating tree defining a hierarchical relationship
         between all of the features within `table`.
-    collapsers : list of str
+    collapsed_nodes : list of str
         Names of internal nodes to collapse within the tree.
     layout : function, optional
         A layout for formatting the tree visualization. Must take a
@@ -90,10 +90,10 @@ def diamondtree(tree, collapsers=None, **kwargs):
         within the clade faces. (default '#0000FF')
     depth_scaling : int
         Scaling factor for height of the subtrees represented by diamonds.
-        (default : 20)
+        (default : 30)
     breadth_scaling : int
         Scaling factor for width of the subtrees represented by diamonds.
-        (default : 10)
+        (default : 6)
     label_size : int
         Size of nodes labels.
     mode : str
@@ -153,7 +153,7 @@ def diamondtree(tree, collapsers=None, **kwargs):
             nst = NodeStyle()
             nst["bgcolor"] = c
             node.set_style(nst)
-        if node.name in collapsers:
+        if node.name in collapsed_nodes:
             # scaling factor for approximating subtree depth
             w = node.get_farthest_node()[1]*depth_scaling
             # scaling factor for approximating for subtree width
