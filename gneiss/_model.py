@@ -26,7 +26,7 @@ class Model(metaclass=abc.ABCMeta):
             Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
+            balances are columns. These balances were calculated
             using `tree`.
         """
         self.submodels = submodels
