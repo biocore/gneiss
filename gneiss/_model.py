@@ -52,7 +52,8 @@ class Model(metaclass=abc.ABCMeta):
         pass
 
     def split_balance(self, balance_name):
-        """
+        """ Splits a balance into its log ratio components.
+
         Parameters
         ----------
         node : str
@@ -63,7 +64,6 @@ class Model(metaclass=abc.ABCMeta):
         pd.DataFrame
             Dataframe where the first column contains the numerator and the
             second column contains the deminator of the balance.
-
         """
         node = self.tree.find(balance_name)
         left = node.children[0]
