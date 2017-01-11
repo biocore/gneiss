@@ -13,8 +13,12 @@ from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
+<<<<<<< HEAD
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 import os
+=======
+import numpy.testing as npt
+>>>>>>> 6a7b7005860ff6788fc2a968bfe377e97ffac7b0
 
 
 # create some mock classes for testing
@@ -68,7 +72,7 @@ class TestModel(unittest.TestCase):
         # check basis
         pdt.assert_frame_equal(self.basis, res.basis)
         # check tree
-        self.assertEqual(str(self.tree), res._tree)
+        self.assertEqual(str(self.tree), str(res.tree))
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
@@ -92,11 +96,10 @@ class TestModel(unittest.TestCase):
         res.fit()
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
-
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
     def test_tree(self):
         # check tree
@@ -111,18 +114,15 @@ class TestModel(unittest.TestCase):
         self.assertTrue(isinstance(res.tree, TreeNode))
         self.assertEqual(str(res.tree), str(self.tree))
 
-    def test_inode(self):
+    def test_split_balance(self):
         submodels = [None, None]
         res = submock_ok(submodels=submodels, basis=self.basis,
                          tree=self.tree, balances=self.balances)
-        res_node = res.inode('x')
-        self.assertEqual(res_node, self.tree.children[0])
-
-        res_node = res.inode('y')
-        self.assertEqual(res_node, self.tree.children[1])
-
-        res_node = res.inode('a')
-        self.assertEqual(res_node, self.tree)
+        exp = pd.DataFrame([[0.19557032, 0.80442968],
+                            [0.5, 0.5],
+                            [0.80442968, 0.19557032]],
+                           columns=['x', 'y'])
+        pdt.assert_frame_equal(exp, res.split_balance('a'))
 
     # pickle io tests
     def test_read_write(self):
@@ -147,10 +147,10 @@ class TestModel(unittest.TestCase):
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
     def test_read_write_handle(self):
         submodels = [self.model1, self.model2]
@@ -174,10 +174,10 @@ class TestModel(unittest.TestCase):
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
-        self.assertEqual(str(res.results[0].summary()),
-                         str(exp1.summary()))
-        self.assertEqual(str(res.results[1].summary()),
-                         str(exp2.summary()))
+        npt.assert_allclose(res.results[0].predict(),
+                            exp1.predict())
+        npt.assert_allclose(res.results[1].predict(),
+                            exp2.predict())
 
 
 if __name__ == '__main__':

@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
-from skbio import TreeNode
 from skbio.stats.composition import ilr_inv
 from gneiss._model import Model
 
@@ -42,33 +41,6 @@ class RegressionModel(Model):
         """
         super().__init__(*args, **kwargs)
 
-
-    def _check_projection(self, project):
-        """ Checks to make sure that the `ilr_inv` can be performed.
-
-        Parameters
-        ----------
-        project : bool
-           Specifies if a projection into the Aitchison simplex can be
-           performed.
-
-        Raises
-        ------
-        ValueError:
-            Cannot perform projection into Aitchison simplex if `basis`
-            is not specified.
-        ValueError:
-            Cannot perform projection into Aitchison simplex
-            if `feature_names` is not specified.
-        """
-        if self.basis is None and project:
-            raise ValueError("Cannot perform projection into Aitchison simplex"
-                             " if `basis` is not specified.")
-
-        if self.feature_names is None and project:
-            raise ValueError("Cannot perform projection into Aitchison simplex"
-                             " if `feature_names` is not specified.")
-
     def coefficients(self, project=False):
         """ Returns coefficients from fit.
 
@@ -86,21 +58,11 @@ class RegressionModel(Model):
             is either balances or proportions, depending on the value of
             `project`.
 
-        Raises
-        ------
-        ValueError:
-            Cannot perform projection into Aitchison simplex if `basis`
-            is not specified.
-        ValueError:
-            Cannot perform projection into Aitchison simplex
-            if `feature_names` is not specified.
-
         References
         ----------
         .. [1] Aitchison, J. "A concise guide to compositional data analysis,
            CDA work." Girona 24 (2003): 73-81.
         """
-        self._check_projection(project)
         coef = pd.DataFrame()
 
         for r in self.results:
@@ -114,7 +76,7 @@ class RegressionModel(Model):
             # This will need to be fixed here:
             # https://github.com/biocore/gneiss/issues/34
             c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
-            return pd.DataFrame(c, index=self.feature_names,
+            return pd.DataFrame(c, index=self.basis.columns,
                                 columns=coef.columns)
         else:
             return coef
@@ -145,8 +107,6 @@ class RegressionModel(Model):
         .. [1] Aitchison, J. "A concise guide to compositional data analysis,
            CDA work." Girona 24 (2003): 73-81.
         """
-        self._check_projection(project)
-
         resid = pd.DataFrame()
 
         for r in self.results:
@@ -161,7 +121,7 @@ class RegressionModel(Model):
             # https://github.com/biocore/gneiss/issues/34
             proj_resid = ilr_inv(resid.values.T, basis=self.basis,
                                  check=False).T
-            return pd.DataFrame(proj_resid, index=self.feature_names,
+            return pd.DataFrame(proj_resid, index=self.basis.columns,
                                 columns=resid.columns).T
         else:
             return resid.T
@@ -194,8 +154,6 @@ class RegressionModel(Model):
         .. [1] Aitchison, J. "A concise guide to compositional data analysis,
            CDA work." Girona 24 (2003): 73-81.
         """
-        self._check_projection(project)
-
         prediction = pd.DataFrame()
         for m in self.results:
             # check if X is none.
@@ -215,7 +173,7 @@ class RegressionModel(Model):
             proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
                                       check=False)
             return pd.DataFrame(proj_prediction,
-                                columns=self.feature_names,
+                                columns=self.basis.columns,
                                 index=prediction.columns)
         return prediction.T
 

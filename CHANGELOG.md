@@ -1,9 +1,13 @@
 # gneiss changelog
 
+## Version 0.2.1
+* Added heatmap dendrogram plotting functionality [#87](https://github.com/biocore/gneiss/issues/87)
+* Added principal balance analysis heuristic using proportionality and wards clustering algorithm [#83](https://github.com/biocore/gneiss/issues/83)
+
 ## Version 0.2.0
 
 ### Features
-* Added filehandle support for write and read io in RegressionResults object [#72](https://github.com/biocore/gneiss/issues/77)
+* Added filehandle support for write and read io in RegressionResults object [#77](https://github.com/biocore/gneiss/issues/77)
 
 
 ## Version 0.1.3

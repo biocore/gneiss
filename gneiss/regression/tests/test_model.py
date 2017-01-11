@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 from skbio import TreeNode
-from skbio.stats.composition import ilr_inv
+from skbio.stats.composition import ilr_inv, _gram_schmidt_basis, clr_inv
 import numpy as np
 import statsmodels.formula.api as smf
 import pandas.util.testing as pdt
@@ -42,10 +42,12 @@ class TestRegressionModel(unittest.TestCase):
         self.model1 = smf.ols(formula="Y1 ~ X", data=self.data)
         self.model2 = smf.ols(formula="Y2 ~ X", data=self.data)
         self.tree = TreeNode.read(['((a,b)Y1, c)Y2;'])
-        self.basis = pd.DataFrame(balance_basis(self.tree)[0],
-                                  columns=['a', 'b', 'c'], index=['Y1', 'Y2'])
+        self.basis = pd.DataFrame(clr_inv(balance_basis(self.tree)[0]),
+                                  columns=['a', 'b', 'c'],
+                                  index=['Y1', 'Y2'])
         self.balances = pd.DataFrame(self.data[['Y1', 'Y2']],
-                                     index=self.data.index, columns=['Y1', 'Y2'])
+                                     index=self.data.index,
+                                     columns=['Y1', 'Y2'])
 
     def tearDown(self):
         if os.path.exists(self.pickle_fname):
@@ -65,34 +67,14 @@ class TestRegressionModel(unittest.TestCase):
                                check_exact=False,
                                check_less_precise=True)
 
-    def test_check_projection(self):
-        feature_names = ['Z1', 'Z2', 'Z3']
-        basis = _gram_schmidt_basis(3)
-        submodels = [self.model1, self.model2]
-        res = RegressionResults(submodels=submodels, basis=self.basis,
-                                tree=self.tree, balances=self.balances)
-
-        feature_names = ['Z1', 'Z2', 'Z3']
-        basis = _gram_schmidt_basis(3)
-
-        # Test if feature_names is checked for
-        res = RegressionResults(self.results, basis=basis)
-        with self.assertRaises(ValueError):
-            res._check_projection(True)
-
-        # Test if basis is checked for
-        res = RegressionResults(self.results, feature_names=feature_names)
-        with self.assertRaises(ValueError):
-            res._check_projection(True)
-
     def test_regression_results_coefficient(self):
         exp_coef = pd.DataFrame({'Intercept': [1.447368, -0.052632],
                                  'X': [0.539474, 1.289474]},
                                 index=['Y1', 'Y2'])
-
-        res = RegressionResults(submodels=submodels, basis=self.basis,
-                                tree=self.tree, balances=self.balances)
-
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=self.basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
         pdt.assert_frame_equal(res.coefficients(), exp_coef,
                                check_exact=False,
                                check_less_precise=True)
@@ -101,23 +83,20 @@ class TestRegressionModel(unittest.TestCase):
         exp_coef = pd.DataFrame(
             {'Intercept': ilr_inv(np.array([[1.447368, -0.052632]])),
              'X': ilr_inv(np.array([[0.539474, 1.289474]]))},
-            index=['Z1', 'Z2', 'Z3'])
-        feature_names = ['Z1', 'Z2', 'Z3']
-        basis = _gram_schmidt_basis(3)
+            index=['a', 'b', 'c'])
+        # note that in the example, the basis is not strictly
+        # equivalent to the tree
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
 
-        res = RegressionResults(submodels=submodels, basis=self.basis,
-                                tree=self.tree, balances=self.balances)
-
-
-
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
         pdt.assert_frame_equal(res.coefficients(project=True), exp_coef,
                                check_exact=False,
                                check_less_precise=True)
-
-    def test_regression_results_coefficient_project_error(self):
-        res = RegressionResults(self.results)
-        with self.assertRaises(ValueError):
-            res.coefficients(project=True)
 
     def test_regression_results_residuals_projection(self):
         A = np.array  # aliasing np.array for the sake of pep8
@@ -128,11 +107,16 @@ class TestRegressionModel(unittest.TestCase):
                                   's5': ilr_inv(A([-1.065789, 1.184211])),
                                   's6': ilr_inv(A([-1.144737, -0.394737])),
                                   's7': ilr_inv(A([0.394737, 1.894737]))},
-                                 index=['Z1', 'Z2', 'Z3']).T
-        feature_names = ['Z1', 'Z2', 'Z3']
-        basis = _gram_schmidt_basis(3)
-        res = RegressionResults(self.results, basis=basis,
-                                feature_names=feature_names)
+                                 index=['a', 'b', 'c']).T
+        # note that in the example, the basis is not strictly
+        # equivalent to the tree
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
         pdt.assert_frame_equal(res.residuals(project=True), exp_resid,
                                check_exact=False,
                                check_less_precise=True)
@@ -146,14 +130,28 @@ class TestRegressionModel(unittest.TestCase):
                                   's6': [-1.144737, -0.394737],
                                   's7': [0.394737, 1.894737]},
                                  index=['Y1', 'Y2']).T
-        res = RegressionResults(self.results)
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
+
         pdt.assert_frame_equal(res.residuals(), exp_resid,
                                check_exact=False,
                                check_less_precise=True)
 
     def test_regression_results_predict(self):
-        model = RegressionResults(self.results)
-        res_predict = model.predict(self.data[['X']])
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
+
+        res_predict = res.predict(self.data[['X']])
 
         exp_predict = pd.DataFrame({'s1': [1.986842, 1.236842],
                                     's2': [3.065789, 3.815789],
@@ -167,10 +165,17 @@ class TestRegressionModel(unittest.TestCase):
         pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_extrapolate(self):
-        model = RegressionResults(self.results)
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
+
         extrapolate = pd.DataFrame({'X': [8, 9, 10]},
                                    index=['k1', 'k2', 'k3'])
-        res_predict = model.predict(extrapolate)
+        res_predict = res.predict(extrapolate)
 
         exp_predict = pd.DataFrame({'k1': [5.76315789, 10.26315789],
                                     'k2': [6.30263158, 11.55263158],
@@ -180,12 +185,15 @@ class TestRegressionModel(unittest.TestCase):
         pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_projection(self):
-        feature_names = ['Z1', 'Z2', 'Z3']
-        basis = _gram_schmidt_basis(3)
-        model = RegressionResults(self.results, basis=basis,
-                                  feature_names=feature_names)
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
+        submodels = [self.model1, self.model2]
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
 
-        res_predict = model.predict(self.data[['X']], project=True)
+        res_predict = res.predict(self.data[['X']], project=True)
         A = np.array  # aliasing np.array for the sake of pep8
         exp_predict = pd.DataFrame({'s1': ilr_inv(A([1.986842, 1.236842])),
                                     's2': ilr_inv(A([3.065789, 3.815789])),
@@ -194,15 +202,19 @@ class TestRegressionModel(unittest.TestCase):
                                     's5': ilr_inv(A([3.065789, 3.815789])),
                                     's6': ilr_inv(A([4.144737, 6.394737])),
                                     's7': ilr_inv(A([3.605263, 5.105263]))},
-                                   index=feature_names).T
+                                   index=['a', 'b', 'c']).T
 
         pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_none(self):
+        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
+                             index=['Y1', 'Y2'],
+                             columns=['a', 'b', 'c'])
         submodels = [self.model1, self.model2]
-        model = RegressionResults(submodels=submodels, basis=self.basis,
-                                  tree=self.tree, balances=self.balances)
-        res_predict = model.predict()
+        res = submock(submodels=submodels, basis=basis,
+                      tree=self.tree, balances=self.balances)
+        res.fit()
+        res_predict = res.predict()
 
         exp_predict = pd.DataFrame({'s1': [1.986842, 1.236842],
                                     's2': [3.065789, 3.815789],
