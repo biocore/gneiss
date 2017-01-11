@@ -156,6 +156,7 @@ def diamondtree(tree, **kwargs):
             nst = NodeStyle()
             nst["bgcolor"] = c
             node.set_style(nst)
+
         if node.name in collapsed_nodes:
             # scaling factor for approximating subtree depth
             w = node.get_farthest_node()[1]*depth_scaling
@@ -213,6 +214,8 @@ def _get_node_color(x, node, default_color):
             return x.loc[node.name], True
         elif isinstance(x, dict):
             return x[node.name], True
+        elif x is None:
+            return "", False
         else:
             raise TypeError("color type %s not supported." % type(x).__name__)
     except KeyError:
