@@ -1,21 +1,10 @@
-"""
-Plotting functions (:mod:`gneiss.plot`)
-===============================================
-
-.. currentmodule:: gneiss.plot
-
-This module contains plotting functionality
-
-Functions
----------
-
-.. autosummary::
-   :toctree: generated/
-
-   heatmap
-
-"""
-
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, gneiss development team.
+#
+# Distributed under the terms of the GPLv3 License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
 import numpy as np
 from ete3 import TreeStyle, AttrFace, ProfileFace
 from ete3 import ClusterNode
