@@ -62,7 +62,7 @@ class CollapsedDiamondFace(StaticItemFace, Face):
         return self.height
 
 
-def diamondtree(tree, collapsed_nodes=None, **kwargs):
+def diamondtree(tree, **kwargs):
     """ Plots collapsed tree with background coloring and clade coloring.
 
     This creates collapsed trees similar to the tree plots in the tree of
@@ -77,14 +77,15 @@ def diamondtree(tree, collapsed_nodes=None, **kwargs):
         between all of the features within `table`.
     collapsed_nodes : list of str
         Names of internal nodes to collapse within the tree.
+        (default : [])
     layout : function, optional
         A layout for formatting the tree visualization. Must take a
-        `ete.tree` as a parameter.
+        `ete.tree` as a parameter. (default : None)
     labelcolor: str
-        Color of the node labels. (default 'black')
+        Color of the node labels. (default : 'black')
     bgcolors: dict of str or matplotlib colormap
         String or function encoding matplotlib colormap for the backgrounds
-        outside of the clades.
+        outside of the clades. (default : None)
     cladecolors: dict of str or str
         String or function encoding matplotlib colormap for the colors
         within the clade faces. (default '#0000FF')
@@ -95,10 +96,10 @@ def diamondtree(tree, collapsed_nodes=None, **kwargs):
         Scaling factor for width of the subtrees represented by diamonds.
         (default : 6)
     label_size : int
-        Size of nodes labels.
+        Size of nodes labels. (default : 10)
     mode : str
         Type of display to show the tree. ('c': circular, 'r': rectangular).
-
+        (default : 'c')
 
     Returns
     -------
@@ -115,7 +116,8 @@ def diamondtree(tree, collapsed_nodes=None, **kwargs):
 
     # TODO: Allow for the option to encode labels in different colors
     # (i.e. pass in a pandas series)
-    params = {'bgcolors': None, 'cladecolors': '#0000FF',
+    params = {'collapsed_nodes': [],
+              'bgcolors': None, 'cladecolors': '#0000FF',
               'labelcolor': 'black', 'label_size': 10,
               'depth_scaling': 30, 'breadth_scaling': 6,
               'mode': 'c',
@@ -129,6 +131,7 @@ def diamondtree(tree, collapsed_nodes=None, **kwargs):
     for key in params:
         params[key] = kwargs.get(key, params[key])
 
+    collapsed_nodes = params['collapsed_nodes']
     bgcolors = params['bgcolors']
     cladecolors = params['cladecolors']
     labelcolor = params['labelcolor']

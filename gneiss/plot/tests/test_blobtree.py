@@ -16,7 +16,7 @@ class BlobTreeTest(unittest.TestCase):
 
     def test_not_fail(self):
         st = TreeNode.read(get_data_path(self.newick))
-        tr, ts = diamondtree(st, collapsers=['y5', 'y18'],
+        tr, ts = diamondtree(st, collapsed_nodes=['y5', 'y18'],
                              breadth_scaling=6, depth_scaling=30,
                              cladecolors={'y5': '#FF0000', 'y18': '#0000FF'},
                              bgcolors={'y29': '#00FF00'})
