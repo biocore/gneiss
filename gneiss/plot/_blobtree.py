@@ -159,7 +159,8 @@ def diamondtree(tree, **kwargs):
 
         if node.name in collapsed_nodes:
             # scaling factor for approximating subtree depth
-            w = node.get_farthest_node()[1]*depth_scaling
+            depth = node.get_farthest_leaf(topology_only=True)
+            w = depth[1]*depth_scaling
             # scaling factor for approximating for subtree width
             h = len(node)*breadth_scaling
             c, _ = _get_node_color(cladecolors, node, "#0000FF")
