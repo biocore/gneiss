@@ -25,6 +25,12 @@ class submock(RegressionModel):
     def summary(self):
         print("OK!")
 
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            m = s.fit(**kwargs)
+            self.results.append(m)
 
 class TestRegressionModel(unittest.TestCase):
     def setUp(self):
