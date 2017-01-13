@@ -14,6 +14,8 @@ from gneiss.balances import balance_basis
 from ._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
+from decimal import Decimal
+from scipy.spatial.distance import euclidean
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -191,7 +193,7 @@ class LMEModel(RegressionModel):
         for s in self.submodels:
             # assumes that the underlying submodels have implemented `fit`.
             # TODO: Add regularized fit
-            #if regularized:
+            # if regularized:
             #    m = s.fit_regularized(**kwargs)
             m = s.fit(**kwargs)
             self.results.append(m)
@@ -256,10 +258,9 @@ class LMEModel(RegressionModel):
         if title is None:
             title = self.__class__.__name__ + ' ' + "Regression Results"
 
-        _r2 = self.r2
 
         top_left = [('No. Observations:', None)]
-        top_right = [('R-squared:', ["%#8.3f" % self.r2])]
+        top_right = []
 
         from statsmodels.iolib.summary import Summary, table_extend
         from statsmodels.iolib.table import SimpleTable
@@ -278,21 +279,3 @@ class LMEModel(RegressionModel):
                                        stubs=list(scores.index),
                                        title='Coefficients'))
         return smry
-
-    @property
-    def r2(self):
-        """ Coefficient of determination for overall fit"""
-        # Reason why we wanted to move this out was because not
-        # all types of statsmodels regressions have this property.
-
-        # See `statsmodels.regression.linear_model.RegressionResults`
-        # for more explanation on `ess` and `ssr`.
-        # sum of squares regression. Also referred to as
-        # explained sum of squares.
-        ssr = sum([r.ess for r in self.results])
-        # sum of squares error.  Also referred to as sum of squares residuals
-        sse = sum([r.ssr for r in self.results])
-        # calculate the overall coefficient of determination (i.e. R2)
-        sst = sse + ssr
-
-        return 1 - sse / sst

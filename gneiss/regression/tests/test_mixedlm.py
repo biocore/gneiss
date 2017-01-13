@@ -11,7 +11,6 @@ import pandas.util.testing as pdt
 import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss.regression import ols
 import statsmodels.formula.api as smf
 import numpy.testing as npt
 from skbio.util import get_data_path
@@ -247,6 +246,57 @@ class TestMixedLM(unittest.TestCase):
         with self.assertRaises(ValueError):
             res = mixedlm('real + lame', table, metadata, tree, groups='lame')
             res.fit()
+
+    def test_summary(self):
+        np.random.seed(6241)
+        n = 1600
+        exog = np.random.normal(size=(n, 2))
+        groups = np.kron(np.arange(n / 16), np.ones(16))
+
+        # Build up the random error vector
+        errors = 0
+
+        # The random effects
+        exog_re = np.random.normal(size=(n, 2))
+        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
+        errors += slopes.sum(1)
+
+        # First variance component
+        subgroups1 = np.kron(np.arange(n / 4), np.ones(4))
+        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
+
+        # Second variance component
+        subgroups2 = np.kron(np.arange(n / 2), np.ones(2))
+        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
+
+        # iid errors
+        errors += np.random.normal(size=n)
+
+        endog = exog.sum(1) + errors
+
+        df = pd.DataFrame(index=range(n))
+        df["y1"] = endog
+        df["y2"] = endog + 2 * 2
+        df["groups"] = groups
+        df["x1"] = exog[:, 0]
+        df["x2"] = exog[:, 1]
+        df["z1"] = exog_re[:, 0]
+        df["z2"] = exog_re[:, 1]
+        df["v1"] = subgroups1
+        df["v2"] = subgroups2
+
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        iv = ilr_inv(df[["y1", "y2"]].values)
+        table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
+        metadata = df[['x1', 'x2', 'z1', 'z2', 'v1', 'v2', 'groups']]
+
+        model = mixedlm("x1 + x2", table, metadata, tree, groups="groups",
+                        re_formula="0+z1+z2")
+        model.fit()
+        res = str(model.summary())
+        fh = open('data/exp_lme_results.txt', 'w')
+        fh.write(res)
 
 if __name__ == '__main__':
     unittest.main()
