@@ -32,6 +32,7 @@ class submock(RegressionModel):
             m = s.fit(**kwargs)
             self.results.append(m)
 
+
 class TestRegressionModel(unittest.TestCase):
     def setUp(self):
         self.pickle_fname = "test.pickle"

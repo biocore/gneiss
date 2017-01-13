@@ -5,7 +5,6 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -15,9 +14,7 @@ import unittest
 import pandas.util.testing as pdt
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 import os
-
 import numpy.testing as npt
-
 
 
 # create some mock classes for testing
