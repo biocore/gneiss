@@ -200,6 +200,13 @@ class OLSModel(RegressionModel):
         """
         super().__init__(*args, **kwargs)
 
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            m = s.fit(**kwargs)
+            self.results.append(m)
+
     def summary(self, title=None, yname=None, xname=None, head=None):
         """ Summarize the Ordinary Least Squares Regression Results.
 
