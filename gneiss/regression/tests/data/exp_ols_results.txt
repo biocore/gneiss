@@ -1,0 +1,18 @@
+                         OLSModel Regression Results                          
+==============================================================================
+No. Observations:                   5   R-squared:                       0.440
+    Covariates    
+==================
+           A-Norm 
+------------------
+Intercept 2.06E+00
+real      6.08E-01
+        Coefficients        
+============================
+          Intercept   real  
+----------------------------
+Y1 slope   1.60E+00 6.00E-01
+Y1 pvalue  1.28E-01 8.05E-02
+Y2 slope   1.30E+00 1.00E-01
+Y2 pvalue  3.10E-01 7.76E-01
+----------------------------

@@ -33,6 +33,8 @@ Classes
 # ----------------------------------------------------------------------------
 
 from ._summary import RegressionResults
-from ._regression import ols, mixedlm
+from ._regression import mixedlm
+from ._ols import ols, OLSModel
 
-__all__ = ["ols", "mixedlm", "RegressionResults"]
+
+__all__ = ["ols", "OLSModel", "mixedlm", "RegressionResults"]
