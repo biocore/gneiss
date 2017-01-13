@@ -39,12 +39,9 @@ class Model(metaclass=abc.ABCMeta):
         self.balances = balances
         self.results = []
 
+    @abc.abstractmethod
     def fit(self, **kwargs):
-        """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            m = s.fit(**kwargs)
-            self.results.append(m)
+        pass
 
     @abc.abstractmethod
     def summary(self):
