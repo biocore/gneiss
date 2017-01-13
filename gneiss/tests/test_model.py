@@ -13,12 +13,11 @@ from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
-<<<<<<< HEAD
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 import os
-=======
+
 import numpy.testing as npt
->>>>>>> 6a7b7005860ff6788fc2a968bfe377e97ffac7b0
+
 
 
 # create some mock classes for testing
