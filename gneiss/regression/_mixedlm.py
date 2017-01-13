@@ -11,6 +11,9 @@ import statsmodels.formula.api as smf
 from skbio.stats.composition import ilr
 from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss.balances import balance_basis
+from ._model import RegressionModel
+from ._regression import (_intersect_of_table_metadata_tree,
+                          _to_balances)
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -130,20 +133,18 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
-    fits = []
+    submodels = []
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
         mdf = smf.mixedlm(stats_formula, data=data,
                           groups=data[groups],
-                          **kwargs).fit()
-        fits.append(mdf)
+                          **kwargs)
+        submodels.append(mdf)
 
-    return RegressionResults(fits, basis=basis,
-                             feature_names=table.columns,
-                             balances=ilr_table,
-                             tree=tree)
+    return LMEModel(submodels, basis=basis,
+                    balances=ilr_table, tree=tree)
 
 
 class LMEModel(RegressionModel):
@@ -176,6 +177,24 @@ class LMEModel(RegressionModel):
             using `tree`.
         """
         super().__init__(*args, **kwargs)
+
+    def fit(self, **kwargs):
+        """ Fit the model
+
+        Parameters
+        ---------
+        regularized : bool
+            Indicates if the fixed effects parameters are penalized.
+            This is useful when there are many more parameters than
+            data points.
+        """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            # TODO: Add regularized fit
+            #if regularized:
+            #    m = s.fit_regularized(**kwargs)
+            m = s.fit(**kwargs)
+            self.results.append(m)
 
     def summary(self, title=None, yname=None, xname=None, head=None):
         """ Summarize the Ordinary Least Squares Regression Results.

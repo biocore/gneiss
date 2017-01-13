@@ -15,6 +15,7 @@ from gneiss.regression import ols
 import statsmodels.formula.api as smf
 import numpy.testing as npt
 from skbio.util import get_data_path
+from gneiss.regression import mixedlm
 
 
 class TestMixedLM(unittest.TestCase):
@@ -135,6 +136,7 @@ class TestMixedLM(unittest.TestCase):
         metadata = df[['x1', 'x2', 'groups']]
 
         res = mixedlm("x1 + x2", table, metadata, tree, groups="groups")
+        res.fit()
         exp_pvalues = pd.DataFrame(
             [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
              [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
@@ -199,7 +201,7 @@ class TestMixedLM(unittest.TestCase):
 
         res = mixedlm("x1 + x2", table, metadata, tree, groups="groups",
                       re_formula="0+z1+z2")
-
+        res.fit()
         exp_pvalues = pd.DataFrame(
             [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
              [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
@@ -243,7 +245,8 @@ class TestMixedLM(unittest.TestCase):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
         with self.assertRaises(ValueError):
-            mixedlm('real + lame', table, metadata, tree, groups='lame')
+            res = mixedlm('real + lame', table, metadata, tree, groups='lame')
+            res.fit()
 
 if __name__ == '__main__':
     unittest.main()

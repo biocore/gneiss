@@ -32,9 +32,8 @@ Classes
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from ._summary import RegressionResults
-from ._regression import mixedlm
 from ._ols import ols, OLSModel
+from ._mixedlm import mixedlm, LMEModel
 
 
-__all__ = ["ols", "OLSModel", "mixedlm", "RegressionResults"]
+__all__ = ["ols", "OLSModel", "mixedlm", "LMEModel"]
