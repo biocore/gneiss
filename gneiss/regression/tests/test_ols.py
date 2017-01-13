@@ -196,6 +196,7 @@ class TestOLS(unittest.TestCase):
         model = ols('real', table, metadata, tree)
         model.fit()
         fname = get_data_path('exp_ols_results.txt')
+
         fh = open(fname, 'r')
         exp = fh.read()
         res = str(model.summary())

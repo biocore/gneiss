@@ -13,6 +13,8 @@ from ._regression import (_intersect_of_table_metadata_tree,
 import statsmodels.formula.api as smf
 from scipy.spatial.distance import euclidean
 from decimal import Decimal
+from statsmodels.iolib.summary2 import Summary
+from collections import OrderedDict
 
 
 # TODO: Register as qiime 2 method
@@ -200,6 +202,13 @@ class OLSModel(RegressionModel):
         """
         super().__init__(*args, **kwargs)
 
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            m = s.fit(**kwargs)
+            self.results.append(m)
+
     def summary(self, title=None, yname=None, xname=None, head=None):
         """ Summarize the Ordinary Least Squares Regression Results.
 
@@ -246,41 +255,33 @@ class OLSModel(RegressionModel):
                 return x
 
         scores = scores.apply(_format)
-        cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
-                               for c in _c.columns}, index=['A-Norm']).T
-        cnorms = cnorms.apply(_format)
+        # TODO: Will want to add results for Aitchison norm
+        # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
+        #                        for c in _c.columns}, index=['A-Norm']).T
+        # cnorms = cnorms.apply(_format)
 
-        self.params = cnorms
+        self.params = _c
         # TODO: Will want results from Hotelling t-test
 
         # number of observations
         self.nobs = self.balances.shape[0]
         self.model = None
 
-        if title is None:
-            title = self.__class__.__name__ + ' ' + "Regression Results"
-
         _r2 = self.r2
-
-        top_left = [('No. Observations:', None)]
-        top_right = [('R-squared:', ["%#8.3f" % self.r2])]
-
-        from statsmodels.iolib.summary import Summary, table_extend
-        from statsmodels.iolib.table import SimpleTable
-
+        # Start filling in summary information
         smry = Summary()
-        smry.add_table_2cols(self, gleft=top_left, gright=top_right,
-                             yname=yname, xname=xname, title=title)
+        # Top results
+        info = OrderedDict()
+        info["No. Observations"] = self.balances.shape[0]
+        info["Model:"] = "Simplical OLS"
+        info["Rsquared"] = "%#8.3f" % self.r2
+        smry.add_dict(info)
 
-        smry.tables.append(
-            SimpleTable(cnorms.values, headers=list(cnorms.columns),
-                        stubs=list(cnorms.index),
-                        title='Covariates'))
+        smry.add_title("Simplical Ordinary Linear Regression Results")
+        # TODO
+        # smry.add_df(cnorms, align='r')
+        smry.add_df(scores, align='r')
 
-        smry.tables.append(SimpleTable(scores.values,
-                                       headers=list(scores.columns),
-                                       stubs=list(scores.index),
-                                       title='Coefficients'))
         return smry
 
     @property
