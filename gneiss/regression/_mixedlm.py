@@ -5,17 +5,14 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from skbio.stats.composition import ilr
-from gneiss.util import match, match_tips, rename_internal_nodes
-from gneiss.balances import balance_basis
 from ._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 from decimal import Decimal
-from scipy.spatial.distance import euclidean
+from statsmodels.iolib.summary2 import Summary
+from collections import OrderedDict
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -244,38 +241,30 @@ class LMEModel(RegressionModel):
                 return x
 
         scores = scores.apply(_format)
-        cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
-                               for c in _c.columns}, index=['A-Norm']).T
-        cnorms = cnorms.apply(_format)
+        # TODO: Will want to add results for Aitchison norm
+        # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
+        #                        for c in _c.columns}, index=['A-Norm']).T
+        # cnorms = cnorms.apply(_format)
 
-        self.params = cnorms
+        self.params = _c
         # TODO: Will want results from Hotelling t-test
 
         # number of observations
         self.nobs = self.balances.shape[0]
         self.model = None
 
-        if title is None:
-            title = self.__class__.__name__ + ' ' + "Regression Results"
-
-
-        top_left = [('No. Observations:', None)]
-        top_right = []
-
-        from statsmodels.iolib.summary import Summary, table_extend
-        from statsmodels.iolib.table import SimpleTable
-
+        # Start filling in summary information
         smry = Summary()
-        smry.add_table_2cols(self, gleft=top_left, gright=top_right,
-                             yname=yname, xname=xname, title=title)
+        # Top results
+        info = OrderedDict()
+        info["No. Observations"] = self.balances.shape[0]
+        info["Model:"] = "Simplicical MixedLM"
 
-        smry.tables.append(
-            SimpleTable(cnorms.values, headers=list(cnorms.columns),
-                        stubs=list(cnorms.index),
-                        title='Covariates'))
+        smry.add_dict(info)
 
-        smry.tables.append(SimpleTable(scores.values,
-                                       headers=list(scores.columns),
-                                       stubs=list(scores.index),
-                                       title='Coefficients'))
+        smry.add_title("Simplical Mixed Linear Model Results")
+        # TODO
+        # smry.add_df(cnorms, align='r')
+        smry.add_df(scores, align='r')
+
         return smry

@@ -295,8 +295,11 @@ class TestMixedLM(unittest.TestCase):
                         re_formula="0+z1+z2")
         model.fit()
         res = str(model.summary())
-        fh = open('data/exp_lme_results.txt', 'w')
-        fh.write(res)
+        fname = get_data_path('exp_lme_results.txt')
+        fh = open(fname, 'r')
+        exp = fh.read()
+        self.assertEqual(res, exp)
+
 
 if __name__ == '__main__':
     unittest.main()
