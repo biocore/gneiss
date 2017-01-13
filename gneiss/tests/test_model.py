@@ -13,12 +13,11 @@ from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
-<<<<<<< HEAD
 from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 import os
-=======
+
 import numpy.testing as npt
->>>>>>> 6a7b7005860ff6788fc2a968bfe377e97ffac7b0
+
 
 
 # create some mock classes for testing
@@ -28,6 +27,13 @@ class submock_ok(Model):
 
     def summary(self):
         print("OK!")
+
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            m = s.fit(**kwargs)
+            self.results.append(m)
 
 
 class submock_bad(Model):
@@ -85,21 +91,6 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(TypeError):
             submock_bad(submodels=submodels, basis=self.basis,
                         tree=self.tree, balances=self.balances)
-
-    def test_fit(self):
-
-        # now initialize model
-        submodels = [self.model1, self.model2]
-
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
-        res.fit()
-        exp1 = self.model1.fit()
-        exp2 = self.model2.fit()
-        npt.assert_allclose(res.results[0].predict(),
-                            exp1.predict())
-        npt.assert_allclose(res.results[1].predict(),
-                            exp2.predict())
 
     def test_tree(self):
         # check tree
