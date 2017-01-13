@@ -120,5 +120,3 @@ class Model(metaclass=abc.ABCMeta):
                 pickle.dump(self, fh)
         else:
             pickle.dump(self, filename)
-
-
