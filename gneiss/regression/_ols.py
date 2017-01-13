@@ -12,6 +12,7 @@ from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 import statsmodels.formula.api as smf
 from scipy.spatial.distance import euclidean
+from decimal import Decimal
 
 
 # TODO: Register as qiime 2 method
@@ -231,21 +232,21 @@ class OLSModel(RegressionModel):
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
         pvals = self.pvalues
+        # adding blank column just for the sake of display
         pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
-        scores = scores.sort_values(by = '     ', ascending=False)
+        scores = scores.sort_values(by='     ', ascending=False)
         scores = scores.sort_index()
 
-        # format scores to be printable
-        from decimal import Decimal
         def _format(x):
+            # format scores to be printable
             if x.dtypes == float:
                 return ["%3.2E" % Decimal(k) for k in x]
             else:
                 return x
 
         scores = scores.apply(_format)
-        cnorms = pd.DataFrame({c : euclidean(0, _c[c].values)
+        cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
                                for c in _c.columns}, index=['A-Norm']).T
         cnorms = cnorms.apply(_format)
 
@@ -281,7 +282,6 @@ class OLSModel(RegressionModel):
                                        stubs=list(scores.index),
                                        title='Coefficients'))
         return smry
-
 
     @property
     def r2(self):

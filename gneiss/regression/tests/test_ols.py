@@ -191,7 +191,6 @@ class TestOLS(unittest.TestCase):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
 
-
         np.random.seed(0)
         self.maxDiff = None
         model = ols('real', table, metadata, tree)
