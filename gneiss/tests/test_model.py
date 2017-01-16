@@ -165,3 +165,24 @@ class TestModel(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+data = pd.DataFrame([[1, 1, 1],
+                     [3, 2, 3],
+                     [4, 3, 2],
+                     [5, 4, 4],
+                     [2, 5, 3],
+                     [3, 6, 5],
+                     [4, 7, 4]],
+                    index=['s1', 's2', 's3', 's4',
+                           's5', 's6', 's7'],
+                    columns=['Y1', 'Y2', 'X'])
+model1 = smf.ols(formula="Y1 ~ X", data=data)
+model2 = smf.ols(formula="Y2 ~ X", data=data)
+
+basis = pd.DataFrame([[0.80442968, 0.19557032]],
+                     index=['a'],
+                     columns=['x', 'y'])
+tree = TreeNode.read(['(x, y)a;'])
+balances = pd.DataFrame({'a': [-1, 0, 1]})
+
