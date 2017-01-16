@@ -60,8 +60,10 @@ class Model(metaclass=abc.ABCMeta):
             second column contains the denominator of the balance.
         """
         node = self.tree.find(balance_name)
+
         if node.is_tip():
-            return ValueError("%s is not a balance." % balance_name)
+            raise ValueError("%s is not a balance." % balance_name)
+
         left = node.children[0]
         right = node.children[1]
         if left.is_tip():
