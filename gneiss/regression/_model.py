@@ -81,7 +81,7 @@ class RegressionModel(Model):
             return coef
 
     def residuals(self, project=False):
-        """ Returns calculated residuals.
+        """ Returns calculated residuals from fit.
 
         Parameters
         ----------
@@ -178,6 +178,7 @@ class RegressionModel(Model):
 
     @property
     def pvalues(self):
+        """ Return pvalues from each of the coefficients in the fit. """
         pvals = pd.DataFrame()
         for r in self.results:
             p = r.pvalues
