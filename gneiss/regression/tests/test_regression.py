@@ -5,15 +5,15 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import unittest
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pandas.util.testing as pdt
-import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from gneiss.regression import ols, mixedlm
 import statsmodels.formula.api as smf
-import numpy.testing as npt
 
 
 class TestOLS(unittest.TestCase):

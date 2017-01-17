@@ -174,7 +174,8 @@ class RegressionModel(Model):
             return pd.DataFrame(proj_prediction,
                                 columns=self.basis.columns,
                                 index=prediction.columns)
-        return prediction.T
+        else:
+            return prediction.T
 
     @property
     def pvalues(self):
