@@ -21,7 +21,6 @@ class RegressionModel(Model):
         In addition, summary statistics such as the coefficient
         of determination for the overall fit can be calculated.
 
-
         Parameters
         ----------
         submodels : list of statsmodels objects

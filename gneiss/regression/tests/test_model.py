@@ -7,8 +7,7 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 from skbio import TreeNode
-from skbio.stats.composition import ilr_inv, _gram_schmidt_basis, clr_inv
-import numpy as np
+from skbio.stats.composition import clr_inv
 import statsmodels.formula.api as smf
 import pandas.util.testing as pdt
 from gneiss.regression._model import RegressionModel
