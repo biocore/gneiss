@@ -29,6 +29,9 @@ class Model(metaclass=abc.ABCMeta):
             balances are columns. These balances were calculated
             using `tree`.
         """
+        # TODO: Make sure that the tree and basis are strictly coupled
+        # this will require the development of methods to convert
+        # back and forth between these methods.
         self.submodels = submodels
         self.basis = basis
 
