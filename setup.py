@@ -85,8 +85,13 @@ setup(name='gneiss',
           'scikit-bio==0.5.1',
           'statsmodels',
           'ete3',
+          'qiime >= 2.0.5'
       ],
       classifiers=classifiers,
       package_data={
-          }
-      )
+          },
+      entry_points={
+          'qiime.plugins':
+          ['gneiss=gneiss.plugin_setup:plugin']
+      }
+)
