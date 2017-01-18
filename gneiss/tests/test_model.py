@@ -5,14 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from skbio import TreeNode
 from gneiss._model import Model
 import unittest
 import pandas.util.testing as pdt
-from skbio.stats.composition import _gram_schmidt_basis, ilr_inv
 import os
 import numpy.testing as npt
 
@@ -111,6 +109,13 @@ class TestModel(unittest.TestCase):
                             [0.80442968, 0.19557032]],
                            columns=['x', 'y'])
         pdt.assert_frame_equal(exp, res.split_balance('a'))
+
+    def test_split_balance_error(self):
+        submodels = [None, None]
+        res = submock_ok(submodels=submodels, basis=self.basis,
+                         tree=self.tree, balances=self.balances)
+        with self.assertRaises(ValueError):
+            res.split_balance('x')
 
     # pickle io tests
     def test_read_write(self):
