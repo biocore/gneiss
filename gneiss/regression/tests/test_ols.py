@@ -5,16 +5,14 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import unittest
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss.regression import ols
-import statsmodels.formula.api as smf
-import numpy.testing as npt
 from skbio.util import get_data_path
+from gneiss.regression import ols
 
 
 class TestOLS(unittest.TestCase):
@@ -194,18 +192,13 @@ class TestOLS(unittest.TestCase):
         np.random.seed(0)
         self.maxDiff = None
         model = ols('real', table, metadata, tree)
-
-
         model.fit()
 
         fname = get_data_path('exp_ols_results.txt')
-
-        fh = open(fname, 'r')
-
-        exp = fh.read()
         res = str(model.summary())
-
-        self.assertEqual(exp, res)
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
 
 
 if __name__ == "__main__":

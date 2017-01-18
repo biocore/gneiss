@@ -19,7 +19,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
-    data given a list of covariates, or explanatory variables such as ph,
+    data given a list of covariates, or explanatory variables such as pH,
     treatment, etc to test for specific effects. The relative abundance data
     is transformed into balances using the ILR transformation, using a tree to
     specify the groupings of the features. The linear mixed effects model is
@@ -44,8 +44,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
     tree : skbio.TreeNode
-        Tree object where the leaves correspond to the columns contained in
-        the table.
+        Tree object that defines the partitions of the features. Each of the
+        leaves correspond to the columns contained in the table.
     groups : str
         Column names in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically

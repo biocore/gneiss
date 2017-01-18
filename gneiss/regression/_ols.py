@@ -9,8 +9,6 @@ from decimal import Decimal
 from collections import OrderedDict
 
 import pandas as pd
-from scipy.spatial.distance import euclidean
-from skbio.stats.composition import ilr_inv
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
@@ -49,8 +47,8 @@ def ols(formula, table, metadata, tree, **kwargs):
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
     tree : skbio.TreeNode
-        Tree object where the leaves correspond to the columns contained in
-        the table.
+        Tree object that defines the partitions of the features. Each of the
+        leaves correspond to the columns contained in the table.
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
