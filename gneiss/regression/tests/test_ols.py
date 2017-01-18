@@ -194,9 +194,13 @@ class TestOLS(unittest.TestCase):
         np.random.seed(0)
         self.maxDiff = None
         model = ols('real', table, metadata, tree)
+
+
         model.fit()
+
         fname = get_data_path('exp_ols_results.txt')
         fh = open(fname, 'r')
+
         exp = fh.read()
         res = str(model.summary())
 
