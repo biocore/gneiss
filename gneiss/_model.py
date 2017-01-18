@@ -1,7 +1,7 @@
 import pickle
 from skbio import TreeNode
 import abc
-from skbio.stats.composition import ilr_inv, closure
+from skbio.stats.composition import closure
 import numpy as np
 import pandas as pd
 
@@ -18,7 +18,7 @@ class Model(metaclass=abc.ABCMeta):
             List of statsmodels result objects.
         basis : pd.DataFrame
             Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leafs of the tree
+            Row names correspond to the leaves of the tree
             and the column names correspond to the internal nodes
             in the tree. If this is not specified, then `project` cannot
             be enabled in `coefficients` or `predict`.
@@ -34,9 +34,6 @@ class Model(metaclass=abc.ABCMeta):
         # back and forth between these methods.
         self.submodels = submodels
         self.basis = basis
-
-        # Make all nodes in the tree queriable
-        self._nodes = {n.name: n for n in tree.levelorder()}
 
         self.tree = tree
         self.balances = balances
@@ -63,17 +60,29 @@ class Model(metaclass=abc.ABCMeta):
         -------
         pd.DataFrame
             Dataframe where the first column contains the numerator and the
-            second column contains the deminator of the balance.
+            second column contains the denominator of the balance.
         """
         node = self.tree.find(balance_name)
+
+        if node.is_tip():
+            raise ValueError("%s is not a balance." % balance_name)
+
         left = node.children[0]
         right = node.children[1]
-
+        if left.is_tip():
+            L = 1
+        else:
+            L = len([n for n in left.tips()])
+        if right.is_tip():
+            R = 1
+        else:
+            R = len([n for n in right.tips()])
         b = np.expand_dims(self.balances[balance_name].values, axis=1)
         # need to scale down by the number of children in subtrees
-        # there is an erroneous factor 1/sqrt(2) from the ilr_inv below
-        # so we'll need to remove that.
-        p = closure(ilr_inv(b) * np.sqrt(2))
+        b = np.exp(b / (np.sqrt((L*R) / (L + R))))
+        o = np.ones((len(b), 1))
+        k = np.hstack((b, o))
+        p = closure(k)
         return pd.DataFrame(p, columns=[left.name, right.name],
                             index=self.balances.index)
 

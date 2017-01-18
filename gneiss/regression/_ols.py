@@ -5,16 +5,17 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+from decimal import Decimal
+from collections import OrderedDict
+
 import pandas as pd
+from scipy.spatial.distance import euclidean
 from skbio.stats.composition import ilr_inv
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 import statsmodels.formula.api as smf
-from scipy.spatial.distance import euclidean
-from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
-from collections import OrderedDict
 
 
 # TODO: Register as qiime 2 method
@@ -231,20 +232,18 @@ class OLSModel(RegressionModel):
         str :
             This holds the summary of regression coefficients and fit
             information.
-
         """
 
-        # calculate the aitchison norm for all of the coefficients
         _c = self.coefficients()
         coefs = _c.copy()
-        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
+        coefs.insert(0, '  ', ['slope']*coefs.shape[0])
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
         pvals = self.pvalues
-        # adding blank column just for the sake of display
-        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
+        pvals.insert(0, '  ', ['pvalue']*coefs.shape[0])
         scores = pd.concat((coefs, pvals))
-        scores = scores.sort_values(by='     ', ascending=False)
+        # adding blank column just for the sake of display
+        scores = scores.sort_values(by='  ', ascending=False)
         scores = scores.sort_index()
 
         def _format(x):
@@ -255,32 +254,33 @@ class OLSModel(RegressionModel):
                 return x
 
         scores = scores.apply(_format)
-        # TODO: Will want to add results for Aitchison norm
+        # TODO: Add sort measure of effect size for slopes.
+        # Not sure if euclidean norm is the most appropriate.
+        # See https://github.com/biocore/gneiss/issues/27
         # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
         #                        for c in _c.columns}, index=['A-Norm']).T
         # cnorms = cnorms.apply(_format)
+        # TODO: Will want results from Hotelling t-test
+        _r2 = self.r2
 
         self.params = _c
-        # TODO: Will want results from Hotelling t-test
 
         # number of observations
         self.nobs = self.balances.shape[0]
         self.model = None
 
-        _r2 = self.r2
         # Start filling in summary information
         smry = Summary()
         # Top results
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplical OLS"
-        info["Rsquared"] = "%#8.3f" % self.r2
-        smry.add_dict(info)
+        info["Model:"] = "Simplical Ordinary Least Squares"
+        info["Rsquared: "] = _r2
 
+        # TODO: Investigate how to properly resize the tables
+        smry.add_dict(info)
         smry.add_title("Simplical Ordinary Linear Regression Results")
-        # TODO
-        # smry.add_df(cnorms, align='r')
-        smry.add_df(scores, align='r')
+        smry.add_df(scores, align='l')
 
         return smry
 
@@ -298,6 +298,6 @@ class OLSModel(RegressionModel):
         # sum of squares error.  Also referred to as sum of squares residuals
         sse = sum([r.ssr for r in self.results])
         # calculate the overall coefficient of determination (i.e. R2)
-        sst = sse + ssr
 
+        sst = sse + ssr
         return 1 - sse / sst
