@@ -56,7 +56,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
 
     Returns
     -------
-    RegressionResults
+    LMEModel
         Container object that holds information about the overall fit.
         This includes information about coefficients, pvalues and
         residuals from the resulting regression.
