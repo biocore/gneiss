@@ -48,7 +48,7 @@ IPython notebooks demonstrating some of the modules in gneiss can be found as fo
 * [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy.ipynb)
 * [Linear mixed effects models on balances in a PTSD study](https://github.com/biocore/gneiss/blob/master/ipynb/ptsd_mice.ipynb)
 
-If you like this software package, please cite it!
+If you use this software package in your own publications, please cite it at
 ```
 Morton JT, Sanders J, Quinn RA, McDonald D, Gonzalez A, Vázquez-Baeza Y, 
 Navas-Molina JA, Song SJ, Metcalf JL, Hyde ER, Lladser M, Dorrestein PC, 
