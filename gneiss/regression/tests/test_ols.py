@@ -200,6 +200,58 @@ class TestOLS(unittest.TestCase):
             exp = fh.read()
             self.assertEqual(res, exp)
 
+    def test_summary(self):
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': ilr_inv(A([1., 3.])),
+            's2': ilr_inv(A([2., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([3., 4.])),
+            's5': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 2, 1, 4, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+
+        np.random.seed(0)
+        self.maxDiff = None
+        model = ols('real', table, metadata, tree)
+        model.fit()
+
+        fname = get_data_path('exp_ols_results.txt')
+        res = str(model.summary(ndim=None))
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
+
+    def test_summary_head(self):
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': ilr_inv(A([1., 3.])),
+            's2': ilr_inv(A([2., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([3., 4.])),
+            's5': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 2, 1, 4, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+
+        np.random.seed(0)
+        self.maxDiff = None
+        model = ols('real', table, metadata, tree)
+        model.fit()
+
+        fname = get_data_path('exp_ols_results2.txt')
+        res = str(model.summary(ndim=1))
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
+
 
 if __name__ == "__main__":
     unittest.main()

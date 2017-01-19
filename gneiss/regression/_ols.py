@@ -210,15 +210,15 @@ class OLSModel(RegressionModel):
             m = s.fit(**kwargs)
             self.results.append(m)
 
-    def summary(self, head=None):
+    def summary(self, ndim=10):
         """ Summarize the Ordinary Least Squares Regression Results.
 
         Parameters
         ----------
-        head : int
+        ndim : int
             Number of dimensions to summarize for coefficients.
-            If not specified, then all of the dimensions of the covariates
-            will be printed.
+            If `ndim` is None, then all of the dimensions of the covariates
+            will be printed. (default 10)
 
         Returns
         -------
@@ -229,10 +229,14 @@ class OLSModel(RegressionModel):
 
         _c = self.coefficients()
         coefs = _c.copy()
+        if ndim:
+            coefs = coefs.head(ndim)
         coefs.insert(0, '  ', ['slope']*coefs.shape[0])
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
         pvals = self.pvalues
+        if ndim:
+            pvals = pvals.head(ndim)
         pvals.insert(0, '  ', ['pvalue']*coefs.shape[0])
         scores = pd.concat((coefs, pvals))
         # adding blank column just for the sake of display
