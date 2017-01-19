@@ -20,28 +20,42 @@ from gneiss.regression import mixedlm
 class TestMixedLM(unittest.TestCase):
 
     def setUp(self):
-        A = np.array  # aliasing for the sake of pep8
-        self.table = pd.DataFrame({
-            'x1': ilr_inv(A([1., 1.])),
-            'x2': ilr_inv(A([1., 2.])),
-            'x3': ilr_inv(A([1., 3.])),
-            'y1': ilr_inv(A([1., 2.])),
-            'y2': ilr_inv(A([1., 3.])),
-            'y3': ilr_inv(A([1., 4.])),
-            'z1': ilr_inv(A([1., 5.])),
-            'z2': ilr_inv(A([1., 6.])),
-            'z3': ilr_inv(A([1., 7.])),
-            'u1': ilr_inv(A([1., 6.])),
-            'u2': ilr_inv(A([1., 7.])),
-            'u3': ilr_inv(A([1., 8.]))},
-            index=['a', 'b', 'c']).T
+        np.random.seed(6241)
+        n = 1600
+        exog = np.random.normal(size=(n, 2))
+        groups = np.kron(np.arange(n / 16), np.ones(16))
+
+        # Build up the random error vector
+        errors = 0
+
+        # The random effects
+        exog_re = np.random.normal(size=(n, 2))
+        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
+        errors += slopes.sum(1)
+
+        # First variance component
+        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
+
+        # Second variance component
+        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
+
+        # iid errors
+        errors += np.random.normal(size=n)
+
+        endog = exog.sum(1) + errors
+
+        df = pd.DataFrame(index=range(n))
+        df["y1"] = endog
+        df["y2"] = endog + 2 * 2
+        df["groups"] = groups
+        df["x1"] = exog[:, 0]
+        df["x2"] = exog[:, 1]
+
         self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-        self.metadata = pd.DataFrame({
-            'patient': [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
-            'treatment': [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
-            'time': [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
-        }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
-                  'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
+        iv = ilr_inv(df[["y1", "y2"]].values)
+        self.table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
+        self.metadata = df[['x1', 'x2', 'groups']]
 
     # test case borrowed from statsmodels
     # https://github.com/statsmodels/statsmodels/blob/master/statsmodels
@@ -97,44 +111,9 @@ class TestMixedLM(unittest.TestCase):
             0.128377,  0.082644,  0.081031], rtol=1e-3)
 
     def test_mixedlm_balances(self):
-        np.random.seed(6241)
-        n = 1600
-        exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
 
-        # Build up the random error vector
-        errors = 0
-
-        # The random effects
-        exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
-        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
-        errors += slopes.sum(1)
-
-        # First variance component
-        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
-
-        # Second variance component
-        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
-
-        # iid errors
-        errors += np.random.normal(size=n)
-
-        endog = exog.sum(1) + errors
-
-        df = pd.DataFrame(index=range(n))
-        df["y1"] = endog
-        df["y2"] = endog + 2 * 2
-        df["groups"] = groups
-        df["x1"] = exog[:, 0]
-        df["x2"] = exog[:, 1]
-
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-        iv = ilr_inv(df[["y1", "y2"]].values)
-        table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
-        metadata = df[['x1', 'x2', 'groups']]
-
-        res = mixedlm("x1 + x2", table, metadata, tree, groups="groups")
+        res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                      groups="groups")
         res.fit()
         exp_pvalues = pd.DataFrame(
             [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
@@ -248,54 +227,22 @@ class TestMixedLM(unittest.TestCase):
             res.fit()
 
     def test_summary(self):
-        np.random.seed(6241)
-        n = 1600
-        exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
-
-        # Build up the random error vector
-        errors = 0
-
-        # The random effects
-        exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
-        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
-        errors += slopes.sum(1)
-
-        # First variance component
-        subgroups1 = np.kron(np.arange(n / 4), np.ones(4))
-        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
-
-        # Second variance component
-        subgroups2 = np.kron(np.arange(n / 2), np.ones(2))
-        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
-
-        # iid errors
-        errors += np.random.normal(size=n)
-
-        endog = exog.sum(1) + errors
-
-        df = pd.DataFrame(index=range(n))
-        df["y1"] = endog
-        df["y2"] = endog + 2 * 2
-        df["groups"] = groups
-        df["x1"] = exog[:, 0]
-        df["x2"] = exog[:, 1]
-        df["z1"] = exog_re[:, 0]
-        df["z2"] = exog_re[:, 1]
-        df["v1"] = subgroups1
-        df["v2"] = subgroups2
-
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-        iv = ilr_inv(df[["y1", "y2"]].values)
-        table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
-        metadata = df[['x1', 'x2', 'z1', 'z2', 'v1', 'v2', 'groups']]
-
-        model = mixedlm("x1 + x2", table, metadata, tree, groups="groups",
-                        re_formula="0+z1+z2")
+        model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                        groups="groups")
         model.fit()
         res = str(model.summary())
         fname = get_data_path('exp_lme_results.txt')
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
+
+    def test_summary_head(self):
+        print(self.metadata)
+        model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                        groups="groups")
+        model.fit()
+        res = str(model.summary(ndim=1))
+        fname = get_data_path('exp_lme_results2.txt')
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
