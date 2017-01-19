@@ -10,7 +10,6 @@ import statsmodels.formula.api as smf
 from ._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
-from gneiss.util import match
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 from collections import OrderedDict
@@ -59,6 +58,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     -------
     RegressionResults
         Container object that holds information about the overall fit.
+        This includes information about coefficients, pvalues and
+        residuals from the resulting regression.
 
     References
     ----------
@@ -193,7 +194,7 @@ class LMEModel(RegressionModel):
             m = s.fit(**kwargs)
             self.results.append(m)
 
-    def summary(self):
+    def summary(self, head=None):
         """ Summarize the Ordinary Least Squares Regression Results.
 
         Parameters

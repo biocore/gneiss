@@ -56,7 +56,6 @@ class TestUtil(unittest.TestCase):
                                  ['d', 'diseased']],
                                 index=['a1', 'a2', 'a3', 'a4'],
                                 columns=['Barcode', 'Treatment'])
-        exp_table, exp_metadata = table, metadata
 
         with self.assertRaises(ValueError):
             match(table, metadata)

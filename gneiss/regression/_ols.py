@@ -12,7 +12,6 @@ import pandas as pd
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
-from gneiss.util import match
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 
@@ -21,7 +20,7 @@ from statsmodels.iolib.summary2 import Summary
 def ols(formula, table, metadata, tree, **kwargs):
     """ Ordinary Least Squares applied to balances.
 
-    A ordinary least square regression is performed on nonzero relative
+    An ordinary least square regression is performed on nonzero relative
     abundance data given a list of covariates, or explanatory variables
     such as ph, treatment, etc to test for specific effects. The relative
     abundance data is transformed into balances using the ILR transformation,
@@ -57,6 +56,8 @@ def ols(formula, table, metadata, tree, **kwargs):
     -------
     OLSModel
         Container object that holds information about the overall fit.
+        This includes information about coefficients, pvalues, residuals
+        and coefficient of determination from the resulting regression.
 
     Example
     -------
@@ -189,7 +190,7 @@ class OLSModel(RegressionModel):
             List of statsmodels result objects.
         basis : pd.DataFrame
             Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leafs of the tree
+            Row names correspond to the leaves of the tree
             and the column names correspond to the internal nodes
             in the tree. If this is not specified, then `project` cannot
             be enabled in `coefficients` or `predict`.
