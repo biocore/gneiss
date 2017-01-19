@@ -248,6 +248,7 @@ class TestOLS(unittest.TestCase):
 
         fname = get_data_path('exp_ols_results2.txt')
         res = str(model.summary(ndim=1))
+        print(res)
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)

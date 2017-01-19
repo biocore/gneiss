@@ -227,8 +227,8 @@ class OLSModel(RegressionModel):
             information.
         """
 
-        _c = self.coefficients()
-        coefs = _c.copy()
+        coefs = self.coefficients()
+
         if ndim:
             coefs = coefs.head(ndim)
         coefs.insert(0, '  ', ['slope']*coefs.shape[0])
@@ -237,7 +237,7 @@ class OLSModel(RegressionModel):
         pvals = self.pvalues
         if ndim:
             pvals = pvals.head(ndim)
-        pvals.insert(0, '  ', ['pvalue']*coefs.shape[0])
+        pvals.insert(0, '  ', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
         # adding blank column just for the sake of display
         scores = scores.sort_values(by='  ', ascending=False)
@@ -254,13 +254,13 @@ class OLSModel(RegressionModel):
         # TODO: Add sort measure of effect size for slopes.
         # Not sure if euclidean norm is the most appropriate.
         # See https://github.com/biocore/gneiss/issues/27
-        # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
-        #                        for c in _c.columns}, index=['A-Norm']).T
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
         # cnorms = cnorms.apply(_format)
         # TODO: Will want results from Hotelling t-test
         _r2 = self.r2
 
-        self.params = _c
+        self.params = coefs
 
         # number of observations
         self.nobs = self.balances.shape[0]
@@ -271,13 +271,13 @@ class OLSModel(RegressionModel):
         # Top results
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplical Ordinary Least Squares"
+        info["Model:"] = "Simplicial OLS"
         info["Rsquared: "] = _r2
 
         # TODO: Investigate how to properly resize the tables
         smry.add_dict(info)
-        smry.add_title("Simplical Ordinary Linear Regression Results")
-        smry.add_df(scores, align='l')
+        smry.add_title("Simplicial Ordinary Linear Regression Results")
+        smry.add_df(scores, align='r')
 
         return smry
 

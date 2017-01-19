@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+from collections import OrderedDict
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
@@ -12,7 +13,6 @@ from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
-from collections import OrderedDict
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -213,9 +213,9 @@ class LMEModel(RegressionModel):
         """
 
         # calculate the aitchison norm for all of the coefficients
-        _c = self.coefficients()
+        coefs = self.coefficients()
         if ndim:
-            coefs = _c.copy().head(ndim)
+            coefs = coefs.head(ndim)
         coefs.insert(0, '     ', ['slope']*coefs.shape[0])
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
@@ -236,11 +236,11 @@ class LMEModel(RegressionModel):
 
         scores = scores.apply(_format)
         # TODO: Will want to add results for Aitchison norm
-        # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
-        #                        for c in _c.columns}, index=['A-Norm']).T
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
         # cnorms = cnorms.apply(_format)
 
-        self.params = _c
+        self.params = coefs
         # TODO: Will want results from Hotelling t-test
 
         # number of observations
