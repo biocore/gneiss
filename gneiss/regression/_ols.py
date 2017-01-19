@@ -231,16 +231,16 @@ class OLSModel(RegressionModel):
 
         if ndim:
             coefs = coefs.head(ndim)
-        coefs.insert(0, '  ', ['slope']*coefs.shape[0])
+        coefs.insert(0, 'c', ['slope']*coefs.shape[0])
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
         pvals = self.pvalues
         if ndim:
             pvals = pvals.head(ndim)
-        pvals.insert(0, '  ', ['pvalue']*pvals.shape[0])
+        pvals.insert(0, 'c', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
         # adding blank column just for the sake of display
-        scores = scores.sort_values(by='  ', ascending=False)
+        scores = scores.sort_values(by='c', ascending=False)
         scores = scores.sort_index()
 
         def _format(x):
@@ -271,12 +271,12 @@ class OLSModel(RegressionModel):
         # Top results
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplicial OLS"
+        info["Model:"] = "OLS"
         info["Rsquared: "] = _r2
 
         # TODO: Investigate how to properly resize the tables
-        smry.add_dict(info)
-        smry.add_title("Simplicial Ordinary Linear Regression Results")
+        smry.add_dict(info, ncols=1)
+        smry.add_title("Simplicial Least Squares Results")
         smry.add_df(scores, align='r')
 
         return smry
