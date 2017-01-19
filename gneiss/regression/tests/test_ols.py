@@ -5,16 +5,14 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import unittest
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-import unittest
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
-from gneiss.regression import ols
-import statsmodels.formula.api as smf
-import numpy.testing as npt
 from skbio.util import get_data_path
+from gneiss.regression import ols
 
 
 class TestOLS(unittest.TestCase):
@@ -105,8 +103,8 @@ class TestOLS(unittest.TestCase):
             's6': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
-        exp_tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        tree = TreeNode.read(['((c,d),(b,a));'])
+        exp_tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5]
@@ -115,7 +113,7 @@ class TestOLS(unittest.TestCase):
         res = ols('real + lame', table, metadata, tree)
         res.fit()
         self.assertEqual(str(table), str(exp_table))
-        self.assertEqual(str(exp_tree), str(tree))
+        self.assertEqual(str(exp_tree), str(res.tree))
 
     def test_ols_empty_table_error(self):
         A = np.array  # aliasing for the sake of pep8
@@ -195,13 +193,38 @@ class TestOLS(unittest.TestCase):
         self.maxDiff = None
         model = ols('real', table, metadata, tree)
         model.fit()
+
         fname = get_data_path('exp_ols_results.txt')
-
-        fh = open(fname, 'r')
-        exp = fh.read()
         res = str(model.summary())
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
 
-        self.assertEqual(exp, res)
+    def test_summary_head(self):
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': ilr_inv(A([1., 3.])),
+            's2': ilr_inv(A([2., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([3., 4.])),
+            's5': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        metadata = pd.DataFrame({
+            'lame': [1, 2, 1, 4, 1],
+            'real': [1, 2, 3, 4, 5]
+        }, index=['s1', 's2', 's3', 's4', 's5'])
+
+        np.random.seed(0)
+        self.maxDiff = None
+        model = ols('real', table, metadata, tree)
+        model.fit()
+
+        fname = get_data_path('exp_ols_results2.txt')
+        res = str(model.summary(ndim=1))
+        with open(fname, 'r') as fh:
+            exp = fh.read()
+            self.assertEqual(res, exp)
 
 
 if __name__ == "__main__":

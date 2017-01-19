@@ -21,7 +21,6 @@ class RegressionModel(Model):
         In addition, summary statistics such as the coefficient
         of determination for the overall fit can be calculated.
 
-
         Parameters
         ----------
         submodels : list of statsmodels objects
@@ -82,7 +81,7 @@ class RegressionModel(Model):
             return coef
 
     def residuals(self, project=False):
-        """ Returns calculated residuals.
+        """ Returns calculated residuals from fit.
 
         Parameters
         ----------
@@ -175,10 +174,12 @@ class RegressionModel(Model):
             return pd.DataFrame(proj_prediction,
                                 columns=self.basis.columns,
                                 index=prediction.columns)
-        return prediction.T
+        else:
+            return prediction.T
 
     @property
     def pvalues(self):
+        """ Return pvalues from each of the coefficients in the fit. """
         pvals = pd.DataFrame()
         for r in self.results:
             p = r.pvalues

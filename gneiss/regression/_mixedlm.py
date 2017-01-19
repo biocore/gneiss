@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+from collections import OrderedDict
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
@@ -12,14 +13,13 @@ from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
-from collections import OrderedDict
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
-    data given a list of covariates, or explanatory variables such as ph,
+    data given a list of covariates, or explanatory variables such as pH,
     treatment, etc to test for specific effects. The relative abundance data
     is transformed into balances using the ILR transformation, using a tree to
     specify the groupings of the features. The linear mixed effects model is
@@ -35,7 +35,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         These strings are similar to how equations are handled in R.
         Note that the dependent variable in this string should not be
         specified, since this method will be run on each of the individual
-        balances. See `patsy` for more details.
+        balances. See `patsy` [1]_ for more details.
     table : pd.DataFrame
         Contingency table where samples correspond to rows and
         features correspond to columns.
@@ -44,8 +44,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
     tree : skbio.TreeNode
-        Tree object where the leaves correspond to the columns contained in
-        the table.
+        Tree object that defines the partitions of the features. Each of the
+        leaves correspond to the columns contained in the table.
     groups : str
         Column names in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
@@ -58,6 +58,12 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     -------
     RegressionResults
         Container object that holds information about the overall fit.
+        This includes information about coefficients, pvalues and
+        residuals from the resulting regression.
+
+    References
+    ----------
+    .. [1] https://patsy.readthedocs.io/en/latest/
 
     Examples
     --------
@@ -132,6 +138,10 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+    if len(data) == 0:
+        raise ValueError(("No more samples left.  Check to make sure that "
+                          "the sample names between `metadata` and `table` "
+                          "are consistent"))
     submodels = []
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
@@ -166,50 +176,32 @@ class LMEModel(RegressionModel):
             Orthonormal basis in the Aitchison simplex.
             Row names correspond to the leafs of the tree
             and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
+            in the tree.
         tree : skbio.TreeNode
             Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
+            balances are columns. These balances were calculated
             using `tree`.
         """
         super().__init__(*args, **kwargs)
 
     def fit(self, **kwargs):
-        """ Fit the model
-
-        Parameters
-        ---------
-        regularized : bool
-            Indicates if the fixed effects parameters are penalized.
-            This is useful when there are many more parameters than
-            data points.
-        """
+        """ Fit the model """
         for s in self.submodels:
             # assumes that the underlying submodels have implemented `fit`.
             # TODO: Add regularized fit
-            # if regularized:
-            #    m = s.fit_regularized(**kwargs)
             m = s.fit(**kwargs)
             self.results.append(m)
 
-    def summary(self, title=None, yname=None, xname=None, head=None):
+    def summary(self, ndim=10):
         """ Summarize the Ordinary Least Squares Regression Results.
 
         Parameters
         ----------
-        title : string, optional
-            Title for the top table. If not None, then this replaces the
-            default title
-        yname : string, optional
-            Default is `y`
-        xname : list of strings, optional
-            Default is `var_##` for ## in p the number of regressors
-        head : int
+        ndim : int
             Number of dimensions to summarize for coefficients.
-            If not specified, then all of the dimensions of the covariates
+            If `ndim` is None, then all of the dimensions of the covariates
             will be printed.
 
         Returns
@@ -221,12 +213,14 @@ class LMEModel(RegressionModel):
         """
 
         # calculate the aitchison norm for all of the coefficients
-        _c = self.coefficients()
-        coefs = _c.copy()
+        coefs = self.coefficients()
+        if ndim:
+            coefs = coefs.head(ndim)
         coefs.insert(0, '     ', ['slope']*coefs.shape[0])
         # We need a hierarchical index.  The outer index for each balance
         # and the inner index for each covariate
-        pvals = self.pvalues
+        if ndim:
+            pvals = self.pvalues.head(ndim)
         # adding blank column just for the sake of display
         pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
@@ -242,11 +236,11 @@ class LMEModel(RegressionModel):
 
         scores = scores.apply(_format)
         # TODO: Will want to add results for Aitchison norm
-        # cnorms = pd.DataFrame({c: euclidean(0, _c[c].values)
-        #                        for c in _c.columns}, index=['A-Norm']).T
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
         # cnorms = cnorms.apply(_format)
 
-        self.params = _c
+        self.params = coefs
         # TODO: Will want results from Hotelling t-test
 
         # number of observations
@@ -258,11 +252,11 @@ class LMEModel(RegressionModel):
         # Top results
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplicical MixedLM"
+        info["Model:"] = "Simplicial MixedLM"
 
         smry.add_dict(info)
 
-        smry.add_title("Simplical Mixed Linear Model Results")
+        smry.add_title("Simplicial Mixed Linear Model Results")
         # TODO
         # smry.add_df(cnorms, align='r')
         smry.add_df(scores, align='r')

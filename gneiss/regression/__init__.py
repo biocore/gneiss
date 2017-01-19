@@ -21,7 +21,8 @@ Classes
 .. autosummary::
    :toctree: generated/
 
-   RegressionResults
+   OLSModel
+   LMEModel
 
 """
 # ----------------------------------------------------------------------------
