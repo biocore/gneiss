@@ -10,6 +10,7 @@ import statsmodels.formula.api as smf
 from ._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
+from gneiss.util import match
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 from collections import OrderedDict
@@ -135,7 +136,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
-    data = match(ilr_table, metadata)
+    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
     if len(data) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "
                           "the sample names between `metadata` and `table` "
@@ -255,11 +256,11 @@ class LMEModel(RegressionModel):
         # Top results
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplicical MixedLM"
+        info["Model:"] = "Simplicial MixedLM"
 
         smry.add_dict(info)
 
-        smry.add_title("Simplical Mixed Linear Model Results")
+        smry.add_title("Simplicial Mixed Linear Model Results")
         # TODO
         # smry.add_df(cnorms, align='r')
         smry.add_df(scores, align='r')

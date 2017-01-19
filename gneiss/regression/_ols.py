@@ -12,6 +12,7 @@ import pandas as pd
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
+from gneiss.util import match
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 
