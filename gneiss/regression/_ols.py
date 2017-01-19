@@ -8,6 +8,7 @@
 from decimal import Decimal
 from collections import OrderedDict
 
+import skbio
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
@@ -16,8 +17,9 @@ import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 
 
-# TODO: Register as qiime 2 method
-def ols(formula, table, metadata, tree, **kwargs):
+def ols(formula : str, table : pd.DataFrame,
+        metadata : pd.DataFrame, tree : skbio.TreeNode,
+        **kwargs):
     """ Ordinary Least Squares applied to balances.
 
     An ordinary least square regression is performed on nonzero relative
@@ -150,11 +152,13 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     skbio.stats.composition.multiplicative_replacement
     """
-    # TODO: clean up
+    # TODO: this will need to be cleaned up to also accept
+    # balances as input
     table, metadata, tree = _intersect_of_table_metadata_tree(table,
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
+
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     submodels = []

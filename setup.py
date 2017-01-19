@@ -84,14 +84,16 @@ setup(name='gneiss',
           'nose >= 1.3.7',
           'scikit-bio==0.5.1',
           'statsmodels',
-          'ete3',
-          'qiime >= 2.0.5'
+          'ete3'
       ],
+      extra_require={
+          'q2' : ['qiime >= 2.0.5', 'biom-format', 'seaborn']
+      },
       classifiers=classifiers,
       package_data={
           },
       entry_points={
           'qiime.plugins':
-          ['gneiss=gneiss.plugin_setup:plugin']
+          ['gneiss=gneiss.q2.plugin_setup:plugin']
       }
 )

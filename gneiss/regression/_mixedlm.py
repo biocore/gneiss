@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 from collections import OrderedDict
+import skbio
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
@@ -15,7 +16,9 @@ from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 
 
-def mixedlm(formula, table, metadata, tree, groups, **kwargs):
+def mixedlm(formula : str, table : pd.DataFrame,
+            metadata : pd.DataFrame, tree : skbio.TreeNode,
+            groups : str, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -56,7 +59,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
 
     Returns
     -------
-    RegressionResults
+    LMEModel
         Container object that holds information about the overall fit.
         This includes information about coefficients, pvalues and
         residuals from the resulting regression.
@@ -133,6 +136,8 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     ols
 
     """
+    # TODO: this will need to be cleaned up to also accept
+    # balances as input
     table, metadata, tree = _intersect_of_table_metadata_tree(table,
                                                               metadata,
                                                               tree)
