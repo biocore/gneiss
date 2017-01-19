@@ -43,6 +43,24 @@ class TestUtil(unittest.TestCase):
         pdt.assert_frame_equal(exp_table, res_table)
         pdt.assert_frame_equal(exp_metadata, res_metadata)
 
+    def test_match_empty(self):
+        table = pd.DataFrame([[0, 0, 1, 1],
+                              [2, 2, 4, 4],
+                              [5, 5, 3, 3],
+                              [0, 0, 0, 1]],
+                             index=['s1', 's2', 's3', 's4'],
+                             columns=['o1', 'o2', 'o3', 'o4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['b', 'control'],
+                                 ['c', 'diseased'],
+                                 ['d', 'diseased']],
+                                index=['a1', 'a2', 'a3', 'a4'],
+                                columns=['Barcode', 'Treatment'])
+        exp_table, exp_metadata = table, metadata
+
+        with self.assertRaises(ValueError):
+            match(table, metadata)
+
     def test_match_immutable(self):
         # tests to make sure that the original tables don't change.
         table = pd.DataFrame([[0, 0, 1, 1],

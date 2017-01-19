@@ -69,6 +69,11 @@ def match(table, metadata):
         raise ValueError("`metadata` has duplicate sample ids.")
 
     idx = subtableids & submetadataids
+    if len(idx) == 0:
+        raise ValueError(("No more samples left.  Check to make sure that "
+                          "the sample names between `metadata` and `table` "
+                          "are consistent"))
+
     subtable = table.loc[idx]
     submetadata = metadata.loc[idx]
     return subtable, submetadata

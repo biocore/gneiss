@@ -35,7 +35,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         These strings are similar to how equations are handled in R.
         Note that the dependent variable in this string should not be
         specified, since this method will be run on each of the individual
-        balances. See `patsy` for more details.
+        balances. See `patsy` [1]_ for more details.
     table : pd.DataFrame
         Contingency table where samples correspond to rows and
         features correspond to columns.
@@ -58,6 +58,10 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     -------
     RegressionResults
         Container object that holds information about the overall fit.
+
+    References
+    ----------
+    .. [1] https://patsy.readthedocs.io/en/latest/
 
     Examples
     --------
@@ -131,7 +135,11 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
-    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+    data = match(ilr_table, metadata)
+    if len(data) == 0:
+        raise ValueError(("No more samples left.  Check to make sure that "
+                          "the sample names between `metadata` and `table` "
+                          "are consistent"))
     submodels = []
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
@@ -166,32 +174,21 @@ class LMEModel(RegressionModel):
             Orthonormal basis in the Aitchison simplex.
             Row names correspond to the leafs of the tree
             and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
+            in the tree.
         tree : skbio.TreeNode
             Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
+            balances are columns. These balances were calculated
             using `tree`.
         """
         super().__init__(*args, **kwargs)
 
     def fit(self, **kwargs):
-        """ Fit the model
-
-        Parameters
-        ---------
-        regularized : bool
-            Indicates if the fixed effects parameters are penalized.
-            This is useful when there are many more parameters than
-            data points.
-        """
+        """ Fit the model """
         for s in self.submodels:
             # assumes that the underlying submodels have implemented `fit`.
             # TODO: Add regularized fit
-            # if regularized:
-            #    m = s.fit_regularized(**kwargs)
             m = s.fit(**kwargs)
             self.results.append(m)
 

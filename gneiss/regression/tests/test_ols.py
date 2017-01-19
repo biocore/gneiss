@@ -103,8 +103,8 @@ class TestOLS(unittest.TestCase):
             's6': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
-        exp_tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
+        tree = TreeNode.read(['((c,d),(b,a));'])
+        exp_tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5]
@@ -113,7 +113,8 @@ class TestOLS(unittest.TestCase):
         res = ols('real + lame', table, metadata, tree)
         res.fit()
         self.assertEqual(str(table), str(exp_table))
-        self.assertEqual(str(exp_tree), str(tree))
+        self.assertEqual(str(exp_tree), str(res.tree))
+
 
     def test_ols_empty_table_error(self):
         A = np.array  # aliasing for the sake of pep8
