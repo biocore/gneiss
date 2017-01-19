@@ -16,9 +16,117 @@ from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 
 
+class LMEModel(RegressionModel):
+    def __init__(self, *args, **kwargs):
+        """
+        Summary object for storing linear mixed effects results.
+
+        A `LMEModel` object stores information about the
+        individual balances used in the regression, the coefficients,
+        residuals. This object can be used to perform predictions.
+        In addition, summary statistics such as the coefficient
+        of determination for the overall fit can be calculated.
+
+
+        Parameters
+        ----------
+        submodels : list of statsmodels objects
+            List of statsmodels result objects.
+        basis : pd.DataFrame
+            Orthonormal basis in the Aitchison simplex.
+            Row names correspond to the leafs of the tree
+            and the column names correspond to the internal nodes
+            in the tree.
+        tree : skbio.TreeNode
+            Bifurcating tree that defines `basis`.
+        balances : pd.DataFrame
+            A table of balances where samples are rows and
+            balances are columns. These balances were calculated
+            using `tree`.
+        """
+        super().__init__(*args, **kwargs)
+
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            # TODO: Add regularized fit
+            m = s.fit(**kwargs)
+            self.results.append(m)
+
+    def summary(self, ndim=10):
+        """ Summarize the Ordinary Least Squares Regression Results.
+
+        Parameters
+        ----------
+        ndim : int
+            Number of dimensions to summarize for coefficients.
+            If `ndim` is None, then all of the dimensions of the covariates
+            will be printed.
+
+        Returns
+        -------
+        str :
+            This holds the summary of regression coefficients and fit
+            information.
+
+        """
+
+        # calculate the aitchison norm for all of the coefficients
+        coefs = self.coefficients()
+        if ndim:
+            coefs = coefs.head(ndim)
+        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
+        # We need a hierarchical index.  The outer index for each balance
+        # and the inner index for each covariate
+        if ndim:
+            pvals = self.pvalues.head(ndim)
+        # adding blank column just for the sake of display
+        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
+        scores = pd.concat((coefs, pvals))
+        scores = scores.sort_values(by='     ', ascending=False)
+        scores = scores.sort_index()
+
+        def _format(x):
+            # format scores to be printable
+            if x.dtypes == float:
+                return ["%3.2E" % Decimal(k) for k in x]
+            else:
+                return x
+
+        scores = scores.apply(_format)
+        # TODO: Will want to add results for Aitchison norm
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
+        # cnorms = cnorms.apply(_format)
+
+        self.params = coefs
+        # TODO: Will want results from Hotelling t-test
+
+        # number of observations
+        self.nobs = self.balances.shape[0]
+        self.model = None
+
+        # Start filling in summary information
+        smry = Summary()
+        # Top results
+        info = OrderedDict()
+        info["No. Observations"] = self.balances.shape[0]
+        info["Model:"] = "Simplicial MixedLM"
+
+        smry.add_dict(info)
+
+        smry.add_title("Simplicial Mixed Linear Model Results")
+        # TODO
+        # smry.add_df(cnorms, align='r')
+        smry.add_df(scores, align='r')
+
+        return smry
+
+
 def mixedlm(formula : str, table : pd.DataFrame,
             metadata : pd.DataFrame, tree : skbio.TreeNode,
-            groups : str, **kwargs):
+            groups : str, **kwargs) -> LMEModel:
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -159,111 +267,3 @@ def mixedlm(formula : str, table : pd.DataFrame,
 
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
-
-
-class LMEModel(RegressionModel):
-    def __init__(self, *args, **kwargs):
-        """
-        Summary object for storing linear mixed effects results.
-
-        A `LMEModel` object stores information about the
-        individual balances used in the regression, the coefficients,
-        residuals. This object can be used to perform predictions.
-        In addition, summary statistics such as the coefficient
-        of determination for the overall fit can be calculated.
-
-
-        Parameters
-        ----------
-        submodels : list of statsmodels objects
-            List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leafs of the tree
-            and the column names correspond to the internal nodes
-            in the tree.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
-        balances : pd.DataFrame
-            A table of balances where samples are rows and
-            balances are columns. These balances were calculated
-            using `tree`.
-        """
-        super().__init__(*args, **kwargs)
-
-    def fit(self, **kwargs):
-        """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            # TODO: Add regularized fit
-            m = s.fit(**kwargs)
-            self.results.append(m)
-
-    def summary(self, ndim=10):
-        """ Summarize the Ordinary Least Squares Regression Results.
-
-        Parameters
-        ----------
-        ndim : int
-            Number of dimensions to summarize for coefficients.
-            If `ndim` is None, then all of the dimensions of the covariates
-            will be printed.
-
-        Returns
-        -------
-        str :
-            This holds the summary of regression coefficients and fit
-            information.
-
-        """
-
-        # calculate the aitchison norm for all of the coefficients
-        coefs = self.coefficients()
-        if ndim:
-            coefs = coefs.head(ndim)
-        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
-        # We need a hierarchical index.  The outer index for each balance
-        # and the inner index for each covariate
-        if ndim:
-            pvals = self.pvalues.head(ndim)
-        # adding blank column just for the sake of display
-        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
-        scores = pd.concat((coefs, pvals))
-        scores = scores.sort_values(by='     ', ascending=False)
-        scores = scores.sort_index()
-
-        def _format(x):
-            # format scores to be printable
-            if x.dtypes == float:
-                return ["%3.2E" % Decimal(k) for k in x]
-            else:
-                return x
-
-        scores = scores.apply(_format)
-        # TODO: Will want to add results for Aitchison norm
-        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
-        #                        for c in coefs.columns}, index=['A-Norm']).T
-        # cnorms = cnorms.apply(_format)
-
-        self.params = coefs
-        # TODO: Will want results from Hotelling t-test
-
-        # number of observations
-        self.nobs = self.balances.shape[0]
-        self.model = None
-
-        # Start filling in summary information
-        smry = Summary()
-        # Top results
-        info = OrderedDict()
-        info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplicial MixedLM"
-
-        smry.add_dict(info)
-
-        smry.add_title("Simplicial Mixed Linear Model Results")
-        # TODO
-        # smry.add_df(cnorms, align='r')
-        smry.add_df(scores, align='r')
-
-        return smry

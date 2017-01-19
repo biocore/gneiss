@@ -16,10 +16,137 @@ from ._regression import (_intersect_of_table_metadata_tree,
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 
+class OLSModel(RegressionModel):
+    def __init__(self, *args, **kwargs):
+        """
+        Summary object for storing ordinary least squares results.
+
+        A `OLSModel` object stores information about the
+        individual balances used in the regression, the coefficients,
+        residuals. This object can be used to perform predictions.
+        In addition, summary statistics such as the coefficient
+        of determination for the overall fit can be calculated.
+
+
+        Parameters
+        ----------
+        submodels : list of statsmodels objects
+            List of statsmodels result objects.
+        basis : pd.DataFrame
+            Orthonormal basis in the Aitchison simplex.
+            Row names correspond to the leaves of the tree
+            and the column names correspond to the internal nodes
+            in the tree. If this is not specified, then `project` cannot
+            be enabled in `coefficients` or `predict`.
+        tree : skbio.TreeNode
+            Bifurcating tree that defines `basis`.
+        balances : pd.DataFrame
+            A table of balances where samples are rows and
+            balances are columns.  These balances were calculated
+            using `tree`.
+        """
+        super().__init__(*args, **kwargs)
+
+    def fit(self, **kwargs):
+        """ Fit the model """
+        for s in self.submodels:
+            # assumes that the underlying submodels have implemented `fit`.
+            m = s.fit(**kwargs)
+            self.results.append(m)
+
+    def summary(self, ndim=10):
+        """ Summarize the Ordinary Least Squares Regression Results.
+
+        Parameters
+        ----------
+        ndim : int
+            Number of dimensions to summarize for coefficients.
+            If `ndim` is None, then all of the dimensions of the covariates
+            will be printed. (default 10)
+
+        Returns
+        -------
+        str :
+            This holds the summary of regression coefficients and fit
+            information.
+        """
+
+        coefs = self.coefficients()
+
+        if ndim:
+            coefs = coefs.head(ndim)
+        coefs.insert(0, 'c', ['slope']*coefs.shape[0])
+        # We need a hierarchical index.  The outer index for each balance
+        # and the inner index for each covariate
+        pvals = self.pvalues
+        if ndim:
+            pvals = pvals.head(ndim)
+        pvals.insert(0, 'c', ['pvalue']*pvals.shape[0])
+        scores = pd.concat((coefs, pvals))
+        # adding blank column just for the sake of display
+        scores = scores.sort_values(by='c', ascending=False)
+        scores = scores.sort_index()
+
+        def _format(x):
+            # format scores to be printable
+            if x.dtypes == float:
+                return ["%3.2E" % Decimal(k) for k in x]
+            else:
+                return x
+
+        scores = scores.apply(_format)
+        # TODO: Add sort measure of effect size for slopes.
+        # Not sure if euclidean norm is the most appropriate.
+        # See https://github.com/biocore/gneiss/issues/27
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
+        # cnorms = cnorms.apply(_format)
+        # TODO: Will want results from Hotelling t-test
+        _r2 = self.r2
+
+        self.params = coefs
+
+        # number of observations
+        self.nobs = self.balances.shape[0]
+        self.model = None
+
+        # Start filling in summary information
+        smry = Summary()
+        # Top results
+        info = OrderedDict()
+        info["No. Observations"] = self.balances.shape[0]
+        info["Model:"] = "OLS"
+        info["Rsquared: "] = _r2
+
+        # TODO: Investigate how to properly resize the tables
+        smry.add_dict(info, ncols=1)
+        smry.add_title("Simplicial Least Squares Results")
+        smry.add_df(scores, align='r')
+
+        return smry
+
+    @property
+    def r2(self):
+        """ Coefficient of determination for overall fit"""
+        # Reason why we wanted to move this out was because not
+        # all types of statsmodels regressions have this property.
+
+        # See `statsmodels.regression.linear_model.RegressionResults`
+        # for more explanation on `ess` and `ssr`.
+        # sum of squares regression. Also referred to as
+        # explained sum of squares.
+        ssr = sum([r.ess for r in self.results])
+        # sum of squares error.  Also referred to as sum of squares residuals
+        sse = sum([r.ssr for r in self.results])
+        # calculate the overall coefficient of determination (i.e. R2)
+
+        sst = sse + ssr
+        return 1 - sse / sst
+
 
 def ols(formula : str, table : pd.DataFrame,
         metadata : pd.DataFrame, tree : skbio.TreeNode,
-        **kwargs):
+        **kwargs) -> OLSModel:
     """ Ordinary Least Squares applied to balances.
 
     An ordinary least square regression is performed on nonzero relative
@@ -174,131 +301,3 @@ def ols(formula : str, table : pd.DataFrame,
     return OLSModel(submodels, basis=basis,
                     balances=ilr_table,
                     tree=tree)
-
-
-class OLSModel(RegressionModel):
-    def __init__(self, *args, **kwargs):
-        """
-        Summary object for storing ordinary least squares results.
-
-        A `OLSModel` object stores information about the
-        individual balances used in the regression, the coefficients,
-        residuals. This object can be used to perform predictions.
-        In addition, summary statistics such as the coefficient
-        of determination for the overall fit can be calculated.
-
-
-        Parameters
-        ----------
-        submodels : list of statsmodels objects
-            List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leaves of the tree
-            and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
-        balances : pd.DataFrame
-            A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
-            using `tree`.
-        """
-        super().__init__(*args, **kwargs)
-
-    def fit(self, **kwargs):
-        """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            m = s.fit(**kwargs)
-            self.results.append(m)
-
-    def summary(self, ndim=10):
-        """ Summarize the Ordinary Least Squares Regression Results.
-
-        Parameters
-        ----------
-        ndim : int
-            Number of dimensions to summarize for coefficients.
-            If `ndim` is None, then all of the dimensions of the covariates
-            will be printed. (default 10)
-
-        Returns
-        -------
-        str :
-            This holds the summary of regression coefficients and fit
-            information.
-        """
-
-        coefs = self.coefficients()
-
-        if ndim:
-            coefs = coefs.head(ndim)
-        coefs.insert(0, 'c', ['slope']*coefs.shape[0])
-        # We need a hierarchical index.  The outer index for each balance
-        # and the inner index for each covariate
-        pvals = self.pvalues
-        if ndim:
-            pvals = pvals.head(ndim)
-        pvals.insert(0, 'c', ['pvalue']*pvals.shape[0])
-        scores = pd.concat((coefs, pvals))
-        # adding blank column just for the sake of display
-        scores = scores.sort_values(by='c', ascending=False)
-        scores = scores.sort_index()
-
-        def _format(x):
-            # format scores to be printable
-            if x.dtypes == float:
-                return ["%3.2E" % Decimal(k) for k in x]
-            else:
-                return x
-
-        scores = scores.apply(_format)
-        # TODO: Add sort measure of effect size for slopes.
-        # Not sure if euclidean norm is the most appropriate.
-        # See https://github.com/biocore/gneiss/issues/27
-        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
-        #                        for c in coefs.columns}, index=['A-Norm']).T
-        # cnorms = cnorms.apply(_format)
-        # TODO: Will want results from Hotelling t-test
-        _r2 = self.r2
-
-        self.params = coefs
-
-        # number of observations
-        self.nobs = self.balances.shape[0]
-        self.model = None
-
-        # Start filling in summary information
-        smry = Summary()
-        # Top results
-        info = OrderedDict()
-        info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "OLS"
-        info["Rsquared: "] = _r2
-
-        # TODO: Investigate how to properly resize the tables
-        smry.add_dict(info, ncols=1)
-        smry.add_title("Simplicial Least Squares Results")
-        smry.add_df(scores, align='r')
-
-        return smry
-
-    @property
-    def r2(self):
-        """ Coefficient of determination for overall fit"""
-        # Reason why we wanted to move this out was because not
-        # all types of statsmodels regressions have this property.
-
-        # See `statsmodels.regression.linear_model.RegressionResults`
-        # for more explanation on `ess` and `ssr`.
-        # sum of squares regression. Also referred to as
-        # explained sum of squares.
-        ssr = sum([r.ess for r in self.results])
-        # sum of squares error.  Also referred to as sum of squares residuals
-        sse = sum([r.ssr for r in self.results])
-        # calculate the overall coefficient of determination (i.e. R2)
-
-        sst = sse + ssr
-        return 1 - sse / sst
