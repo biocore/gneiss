@@ -209,18 +209,11 @@ class OLSModel(RegressionModel):
             m = s.fit(**kwargs)
             self.results.append(m)
 
-    def summary(self, title=None, yname=None, xname=None, head=None):
+    def summary(self, head=None):
         """ Summarize the Ordinary Least Squares Regression Results.
 
         Parameters
         ----------
-        title : string, optional
-            Title for the top table. If not None, then this replaces the
-            default title
-        yname : string, optional
-            Default is `y`
-        xname : list of strings, optional
-            Default is `var_##` for ## in p the number of regressors
         head : int
             Number of dimensions to summarize for coefficients.
             If not specified, then all of the dimensions of the covariates

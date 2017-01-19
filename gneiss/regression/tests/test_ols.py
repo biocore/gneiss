@@ -115,7 +115,6 @@ class TestOLS(unittest.TestCase):
         self.assertEqual(str(table), str(exp_table))
         self.assertEqual(str(exp_tree), str(res.tree))
 
-
     def test_ols_empty_table_error(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
