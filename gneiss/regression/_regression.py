@@ -365,7 +365,6 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
-
     fits = []
     for b in ilr_table.columns:
         # mixed effects code is obtained here:
