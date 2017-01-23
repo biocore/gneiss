@@ -1,0 +1,11 @@
+Simplicial Least Squares Results
+============================
+No. Observations      5.0000
+Model:                OLS   
+Rsquared:             0.4405
+----------------------------
+     c    Intercept   real  
+----------------------------
+Y1  slope  1.60E+00 6.00E-01
+Y1 pvalue  1.28E-01 8.05E-02
+============================

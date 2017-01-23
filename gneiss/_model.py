@@ -36,6 +36,7 @@ class Model(metaclass=abc.ABCMeta):
         self.basis = basis
 
         self.tree = tree
+
         self.balances = balances
         self.results = []
 
@@ -122,6 +123,7 @@ class Model(metaclass=abc.ABCMeta):
         filename : str or filehandle
             Output file to store pickled object.
         """
+        t = self.tree.copy()
         self._tree = str(self.tree)
         self.tree = None
         if isinstance(filename, str):
@@ -129,3 +131,6 @@ class Model(metaclass=abc.ABCMeta):
                 pickle.dump(self, fh)
         else:
             pickle.dump(self, filename)
+
+        # restore the tree
+        self.tree = t

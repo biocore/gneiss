@@ -127,6 +127,8 @@ class TestModel(unittest.TestCase):
                          tree=self.tree, balances=self.balances)
 
         exp.write_pickle(self.pickle_fname)
+        # make sure that tree is not nullified
+        self.assertTrue(exp.tree is not None)
 
         res = submock_ok.read_pickle(self.pickle_fname)
         res.fit()
@@ -152,6 +154,8 @@ class TestModel(unittest.TestCase):
                              tree=self.tree, balances=self.balances)
 
             exp.write_pickle(wfh)
+            # make sure that tree is not nullified
+            self.assertTrue(exp.tree is not None)
 
         with open(self.pickle_fname, 'rb') as rfh:
             res = submock_ok.read_pickle(rfh)
