@@ -15,6 +15,21 @@ from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
+from gneiss.stats.composition import variation_matrix
+from statsmodels.sandbox.tools.cross_val import LeaveOneOut
+
+
+def _fit_ols(x_data, y_data, **kwargs)
+    submodels = []
+    for b in y_data.columns:
+        # mixed effects code is obtained here:
+        # http://stackoverflow.com/a/22439820/1167475
+
+        endog_data = y_data[b]
+        mdf = smf.OLS(endog=y_data, exog=x_data, **kwargs)
+        submodels.append(mdf)
+    return submodels
+
 
 class OLSModel(RegressionModel):
     def __init__(self, *args, **kwargs):
@@ -47,11 +62,14 @@ class OLSModel(RegressionModel):
         """
         super().__init__(*args, **kwargs)
 
-    def fit(self, **kwargs):
+    def fit(self, regularized=False, **kwargs):
         """ Fit the model """
         for s in self.submodels:
             # assumes that the underlying submodels have implemented `fit`.
-            m = s.fit(**kwargs)
+            if regularized:
+                m = s.fit_regularized(**kwargs)
+            else:
+                m = s.fit(**kwargs)
             self.results.append(m)
 
     def summary(self, ndim=10):
@@ -143,6 +161,115 @@ class OLSModel(RegressionModel):
         sst = sse + ssr
         return 1 - sse / sst
 
+    @property
+    def mse(self):
+        sse = sum([r.ssr for r in self.results])
+        dfe = self.results[0].df_resid
+        return sse / dfe
+
+    def loo(self, **kwargs):
+        """ Leave one out cross-validation.
+
+        Calculates summary statistics for each iteraction of
+        leave one out cross-validation, specially `mse` on entire model
+        and `pred_err` to measure prediction error.
+
+        Parameters
+        ----------
+        **kwargs : dict
+           Keyword arguments to be passed into `RegressionModel.predict`.
+
+        Returns
+        -------
+        pd.DataFrame
+           mse : np.array, float
+               Mean sum of squares error for each iteration of
+               the cross validation.
+           pred_err : np.array, float
+               Prediction sum of squares error for each iteration of
+               the cross validation.
+
+        See Also
+        --------
+        RegressionModel
+        """
+        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        cv_iter = LeaveOneOut(nobs)
+        endog = self.balances
+        exog = self.results[0].exog
+        param_names = list(self.pvalues.columns)
+
+        results = pd.DataFrame(index=self.balances.index,
+                               columns=['mse', 'pred_err'])
+        for inidx, outidx in cv_iter:
+            res_i = _fit_ols(endog.loc[inidx], exog.loc[inidx])
+            res_i = [r.fit() for r in res_i]
+
+            # mean sum of squares error
+            sse = sum([r.ssr for r in res_i])
+            # degrees of freedom for residuals
+            dfe = res_i[0].df_resid
+            results['mse'] = sse / dfe
+
+            # prediction error on loo point
+            predicted = [r.predict(exog.loc[inidx], **kwargs) for r in res_i]
+            results['pred_err'] = (predicted - self.balances.loc[inidx])**2
+        return results
+
+    def lovo(self, **kwargs):
+        """ Leave one variable out cross-validation.
+
+        Calculates summary statistics for each iteraction of leave one variable
+        out cross-validation, specially `r2` and `mse` on entire model.
+        This technique is particularly useful for feature selection.
+
+        Parameters
+        ----------
+        **kwargs : dict
+           Keyword arguments to be passed into `RegressionModel.predict`.
+
+        Returns
+        -------
+        pd.DataFrame
+           Rsquared : np.array, flot
+               Coefficient of determination for each variable left out.
+           mse : np.array, float
+               Mean sum of squares error for each iteration of
+               the cross validation.
+        """
+        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        cv_iter = LeaveOneOut(nobs)
+        endog = self.balances
+        exog = self.results[0].exog
+        param_names = list(self.pvalues.columns)
+        kvars = self.results[0].kvars
+        results = pd.DataFrame(index=kvars,
+                               columns=['mse', 'Rsquared'])
+        for inidx, outidx in cv_iter:
+            res_i = _fit_ols(endog.loc[inidx], exog.loc[inidx])
+            res_i = [r.fit() for r in res_i]
+
+            # See `statsmodels.regression.linear_model.RegressionResults`
+            # for more explanation on `ess` and `ssr`.
+            # sum of squares regression. Also referred to as
+            # explained sum of squares.
+            ssr = sum([r.ess for r in res_i])
+            # sum of squares error.  Also referred to as sum of squares residuals
+            sse = sum([r.ssr for r in res_i])
+            # calculate the overall coefficient of determination (i.e. R2)
+            sst = sse + ssr
+            results['Rsquared'] = 1 - sse / sst
+            # degrees of freedom for residuals
+            dfe = res_i[0].df_resid
+            results['mse'] = sse / dfe
+        return results
+
+    def percent_explained(self):
+        """ Proportion explained by each principal balance."""
+        # Using sum of squares error calculation (df=1)
+        # instead of population variance (df=0).
+        axis_vars = np.var(self.balances, ddof=1, axis=0)
+        return axis_vars / axis_vars.sum()
 
 def ols(formula : str, table : pd.DataFrame,
         metadata : pd.DataFrame, tree : skbio.TreeNode,
@@ -260,7 +387,7 @@ def ols(formula : str, table : pd.DataFrame,
     The predicted balances can be obtained as follows.  Note that the predicted
     proportions can also be obtained by passing `project=True` into
     `res.predict()`
-
+v
     >>> res.predict()
               Y1        Y2
     s1  1.000009  0.999999
@@ -285,19 +412,13 @@ def ols(formula : str, table : pd.DataFrame,
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
-
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
 
     submodels = []
 
-    for b in ilr_table.columns:
-        # mixed effects code is obtained here:
-        # http://stackoverflow.com/a/22439820/1167475
-        stats_formula = '%s ~ %s' % (b, formula)
-
-        mdf = smf.ols(stats_formula, data=data, **kwargs)
-        submodels.append(mdf)
-
+    # one-time creation of exogenous data matrix allows for faster run-time
+    exog_data = dmatrix(formula, data, return_type='dataframe')
+    submodels = _fit_ols(exog_data, data[ilr_table.columns], **kwargs)
     return OLSModel(submodels, basis=basis,
                     balances=ilr_table,
                     tree=tree)
