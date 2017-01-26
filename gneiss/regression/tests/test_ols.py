@@ -33,6 +33,20 @@ class TestOLS(unittest.TestCase):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
 
+        np.random.seed(0)
+        n = 15
+        a = np.array([1, 4.2, 5.3, -2.2, 8])
+        x1 = np.linspace(.01, 0.1, n)
+        x2 = np.logspace(0, 0.01, n)
+        x3 = np.exp(np.linspace(0, 0.01, n))
+        x4 = x1 ** 2
+        self.x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4':x4})
+        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 + \
+             (np.random.normal(size=n)))
+        sy = np.vstack((y, y/10)).T
+        self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
+        self.t2 = TreeNode.read([r"((a,b)n,c);"])
+
     def test_ols(self):
         res = ols('real', self.table, self.metadata, self.tree)
         res.fit()
@@ -225,6 +239,81 @@ class TestOLS(unittest.TestCase):
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
+
+    def test_fit_regularized(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit(regularized=True)
+        exp_coefs = pd.DataFrame({
+            'y0': [-2.074816e+09, -2.039271e+08, -1.843143e+08,
+                   2.261170e+09, -7.925699e+06],
+            'y1': [-2.074816e+10, -2.039271e+09, -1.843143e+09,
+                   2.261170e+10, -7.925699e+07]
+            }, index=['Intercept', 'x1', 'x2', 'x3', 'x4']).T
+        # The L1 regularization either has numerical issues
+        # or is random ...
+        res_coefs = res.coefficients()
+        pdt.assert_index_equal(exp_coefs.index, res_coefs.index)
+        pdt.assert_index_equal(exp_coefs.columns, res_coefs.columns)
+
+
+    def test_loo(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        exp_loo = pd.DataFrame([[0.66953263510975791, 10.994700550912553],
+                                [0.69679777354984163, 2.3613911713947062],
+                                [0.84934173316473072, 0.4057812892157881],
+                                [0.6990546679957772, 2.2872776593899351],
+                                [0.72855466737125463, 1.7615637744849277],
+                                [0.55998953661859308, 3.617823652256889],
+                                [0.81787392852582308, 0.72395497360494043],
+                                [0.8653549732546999, 0.17706927499520822],
+                                [0.86983181933002329, 0.1216027316667969],
+                                [0.87779006612352628, 0.028600627330344405],
+                                [0.86591226075609384, 0.16724511075065476],
+                                [0.7787232221539, 1.2820054843437292],
+                                [0.88032413856094505, 3.4113910096200831e-06],
+                                [0.83195133809800792, 0.62276589277034022],
+                                [0.85352707356786695, 1.4038585971691198]],
+                               columns=['mse', 'pred_err'],
+                               index=self.y.index)
+        res_loo = res.loo().astype(np.float)
+        pdt.assert_frame_equal(exp_loo, res_loo)
+
+        # Make sure that the regularization works
+        exp_loo = pd.DataFrame([[0.967322, 0.167080],
+                                [0.849595, 1.565647],
+                                [0.975039, 0.021956],
+                                [0.752424, 2.312112],
+                                [0.820359, 1.605247],
+                                [0.643426, 3.464196],
+                                [0.953059, 0.252861],
+                                [0.930367, 0.495480],
+                                [0.945151, 0.336588],
+                                [0.976778, 0.003095],
+                                [0.971040, 0.061874],
+                                [0.830764, 1.505806],
+                                [0.963017, 0.151680],
+                                [0.953350, 0.291705],
+                                [0.970680, 0.107289]],
+                               columns=['mse', 'pred_err'],
+                               index=self.y.index)
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit(regularized=True)
+        res_loo = res.loo(fit_regularized=True).astype(np.float)
+
+        pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
+
+    def test_lovo(self):
+        self.assertTrue(False)
+
+    def test_percent_explained(self):
+        self.assertTrue(False)
+
+    def test_mse(self):
+        self.assertTrue(False)
 
 
 if __name__ == "__main__":
