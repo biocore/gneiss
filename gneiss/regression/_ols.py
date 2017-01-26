@@ -16,7 +16,6 @@ import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
 from patsy import dmatrix
-import inspect
 
 
 def _fit_ols(y, x, **kwargs):
@@ -422,8 +421,6 @@ class OLSModel(RegressionModel):
             params[key] = kwargs.get(key, params[key])
 
             kwargs.pop(key, None)
-
-        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
 
         endog = self.balances
         exog_names = self.results[0].model.exog_names
