@@ -21,7 +21,6 @@ import inspect
 
 def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
-    #one-time creation of exogenous data matrix allows for faster run-time
     exog_data = x
     submodels = []
     for b in y.columns:
@@ -31,6 +30,7 @@ def _fit_ols(y, x, **kwargs):
         mdf = smf.OLS(endog=endog_data, exog=exog_data, **kwargs)
         submodels.append(mdf)
     return submodels
+
 
 # TODO: Register as qiime 2 method
 def ols(formula, table, metadata, tree, **kwargs):
@@ -172,6 +172,7 @@ def ols(formula, table, metadata, tree, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
     ilr_table, metadata = ilr_table.align(metadata, join='inner', axis=0)
+    # one-time creation of exogenous data matrix allows for faster run-time
     x = dmatrix(formula, metadata, return_type='dataframe')
     submodels = _fit_ols(ilr_table, x)
     return OLSModel(submodels, basis=basis,
@@ -359,7 +360,7 @@ class OLSModel(RegressionModel):
             params[key] = kwargs.get(key, params[key])
             kwargs.pop(key, None)
 
-        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
         cv_iter = LeaveOneOut(nobs)
         endog = self.balances
         exog_names = self.results[0].model.exog_names
@@ -422,7 +423,7 @@ class OLSModel(RegressionModel):
 
             kwargs.pop(key, None)
 
-        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
 
         endog = self.balances
         exog_names = self.results[0].model.exog_names
@@ -442,10 +443,9 @@ class OLSModel(RegressionModel):
                 res_i = [r.fit(**kwargs) for r in res_i]
             # See `statsmodels.regression.linear_model.RegressionResults`
             # for more explanation on `ess` and `ssr`.
-            # sum of squares regression. Also referred to as
-            # explained sum of squares.
+            # sum of squares regression.
             ssr = sum([r.ess for r in res_i])
-            # sum of squares error.  Also referred to as sum of squares residuals
+            # sum of squares error.
             sse = sum([r.ssr for r in res_i])
             # calculate the overall coefficient of determination (i.e. R2)
             sst = sse + ssr
@@ -453,7 +453,7 @@ class OLSModel(RegressionModel):
             # degrees of freedom for residuals
             dfe = res_i[0].df_resid
             results.loc[feature_id, 'mse'] = sse / dfe
-            i+=1
+            i += 1
         return results
 
     def percent_explained(self):
@@ -462,4 +462,3 @@ class OLSModel(RegressionModel):
         # instead of population variance (df=0).
         axis_vars = np.var(self.balances, ddof=1, axis=0)
         return axis_vars / axis_vars.sum()
-

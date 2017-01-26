@@ -40,9 +40,9 @@ class TestOLS(unittest.TestCase):
         x2 = np.logspace(0, 0.01, n)
         x3 = np.exp(np.linspace(0, 0.01, n))
         x4 = x1 ** 2
-        self.x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4':x4})
-        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 + \
-             (np.random.normal(size=n)))
+        self.x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4})
+        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 +
+             np.random.normal(size=n))
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
         self.t2 = TreeNode.read([r"((a,b)n,c);"])
@@ -255,7 +255,6 @@ class TestOLS(unittest.TestCase):
         res_coefs = res.coefficients()
         pdt.assert_index_equal(exp_coefs.index, res_coefs.index)
         pdt.assert_index_equal(exp_coefs.columns, res_coefs.columns)
-
 
     def test_loo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
