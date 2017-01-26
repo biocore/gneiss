@@ -241,7 +241,7 @@ class OLSModel(RegressionModel):
         scores = pd.concat((coefs, pvals))
         # adding blank column just for the sake of display
         scores = scores.sort_values(by='c', ascending=False)
-        scores = scores.sort_index()
+        scores = scores.sort_index(kind='mergesort')
 
         def _format(x):
             # format scores to be printable
