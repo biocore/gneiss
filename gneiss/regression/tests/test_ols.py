@@ -278,7 +278,7 @@ class TestOLS(unittest.TestCase):
                                columns=['mse', 'pred_err'],
                                index=self.y.index)
         res_loo = res.loo().astype(np.float)
-        pdt.assert_frame_equal(exp_loo, res_loo)
+        pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
 
         # Make sure that the regularization works
         exp_loo = pd.DataFrame([[0.967322, 0.167080],
@@ -316,7 +316,7 @@ class TestOLS(unittest.TestCase):
                                 columns=['mse', 'Rsquared'],
                                 index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
         res_lovo = res.lovo().astype(np.float)
-        pdt.assert_frame_equal(exp_lovo, res_lovo)
+        pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
 
         # Make sure that the regularization works
         exp_lovo = pd.DataFrame([[0.799364, 0.978214],
