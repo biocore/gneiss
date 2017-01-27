@@ -20,7 +20,6 @@ from patsy import dmatrix
 
 def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
-    exog_data = x
     # mixed effects code is obtained here:
     # http://stackoverflow.com/a/22439820/1167475
     submodels = [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
