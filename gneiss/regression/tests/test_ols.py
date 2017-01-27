@@ -240,22 +240,6 @@ class TestOLS(unittest.TestCase):
             exp = fh.read()
             self.assertEqual(res, exp)
 
-    def test_fit_regularized(self):
-        res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
-        res.fit(regularized=True)
-        exp_coefs = pd.DataFrame({
-            'y0': [-2.074816e+09, -2.039271e+08, -1.843143e+08,
-                   2.261170e+09, -7.925699e+06],
-            'y1': [-2.074816e+10, -2.039271e+09, -1.843143e+09,
-                   2.261170e+10, -7.925699e+07]
-            }, index=['Intercept', 'x1', 'x2', 'x3', 'x4']).T
-        # The L1 regularization either has numerical issues
-        # or is random ...
-        res_coefs = res.coefficients()
-        pdt.assert_index_equal(exp_coefs.index, res_coefs.index)
-        pdt.assert_index_equal(exp_coefs.columns, res_coefs.columns)
-
     def test_loo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
@@ -280,30 +264,6 @@ class TestOLS(unittest.TestCase):
         res_loo = res.loo().astype(np.float)
         pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
 
-        # Make sure that the regularization works
-        exp_loo = pd.DataFrame([[0.967322, 0.167080],
-                                [0.849595, 1.565647],
-                                [0.975039, 0.021956],
-                                [0.752424, 2.312112],
-                                [0.820359, 1.605247],
-                                [0.643426, 3.464196],
-                                [0.953059, 0.252861],
-                                [0.930367, 0.495480],
-                                [0.945151, 0.336588],
-                                [0.976778, 0.003095],
-                                [0.971040, 0.061874],
-                                [0.830764, 1.505806],
-                                [0.963017, 0.151680],
-                                [0.953350, 0.291705],
-                                [0.970680, 0.107289]],
-                               columns=['mse', 'pred_err'],
-                               index=self.y.index)
-        res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
-        res.fit(regularized=True)
-        res_loo = res.loo(fit_regularized=True).astype(np.float)
-        pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
-
     def test_lovo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
@@ -316,20 +276,6 @@ class TestOLS(unittest.TestCase):
                                 columns=['mse', 'Rsquared'],
                                 index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
         res_lovo = res.lovo().astype(np.float)
-        pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
-
-        # Make sure that the regularization works
-        exp_lovo = pd.DataFrame([[0.799364, 0.978214],
-                                 [0.799363, 0.097355],
-                                 [0.799368, 0.0973498],
-                                 [0.799364, 0.097354],
-                                 [0.799361, 0.0973575]],
-                                columns=['mse', 'Rsquared'],
-                                index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
-        res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
-        res.fit(regularized=True)
-        res_lovo = res.lovo(fit_regularized=True).astype(np.float)
         pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
 
     def test_percent_explained(self):
@@ -345,8 +291,7 @@ class TestOLS(unittest.TestCase):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
-        self.assertEquals(res.mse, 0.87936961790361856)
-
+        self.assertEquals(res.mse, 0.79228890379010453)
 
 if __name__ == "__main__":
     unittest.main()

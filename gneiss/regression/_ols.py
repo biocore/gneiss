@@ -21,13 +21,9 @@ from patsy import dmatrix
 def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
     exog_data = x
-    submodels = []
-    for b in y.columns:
-        endog_data = y[b]
-        # mixed effects code is obtained here:
-        # http://stackoverflow.com/a/22439820/1167475
-        mdf = smf.OLS(endog=endog_data, exog=exog_data, **kwargs)
-        submodels.append(mdf)
+    # mixed effects code is obtained here:
+    # http://stackoverflow.com/a/22439820/1167475
+    submodels = [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
     return submodels
 
 
@@ -222,13 +218,8 @@ class OLSModel(RegressionModel):
            Keyword arguments used to tune the parameter estimation.
 
         """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            if regularized:
-                m = s.fit(**kwargs)
-            else:
-                m = s.fit_regularized(**kwargs)
-            self.results.append(m)
+        # assumes that the underlying submodels have implemented `fit`.
+        self.results = [s.fit(**kwargs) for s in self.submodels]
 
     def summary(self, ndim=10):
         """ Summarize the Ordinary Least Squares Regression Results.
@@ -298,7 +289,6 @@ class OLSModel(RegressionModel):
         smry.add_dict(info, ncols=1)
         smry.add_title("Simplicial Least Squares Results")
         smry.add_df(scores, align='r')
-
         return smry
 
     @property
@@ -306,7 +296,6 @@ class OLSModel(RegressionModel):
         """ Coefficient of determination for overall fit"""
         # Reason why we wanted to move this out was because not
         # all types of statsmodels regressions have this property.
-
         # See `statsmodels.regression.linear_model.RegressionResults`
         # for more explanation on `ess` and `ssr`.
         # sum of squares regression. Also referred to as
@@ -315,17 +304,17 @@ class OLSModel(RegressionModel):
         # sum of squares error.  Also referred to as sum of squares residuals
         sse = sum([r.ssr for r in self.results])
         # calculate the overall coefficient of determination (i.e. R2)
-
         sst = sse + ssr
         return 1 - sse / sst
 
     @property
     def mse(self):
+        """ Mean Sum of squares Error"""
         sse = sum([r.ssr for r in self.results])
         dfe = self.results[0].df_resid
         return sse / dfe
 
-    def loo(self, regularized=False, **kwargs):
+    def loo(self, **kwargs):
         """ Leave one out cross-validation.
 
         Calculates summary statistics for each iteraction of
@@ -334,9 +323,6 @@ class OLSModel(RegressionModel):
 
         Parameters
         ----------
-        regularized : bool
-            Specifies if a regularization procedure should be used
-            when performing the fit.
         **kwargs : dict
            Keyword arguments used to tune the parameter estimation.
 
@@ -353,11 +339,8 @@ class OLSModel(RegressionModel):
         See Also
         --------
         fit
+        statsmodels.regression.linear_model.
         """
-        params = {'fit_regularized': False}
-        for key in params:
-            params[key] = kwargs.get(key, params[key])
-            kwargs.pop(key, None)
 
         nobs = self.balances.shape[0]  # number of observations (i.e. samples)
         cv_iter = LeaveOneOut(nobs)
@@ -368,14 +351,11 @@ class OLSModel(RegressionModel):
                             columns=exog_names)
         results = pd.DataFrame(index=self.balances.index,
                                columns=['mse', 'pred_err'])
-        i = 0
-        for inidx, outidx in cv_iter:
+
+        for i, (inidx, outidx) in enumerate(cv_iter):
             sample_id = self.balances.index[i]
             res_i = _fit_ols(y=endog.loc[inidx], x=exog.loc[inidx], **kwargs)
-            if params['fit_regularized']:
-                res_i = [r.fit_regularized(**kwargs) for r in res_i]
-            else:
-                res_i = [r.fit(**kwargs) for r in res_i]
+            res_i = [r.fit(**kwargs) for r in res_i]
 
             # mean sum of squares error
             sse = sum([r.ssr for r in res_i])
@@ -388,7 +368,6 @@ class OLSModel(RegressionModel):
 
             pred_sse = np.sum((predicted - self.balances.loc[outidx])**2)
             results.loc[sample_id, 'pred_err'] = pred_sse.sum()
-            i += 1
         return results
 
     def lovo(self, **kwargs):
@@ -400,9 +379,6 @@ class OLSModel(RegressionModel):
 
         Parameters
         ----------
-        regularized : bool
-            Specifies if a regularization procedure should be used
-            when performing the fit.
         **kwargs : dict
            Keyword arguments used to tune the parameter estimation.
 
@@ -415,13 +391,6 @@ class OLSModel(RegressionModel):
                Mean sum of squares error for each iteration of
                the cross validation.
         """
-
-        params = {'regularized': False}
-        for key in params:
-            params[key] = kwargs.get(key, params[key])
-
-            kwargs.pop(key, None)
-
         endog = self.balances
         exog_names = self.results[0].model.exog_names
         exog = pd.DataFrame(self.results[0].model.exog,
@@ -430,14 +399,10 @@ class OLSModel(RegressionModel):
         cv_iter = LeaveOneOut(len(exog_names))
         results = pd.DataFrame(index=exog_names,
                                columns=['mse', 'Rsquared'])
-        i = 0
-        for inidx, outidx in cv_iter:
+        for i, (inidx, outidx) in enumerate(cv_iter):
             feature_id = exog_names[i]
             res_i = _fit_ols(endog, exog.loc[:, inidx], **kwargs)
-            if params['regularized']:
-                res_i = [r.fit_regularized(**kwargs) for r in res_i]
-            else:
-                res_i = [r.fit(**kwargs) for r in res_i]
+            res_i = [r.fit(**kwargs) for r in res_i]
             # See `statsmodels.regression.linear_model.RegressionResults`
             # for more explanation on `ess` and `ssr`.
             # sum of squares regression.
@@ -450,7 +415,6 @@ class OLSModel(RegressionModel):
             # degrees of freedom for residuals
             dfe = res_i[0].df_resid
             results.loc[feature_id, 'mse'] = sse / dfe
-            i += 1
         return results
 
     def percent_explained(self):
