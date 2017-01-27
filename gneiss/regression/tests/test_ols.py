@@ -291,7 +291,7 @@ class TestOLS(unittest.TestCase):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
-        self.assertEquals(res.mse, 0.79228890379010453)
+        self.assertAlmostEqual(res.mse, 0.79228890379010453, )
 
 if __name__ == "__main__":
     unittest.main()
