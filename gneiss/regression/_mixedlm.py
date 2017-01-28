@@ -223,7 +223,7 @@ class LMEModel(RegressionModel):
         pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
         scores = scores.sort_values(by='     ', ascending=False)
-        scores = scores.sort_index(sort='mergesort')
+        scores = scores.sort_index(kind='mergesort')
 
         def _format(x):
             # format scores to be printable
