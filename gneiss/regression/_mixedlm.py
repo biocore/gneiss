@@ -188,11 +188,9 @@ class LMEModel(RegressionModel):
 
     def fit(self, **kwargs):
         """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            # TODO: Add regularized fit
-            m = s.fit(**kwargs)
-            self.results.append(m)
+        # assumes that the underlying submodels have implemented `fit`.
+        # TODO: Add regularized fit
+        self.results = [s.fit(**kwargs) for s in self.submodels]
 
     def summary(self, ndim=10):
         """ Summarize the Ordinary Least Squares Regression Results.
@@ -225,7 +223,7 @@ class LMEModel(RegressionModel):
         pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
         scores = pd.concat((coefs, pvals))
         scores = scores.sort_values(by='     ', ascending=False)
-        scores = scores.sort_index()
+        scores = scores.sort_index(kind='mergesort')
 
         def _format(x):
             # format scores to be printable
