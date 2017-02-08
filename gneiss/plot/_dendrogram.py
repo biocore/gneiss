@@ -93,10 +93,9 @@ class Dendrogram(TreeNode):
                 name of right child node
         """
         self.rescale(width, height)
-        names = [n.name for n in self.postorder(include_self=True)]
         result = {}
         for node in self.postorder(include_self=True):
-            children = {'child%d' % i : n.name
+            children = {'child%d' % i: n.name
                         for i, n in enumerate(node.children)}
             coords = {'x': node.x2, 'y': node.y2}
             is_tip = {'is_tip': node.is_tip()}
@@ -113,6 +112,7 @@ class Dendrogram(TreeNode):
     @abc.abstractmethod
     def rescale(self, width, height):
         pass
+
 
 class UnrootedDendrogram(Dendrogram):
     aspect_distorts_lengths = True
@@ -181,7 +181,7 @@ class UnrootedDendrogram(Dendrogram):
             # double check that the tree fits within the margins
             scale = min(float(width) / (max(xs) - min(xs)),
                         float(height) / (max(ys) - min(ys)))
-            scale *= 0.95 # extra margin for labels
+            scale *= 0.95  # extra margin for labels
             if scale > best_scale:
                 best_scale = scale
                 mid_x = width / 2 - ((max(xs) + min(xs)) / 2) * scale
@@ -218,10 +218,9 @@ class UnrootedDendrogram(Dendrogram):
         need to be refactored to remove the recursion.
         """
         # Constant angle algorithm.  Should add maximum daylight step.
-        (x2, y2) = (x1+self.length*s*numpy.sin(a), y1+self.length*s*numpy.cos(a))
+        x2 = x1+self.length*s*numpy.sin(a)
+        y2 = y1+self.length*s*numpy.cos(a)
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
-        p = self.parent.name if self.parent is not None else 'None'
-
         # TODO: Add functionality that allows for collapsing of nodes
         a = a - self._n_tips * da / 2
         if self.is_tip():

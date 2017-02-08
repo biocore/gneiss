@@ -11,7 +11,6 @@ import pandas as pd
 from skbio import DistanceMatrix, TreeNode
 from gneiss.plot._dendrogram import Dendrogram, UnrootedDendrogram
 from scipy.cluster.hierarchy import ward
-from gneiss.util import rename_internal_nodes
 import pandas.util.testing as pdt
 
 
