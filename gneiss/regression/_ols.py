@@ -352,8 +352,8 @@ class OLSModel(RegressionModel):
 
         for i, (inidx, outidx) in enumerate(cv_iter):
             sample_id = self.balances.index[i]
-            res_i = _fit_ols(y=endog.loc[inidx], x=exog.loc[inidx], **kwargs)
-            res_i = [r.fit(**kwargs) for r in res_i]
+            model_i = _fit_ols(y=endog.loc[inidx], x=exog.loc[inidx], **kwargs)
+            res_i = [r.fit(**kwargs) for r in model_i]
 
             # mean sum of squares error
             sse = sum([r.ssr for r in res_i])
