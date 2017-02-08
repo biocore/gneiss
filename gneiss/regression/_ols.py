@@ -22,8 +22,7 @@ def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
     # mixed effects code is obtained here:
     # http://stackoverflow.com/a/22439820/1167475
-    submodels = [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
-    return submodels
+    return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
 
 
 # TODO: Register as qiime 2 method
