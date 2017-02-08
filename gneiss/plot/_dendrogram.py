@@ -29,6 +29,7 @@ Note: This is directly ported from pycogent.
 from skbio import TreeNode
 import pandas as pd
 import numpy
+import abc
 
 
 class Dendrogram(TreeNode):
@@ -109,6 +110,9 @@ class Dendrogram(TreeNode):
         result = result.ix[:, cols]
         return result
 
+    @abc.abstractmethod
+    def rescale(self, width, height):
+        pass
 
 class UnrootedDendrogram(Dendrogram):
     aspect_distorts_lengths = True
@@ -217,7 +221,7 @@ class UnrootedDendrogram(Dendrogram):
         (x2, y2) = (x1+self.length*s*numpy.sin(a), y1+self.length*s*numpy.cos(a))
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         p = self.parent.name if self.parent is not None else 'None'
-        # print(p, 'x1', x1, 'y1', y1, self.name, 'x2', x2, 'y2', y2)
+
         # TODO: Add functionality that allows for collapsing of nodes
         a = a - self._n_tips * da / 2
         if self.is_tip():
