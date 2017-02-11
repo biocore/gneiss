@@ -11,6 +11,7 @@ from gneiss.plot._dendrogram import UnrootedDendrogram
 try:
     from bokeh.models.glyphs import Circle, Segment
     from bokeh.models import ColumnDataSource, Range1d, DataRange1d, Plot
+    from bokeh.models import HoverTool, BoxZoomTool, ResetTool
 except ImportError:
     raise ImportWarning('Bokeh not installed. '
                         '`radialplot` will not be available')
@@ -132,6 +133,17 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
 
     plot = Plot(x_range=xdr, y_range=ydr, **kwargs)
     plot.add_glyph(df2ds(edges), edge_glyph)
-    plot.add_glyph(df2ds(nodes), node_glyph)
+    ns = plot.add_glyph(df2ds(nodes), node_glyph)
+
+    # TODO: Will need to make the hovertool options more configurable
+    tooltip = """
+        <div>
+            <span style="font-size: 17px; font-weight: bold;">name: </span>
+            <span style="font-size: 15px; color: #151515;">@index</span>
+        </div>
+    """
+
+    hover = HoverTool(renderers = [ns], tooltips=tooltip)
+    plot.add_tools(hover, BoxZoomTool(), ResetTool())
 
     return plot
