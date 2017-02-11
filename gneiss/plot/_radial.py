@@ -6,9 +6,9 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+from gneiss.plot._dendrogram import UnrootedDendrogram
 
 try:
-    from bokeh.io import output_notebook, show
     from bokeh.models.glyphs import Circle, Segment
     from bokeh.models import ColumnDataSource, Range1d, DataRange1d, Plot
 except ImportError:
@@ -16,8 +16,9 @@ except ImportError:
                         '`radialplot` will not be available')
 
 
-def radialplot(tree, node_hue, node_size, node_alpha
-               edge_hue, edge_alpha, edge_width,
+def radialplot(tree, node_hue='node_hue', node_size='node_size',
+               node_alpha='node_alpha', edge_hue='edge_hue',
+               edge_alpha='edge_alpha', edge_width='edge_width',
                figsize=(500, 500), **kwargs):
     """ Plots unrooted radial tree.
 
@@ -62,12 +63,22 @@ def radialplot(tree, node_hue, node_size, node_alpha
     nodes = t.coords(figsize[0], figsize[1])
 
     # fill in all of the node attributes
-    nodes[node_hue] = pd.Series({n.name:getattr(n, node_hue)
+    default_node_hue = '#D3D3D3'
+    nodes[node_hue] = pd.Series({n.name:getattr(n, node_hue,
+                                                default_node_hue)
                                for n in t.levelorder(include_self=True)})
-    nodes[node_size] = pd.Series({n.name:getattr(n, node_size)
+
+    default_node_size = 1
+    nodes[node_size] = pd.Series({n.name:getattr(n, node_size,
+                                                 default_node_size)
                                 for n in t.levelorder(include_self=True)})
-    nodes[node_alpha] = pd.Series({n.name:getattr(n, node_alpha)
+
+    default_node_alpha = 1
+    nodes[node_alpha] = pd.Series({n.name:getattr(n, node_alpha,
+                                                  default_node_alpha)
                                  for n in t.levelorder(include_self=True)})
+
+
 
     edges = nodes[['child0', 'child1']]
     edges = edges.dropna(subset=['child0', 'child1'])
@@ -78,22 +89,38 @@ def radialplot(tree, node_hue, node_size, node_alpha
     edges['x1'] = [nodes.loc[n].x for n in edges.dest_node]
     edges['y0'] = [nodes.loc[n].y for n in edges.src_node]
     edges['y1'] = [nodes.loc[n].y for n in edges.dest_node]
+    ns = [n.name for n in t.levelorder(include_self=True)]
+    attrs = pd.DataFrame(index=ns)
 
-    edges[edge_hue] = pd.Series({n.name:getattr(n, edge_hue)
+    default_edge_hue = '#000000'
+    attrs[edge_hue] = pd.Series({n.name:getattr(n, edge_hue,
+                                                default_edge_hue)
                                  for n in t.levelorder(include_self=True)})
-    edges[edge_size] = pd.Series({n.name:getattr(n, edge_size)
+
+    default_edge_width = 1
+    attrs[edge_width] = pd.Series({n.name:getattr(n, edge_width,
+                                                  default_edge_width)
                                   for n in t.levelorder(include_self=True)})
-    edges[edge_alpha] = pd.Series({n.name:getattr(n, edge_alpha)
+
+
+    default_edge_alpha = 1
+    attrs[edge_alpha] = pd.Series({n.name:getattr(n, edge_alpha,
+                                                  default_edge_alpha)
                                    for n in t.levelorder(include_self=True)})
+
+
+    edges = pd.merge(edges, attrs, left_on='dest_node',
+                     right_index=True, how='outer')
+
 
     node_glyph = Circle(x="x", y="y",
                         radius=node_size,
-                        fill_color=node_color,
+                        fill_color=node_hue,
                         fill_alpha=node_alpha)
 
     edge_glyph = Segment(x0="x0", y0="y0",
                          x1="x1", y1="y1",
-                         line_color=edge_color,
+                         line_color=edge_hue,
                          line_alpha=edge_alpha,
                          line_width=edge_width)
 

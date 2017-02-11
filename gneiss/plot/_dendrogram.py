@@ -267,8 +267,7 @@ class UnrootedDendrogram(Dendrogram):
         return points
 
 
-Dimensions = namedtuple('Dimensions', ['x', 'y', 'height'], verbose=True)
-
+Dimensions = namedtuple('Dimensions', ['x', 'y', 'height'], verbose=False)
 
 class RootedDendrogram(Dendrogram):
     """RootedDendrogram subclasses provide ycoords and xcoords, which examine
