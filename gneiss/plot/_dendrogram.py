@@ -26,10 +26,16 @@ Note: This is directly ported from pycogent.
 #  - orientation switch
 # Layout gets more complicated for rooted tree styles if dy is allowed to vary,
 # and constant-y is suitable for placing alongside a sequence alignment anyway.
-from skbio import TreeNode
+import abc
+from collections import namedtuple
 import pandas as pd
 import numpy
-import abc
+from skbio import TreeNode
+
+
+def _sign(x):
+    """Returns True if x is positive, False otherwise."""
+    return x and x/abs(x)
 
 
 class Dendrogram(TreeNode):
@@ -64,9 +70,34 @@ class Dendrogram(TreeNode):
     def _cache_ntips(self):
         for n in self.postorder(include_self=True):
             if n.is_tip():
-                n._n_tips = 1
+                n.leafcount = 1
             else:
-                n._n_tips = sum(c._n_tips for c in n.children)
+                n.leafcount = sum(c.leafcount for c in n.children)
+
+    def update_geometry(self, use_lengths, depth=None):
+        """Calculate tree node attributes such as height and depth.
+        Despite the name this first pass is ignorant of issues like
+        scale and orientation"""
+        if self.length is None or not use_lengths:
+            if depth is None:
+                self.length = 0
+            else:
+                self.length = 1
+        else:
+            self.length = self.length
+
+        self.depth = (depth or 0) + self.length
+
+        children = self.children
+        if children:
+            for c in children:
+                c.update_geometry(use_lengths, self.depth)
+            self.height = max([c.height for c in children]) + self.length
+            self.leafcount  = sum([c.leafcount for c in children])
+
+        else:
+            self.height = self.length
+            self.leafcount = self.edgecount = 1
 
     def coords(self, height, width):
         """ Returns coordinates of nodes to be rendered in plot.
@@ -129,7 +160,7 @@ class UnrootedDendrogram(Dendrogram):
         super().__init__(**kwargs)
 
     @classmethod
-    def from_tree(cls, tree):
+    def from_tree(cls, tree, use_lengths=True):
         """ Creates an UnrootedDendrogram object from a skbio tree.
 
         Parameters
@@ -143,7 +174,8 @@ class UnrootedDendrogram(Dendrogram):
         """
         for n in tree.postorder(include_self=True):
             n.__class__ = UnrootedDendrogram
-        tree._cache_ntips()
+
+        tree.update_geometry(use_lengths)
         return tree
 
     def rescale(self, width, height):
@@ -167,7 +199,7 @@ class UnrootedDendrogram(Dendrogram):
         need to be refactored to remove the recursion.
         """
 
-        angle = 2*numpy.pi / self._n_tips
+        angle = 2*numpy.pi / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
         # the best rotation of the tree to fit the display.
@@ -222,14 +254,249 @@ class UnrootedDendrogram(Dendrogram):
         y2 = y1+self.length*s*numpy.cos(a)
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         # TODO: Add functionality that allows for collapsing of nodes
-        a = a - self._n_tips * da / 2
+        a = a - self.leafcount * da / 2
         if self.is_tip():
             points = [(x2, y2)]
         else:
             points = []
             # recurse down the tree
             for child in self.children:
-                ca = child._n_tips * da
+                ca = child.leafcount * da
                 points += child.update_coordinates(s, x2, y2, a+ca/2, da)
                 a += ca
         return points
+
+
+Dimensions = namedtuple('Dimensions', ['x', 'y', 'height'], verbose=True)
+
+
+class RootedDendrogram(Dendrogram):
+    """RootedDendrogram subclasses provide ycoords and xcoords, which examine
+    attributes of a node (its length, coodinates of its children) and return
+    a tuple for start/end of the line representing the edge."""
+
+    def width_required(self):
+        return self.leafcount
+
+    @abc.abstractmethod
+    def xcoords(self, scale, x1):
+        pass
+
+    @abc.abstractmethod
+    def ycoords(self, scale, y1):
+        pass
+
+    def rescale(self, width, height):
+        """ Update x, y coordinates of tree nodes in canvas.
+
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        xscale = width / self.height
+        yscale = height / self.width_required()
+        scale = Dimensions(xscale, yscale, self.height)
+
+        # y coords done postorder, x preorder, y first.
+        # so it has to be done in 2 passes.
+        self.update_y_coordinates(scale)
+        self.update_x_coordinates(scale)
+        return xscale
+
+    def update_y_coordinates(self, scale, y1=None):
+        """The second pass through the tree.  Y coordinates only
+        depend on the shape of the tree and yscale.
+
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        if y1 is None:
+            y1 = self.width_required() * scale.y
+        child_y = y1
+        for child in self.children:
+            child.update_y_coordinates(scale, child_y)
+            child_y -= child.width_required() * scale.y
+        (self.y1, self.y2) = self.ycoords(scale, y1)
+
+    def update_x_coordinates(self, scale, x1=0):
+        """For non 'square' styles the x coordinates will depend
+        (a bit) on the y coodinates, so they should be done first.
+
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        (self.x1, self.x2) = self.xcoords(scale, x1)
+        for child in self.children:
+            child.update_x_coordinates(scale, self.x2)
+
+
+class SquareDendrogram(RootedDendrogram):
+    aspect_distorts_lengths = False
+
+    def ycoords(self, scale, y1):
+        cys = [c.y1 for c in self.children]
+        if cys:
+            y2 = (cys[0]+cys[-1]) / 2.0
+        else:
+            y2 = y1 - 0.5 * scale.y
+        return (y2, y2)
+
+    def xcoords(self, scale, x1):
+        if self.is_tip():
+            return (x1, (scale.height-(self.height-self.length))*scale.x)
+        else:
+            # give some margins for internal nodes
+            dx = scale.x * self.length * 0.95
+            x2 = x1 + dx
+            return (x1, x2)
+
+    @classmethod
+    def from_tree(cls, tree):
+        """ Creates an SquareDendrogram object from a skbio tree.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            Input skbio tree
+
+        Returns
+        -------
+        SquareDendrogram
+        """
+        for n in tree.postorder(include_self=True):
+            n.__class__ = SquareDendrogram
+        tree.update_geometry(use_lengths=False)
+        return tree
+
+
+class StraightDendrogram(RootedDendrogram):
+    def ycoords(self, scale, y1):
+        # has a side effect of adjusting the child y1's to meet nodes' y2's
+        cys = [c.y1 for c in self.children]
+        if cys:
+            y2 = (cys[0]+cys[-1]) / 2.0
+            distances = [child.length for child in self.children]
+            closest_child = self.children[distances.index(min(distances))]
+            dy = closest_child.y1 - y2
+            max_dy = 0.8*max(5, closest_child.length*scale.x)
+            if abs(dy) > max_dy:
+                # 'moved', node.Name, y2, 'to within', max_dy,
+                # 'of', closest_child.Name, closest_child.y1
+                y2 = closest_child.y1 - _sign(dy) * max_dy
+        else:
+            y2 = y1 - scale.y / 2.0
+        y1 = y2
+        for child in self.children:
+            child.y1 = y2
+        return (y1, y2)
+
+    def xcoords(self, scale, x1):
+        dx = self.length * scale.x
+        dy = self.y2 - self.y1
+        dx = numpy.sqrt(max(dx**2 - dy**2, 1))
+        return (x1, x1 + dx)
+
+    @classmethod
+    def from_tree(cls, tree):
+        """ Creates an StraightDendrogram object from a skbio tree.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            Input skbio tree
+
+        Returns
+        -------
+        StraightDendrogram
+        """
+        for n in tree.postorder(include_self=True):
+            n.__class__ = StraightDendrogram
+        tree.update_geometry(use_lengths=False)
+        return tree
+
+
+class ShelvedDendrogram(RootedDendrogram):
+    """A dendrogram in which internal nodes also get a row to themselves
+    and the tips are aligned."""
+
+    def __init__(self, use_lengths=False, **kwargs):
+        """ Constructs a ShelvedDendrogram object for visualization.
+
+        Parameters
+        ----------
+        use_lengths: bool
+            Specifies if the branch lengths should be included in the
+            resulting visualization (default True).
+        """
+        super().__init__(**kwargs)
+        self.use_lengths_default = use_lengths
+
+    def width_required(self):
+        # Total number of nodes in the tree.
+        return len([n for n in self.levelorder(include_self=True)])
+
+    def xcoords(self, scale, x1):
+        """
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+
+        Returns
+        -------
+        tuple, int
+           x coordinates of parent and child nodes
+        """
+        return (x1, (scale.height - (self.height - self.length)) * scale.x)
+
+    def ycoords(self, scale, y1):
+        """
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        y1 : int
+            Y-coordinate of parent
+        Returns
+        -------
+        tuple, int
+           y coordinates of parent and child nodes
+        """
+        cys = [c.y1 for c in self.children]
+        if cys:
+            y2 = cys[-1] - 1.0 * scale.y
+        else:
+            y2 = y1 - 0.5 * scale.y
+        return (y2, y2)
+
+    @classmethod
+    def from_tree(cls, tree):
+        """ Creates an ShelvedDendrogram object from a skbio tree.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            Input skbio tree
+
+        Returns
+        -------
+        ShelvedDendrogram
+        """
+        for n in tree.postorder(include_self=True):
+            n.__class__ = ShelvedDendrogram
+        tree.update_geometry(use_lengths=False)
+        return tree
+
