@@ -7,13 +7,22 @@
 # ----------------------------------------------------------------------------
 from decimal import Decimal
 from collections import OrderedDict
-
+import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
+from statsmodels.sandbox.tools.cross_val import LeaveOneOut
+from patsy import dmatrix
+
+
+def _fit_ols(y, x, **kwargs):
+    """ Perform the basic ols regression."""
+    # mixed effects code is obtained here:
+    # http://stackoverflow.com/a/22439820/1167475
+    return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
 
 
 # TODO: Register as qiime 2 method
@@ -155,18 +164,10 @@ def ols(formula, table, metadata, tree, **kwargs):
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
-    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
-
-    submodels = []
-
-    for b in ilr_table.columns:
-        # mixed effects code is obtained here:
-        # http://stackoverflow.com/a/22439820/1167475
-        stats_formula = '%s ~ %s' % (b, formula)
-
-        mdf = smf.ols(stats_formula, data=data, **kwargs)
-        submodels.append(mdf)
-
+    ilr_table, metadata = ilr_table.align(metadata, join='inner', axis=0)
+    # one-time creation of exogenous data matrix allows for faster run-time
+    x = dmatrix(formula, metadata, return_type='dataframe')
+    submodels = _fit_ols(ilr_table, x)
     return OLSModel(submodels, basis=basis,
                     balances=ilr_table,
                     tree=tree)
@@ -203,12 +204,20 @@ class OLSModel(RegressionModel):
         """
         super().__init__(*args, **kwargs)
 
-    def fit(self, **kwargs):
-        """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            m = s.fit(**kwargs)
-            self.results.append(m)
+    def fit(self, regularized=False, **kwargs):
+        """ Fit the model.
+
+        Parameters
+        ----------
+        regularized : bool
+            Specifies if a regularization procedure should be used
+            when performing the fit. (default = False)
+        **kwargs : dict
+           Keyword arguments used to tune the parameter estimation.
+
+        """
+        # assumes that the underlying submodels have implemented `fit`.
+        self.results = [s.fit(**kwargs) for s in self.submodels]
 
     def summary(self, ndim=10):
         """ Summarize the Ordinary Least Squares Regression Results.
@@ -278,7 +287,6 @@ class OLSModel(RegressionModel):
         smry.add_dict(info, ncols=1)
         smry.add_title("Simplicial Least Squares Results")
         smry.add_df(scores, align='r')
-
         return smry
 
     @property
@@ -286,7 +294,6 @@ class OLSModel(RegressionModel):
         """ Coefficient of determination for overall fit"""
         # Reason why we wanted to move this out was because not
         # all types of statsmodels regressions have this property.
-
         # See `statsmodels.regression.linear_model.RegressionResults`
         # for more explanation on `ess` and `ssr`.
         # sum of squares regression. Also referred to as
@@ -295,6 +302,122 @@ class OLSModel(RegressionModel):
         # sum of squares error.  Also referred to as sum of squares residuals
         sse = sum([r.ssr for r in self.results])
         # calculate the overall coefficient of determination (i.e. R2)
-
         sst = sse + ssr
         return 1 - sse / sst
+
+    @property
+    def mse(self):
+        """ Mean Sum of squares Error"""
+        sse = sum([r.ssr for r in self.results])
+        dfe = self.results[0].df_resid
+        return sse / dfe
+
+    def loo(self, **kwargs):
+        """ Leave one out cross-validation.
+
+        Calculates summary statistics for each iteraction of
+        leave one out cross-validation, specially `mse` on entire model
+        and `pred_err` to measure prediction error.
+
+        Parameters
+        ----------
+        **kwargs : dict
+           Keyword arguments used to tune the parameter estimation.
+
+        Returns
+        -------
+        pd.DataFrame
+           mse : np.array, float
+               Mean sum of squares error for each iteration of
+               the cross validation.
+           pred_err : np.array, float
+               Prediction mean sum of squares error for each iteration of
+               the cross validation.
+
+        See Also
+        --------
+        fit
+        statsmodels.regression.linear_model.
+        """
+
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
+        cv_iter = LeaveOneOut(nobs)
+        endog = self.balances
+        exog_names = self.results[0].model.exog_names
+        exog = pd.DataFrame(self.results[0].model.exog,
+                            index=self.balances.index,
+                            columns=exog_names)
+        results = pd.DataFrame(index=self.balances.index,
+                               columns=['mse', 'pred_err'])
+
+        for i, (inidx, outidx) in enumerate(cv_iter):
+            sample_id = self.balances.index[i]
+            model_i = _fit_ols(y=endog.loc[inidx], x=exog.loc[inidx], **kwargs)
+            res_i = [r.fit(**kwargs) for r in model_i]
+
+            # mean sum of squares error
+            sse = sum([r.ssr for r in res_i])
+            # degrees of freedom for residuals
+            dfe = res_i[0].df_resid
+            results.loc[sample_id, 'mse'] = sse / dfe
+
+            # prediction error on loo point
+            predicted = np.hstack([r.predict(exog.loc[outidx]) for r in res_i])
+
+            pred_sse = np.sum((predicted - self.balances.loc[outidx])**2)
+            results.loc[sample_id, 'pred_err'] = pred_sse.sum()
+        return results
+
+    def lovo(self, **kwargs):
+        """ Leave one variable out cross-validation.
+
+        Calculates summary statistics for each iteraction of leave one variable
+        out cross-validation, specially `r2` and `mse` on entire model.
+        This technique is particularly useful for feature selection.
+
+        Parameters
+        ----------
+        **kwargs : dict
+           Keyword arguments used to tune the parameter estimation.
+
+        Returns
+        -------
+        pd.DataFrame
+           Rsquared : np.array, flot
+               Coefficient of determination for each variable left out.
+           mse : np.array, float
+               Mean sum of squares error for each iteration of
+               the cross validation.
+        """
+        endog = self.balances
+        exog_names = self.results[0].model.exog_names
+        exog = pd.DataFrame(self.results[0].model.exog,
+                            index=self.balances.index,
+                            columns=exog_names)
+        cv_iter = LeaveOneOut(len(exog_names))
+        results = pd.DataFrame(index=exog_names,
+                               columns=['mse', 'Rsquared'])
+        for i, (inidx, outidx) in enumerate(cv_iter):
+            feature_id = exog_names[i]
+            res_i = _fit_ols(endog, exog.loc[:, inidx], **kwargs)
+            res_i = [r.fit(**kwargs) for r in res_i]
+            # See `statsmodels.regression.linear_model.RegressionResults`
+            # for more explanation on `ess` and `ssr`.
+            # sum of squares regression.
+            ssr = sum([r.ess for r in res_i])
+            # sum of squares error.
+            sse = sum([r.ssr for r in res_i])
+            # calculate the overall coefficient of determination (i.e. R2)
+            sst = sse + ssr
+            results.loc[feature_id, 'Rsquared'] = 1 - sse / sst
+            # degrees of freedom for residuals
+            dfe = res_i[0].df_resid
+            results.loc[feature_id, 'mse'] = sse / dfe
+        return results
+
+    def percent_explained(self):
+        """ Proportion explained by each principal balance."""
+        # Using sum of squares error calculation (df=1)
+        # instead of population variance (df=0).
+        axis_vars = np.var(self.balances, ddof=1, axis=0)
+        return axis_vars / axis_vars.sum()
