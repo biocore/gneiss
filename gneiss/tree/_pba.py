@@ -6,6 +6,16 @@ from skbio import TreeNode, DistanceMatrix
 from scipy.spatial.distance import euclidean
 from scipy.cluster.hierarchy import linkage
 
+try:
+    from q2_composition.plugin_setup import Composition
+    from q2_types.tree import FeatureTable, Frequency
+    from qiime2.plugin import Str, Metadata
+
+    from gneiss.q2 import Hierarchy_g
+    from gneiss.plugin_setup import plugin
+except ImportError:
+    print('qiime2 not installed.')
+
 
 def proportional_linkage(X, method='ward'):
     """
@@ -44,6 +54,15 @@ def proportional_linkage(X, method='ward'):
     dm = variation_matrix(X)
     lm = linkage(dm.condensed_form(), method=method)
     return TreeNode.from_linkage_matrix(lm, X.columns)
+
+
+plugin.methods.register_function(
+    function=proportional_linkage,
+    inputs={'table': FeatureTable[Composition]},
+    outputs=[('tree', Hierarchy_g)],
+    name='Proportional Linkage',
+    description="Aggregates features based on proportionality."
+)
 
 
 def gradient_linkage(X, y, method='average'):
@@ -97,3 +116,13 @@ def gradient_linkage(X, y, method='average'):
     dm = DistanceMatrix.from_iterable(mean_X, euclidean)
     lm = linkage(dm.condensed_form(), method)
     return TreeNode.from_linkage_matrix(lm, X.columns)
+
+
+plugin.methods.register_function(
+    function=gradient_linkage,
+    inputs={'table': FeatureTable[Composition | Frequency]},
+    parameters={'metadata': Metadata},
+    outputs=[('tree', Hierarchy_g)],
+    name='Gradient Linkage',
+    description="Aggregates features based on metadata."
+)

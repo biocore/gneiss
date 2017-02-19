@@ -47,3 +47,11 @@ IPython notebooks demonstrating some of the modules in gneiss can be found as fo
 * [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils.ipynb)
 * [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy.ipynb)
 * [Linear mixed effects models on balances in a PTSD study](https://github.com/biocore/gneiss/blob/master/ipynb/ptsd_mice.ipynb)
+
+If you use this software package in your own publications, please cite it at
+```
+Morton JT, Sanders J, Quinn RA, McDonald D, Gonzalez A, Vázquez-Baeza Y, 
+Navas-Molina JA, Song SJ, Metcalf JL, Hyde ER, Lladser M, Dorrestein PC, 
+Knight R. 2017. Balance trees reveal microbial niche differentiation. 
+mSystems 2:e00162-16. https://doi.org/10.1128/mSystems.00162-16.
+```

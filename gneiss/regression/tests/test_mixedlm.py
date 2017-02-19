@@ -237,7 +237,6 @@ class TestMixedLM(unittest.TestCase):
             self.assertEqual(res, exp)
 
     def test_summary_head(self):
-        print(self.metadata)
         model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
                         groups="groups")
         model.fit()

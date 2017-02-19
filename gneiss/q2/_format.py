@@ -8,9 +8,10 @@
 import qiime.plugin.model as model
 
 from gneiss.regression._model import RegressionModel
+from gneiss.plugin_setup import plugin
 
 
-class RegressionFormat(model.BinaryFileFormat):
+class RegressionFormat_g(model.BinaryFileFormat):
     def sniff(self):
         try:
             res = RegressionModel.read_pickle(open(str(self)))
@@ -19,5 +20,9 @@ class RegressionFormat(model.BinaryFileFormat):
             return False
 
 
-RegressionDirectoryFormat = model.SingleFileDirectoryFormat(
-    'RegressionDirectoryFormat', 'regression.pickle', RegressionFormat)
+RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
+    'RegressionDirectoryFormat_g', 'regression.pickle', RegressionFormat_g)
+
+plugin.register_formats(
+    RegressionDirectoryFormat_g
+)

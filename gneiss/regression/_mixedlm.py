@@ -267,3 +267,15 @@ def mixedlm(formula : str, table : pd.DataFrame,
 
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
+
+
+plugin.methods.register_function(
+    function=gneiss.regression.mixedlm,
+    inputs={'table': FeatureTable[Composition],
+            'tree': Hierarchy_g},
+    parameters={'formula' : Str, 'metadata': Metadata},
+    outputs=[('linear_mixed_effects_model', Regression_g[LinearMixedEffects_g])],
+    name='Simplicial Linear mixed effects models',
+    description="Perform linear mixed effects model on balances."
+)
+

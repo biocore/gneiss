@@ -7,16 +7,25 @@
 # ----------------------------------------------------------------------------
 from decimal import Decimal
 from collections import OrderedDict
-
-import skbio
+import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from ._regression import (_intersect_of_table_metadata_tree,
                           _to_balances)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
-from gneiss.stats.composition import variation_matrix
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
+from patsy import dmatrix
+
+try:
+    from q2_composition.plugin_setup import Composition
+    from q2_types.tree import FeatureTable
+    from qiime2.plugin import Str, Metadata
+
+    from gneiss.q2 import Regression_g, Linear_g, Hierarchy_g
+    from gneiss.plugin_setup import plugin
+except ImportError:
+    print('qiime2 not installed.')
 
 
 def _fit_ols(x_data, y_data, **kwargs)
@@ -88,7 +97,6 @@ class OLSModel(RegressionModel):
             This holds the summary of regression coefficients and fit
             information.
         """
-
         coefs = self.coefficients()
 
         if ndim:
@@ -271,6 +279,7 @@ class OLSModel(RegressionModel):
         axis_vars = np.var(self.balances, ddof=1, axis=0)
         return axis_vars / axis_vars.sum()
 
+
 def ols(formula : str, table : pd.DataFrame,
         metadata : pd.DataFrame, tree : skbio.TreeNode,
         **kwargs) -> OLSModel:
@@ -387,7 +396,7 @@ def ols(formula : str, table : pd.DataFrame,
     The predicted balances can be obtained as follows.  Note that the predicted
     proportions can also be obtained by passing `project=True` into
     `res.predict()`
-v
+
     >>> res.predict()
               Y1        Y2
     s1  1.000009  0.999999
@@ -412,13 +421,21 @@ v
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
-    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
-
-    submodels = []
-
+    ilr_table, metadata = ilr_table.align(metadata, join='inner', axis=0)
     # one-time creation of exogenous data matrix allows for faster run-time
-    exog_data = dmatrix(formula, data, return_type='dataframe')
-    submodels = _fit_ols(exog_data, data[ilr_table.columns], **kwargs)
+    x = dmatrix(formula, metadata, return_type='dataframe')
+    submodels = _fit_ols(ilr_table, x)
     return OLSModel(submodels, basis=basis,
                     balances=ilr_table,
                     tree=tree)
+
+
+plugin.methods.register_function(
+    function=gneiss.regression.ols,
+    inputs={'table': FeatureTable[Composition],
+            'tree': Hierarchy_g},
+    parameters={'formula' : Str, 'metadata': Metadata},
+    outputs=[('linear_model', Regression_g[Linear_g])],
+    name='Simplicial Linear Regression',
+    description="Perform linear regression on balances."
+)
