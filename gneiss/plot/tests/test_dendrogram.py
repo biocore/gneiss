@@ -109,5 +109,6 @@ class TestUnrootedDendrogram(unittest.TestCase):
         res = pd.DataFrame(t.update_coordinates(1, 0, 0, 2, 1))
         pdt.assert_frame_equal(res, exp, check_less_precise=True)
 
+
 if __name__ == "__main__":
     unittest.main()
