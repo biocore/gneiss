@@ -268,12 +268,24 @@ def mixedlm(formula : str, table : pd.DataFrame,
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
 
+# q2
+from gneiss.plugin_setup import plugin
+from qiime2.plugin import SemanticType
+from ._model import Regression_g
+from q2_types.feature_table import FeatureTable
+from q2_composition.plugin_setup import Composition
+from q2_types.tree import Phylogeny
+from qiime2.plugin import Str, Metadata
+
+LinearMixedEffects_g = SemanticType('LinearMixedEffects_g',
+                                    variant_of=Regression_g.field['type'])
 
 plugin.methods.register_function(
-    function=gneiss.regression.mixedlm,
+    function=mixedlm,
     inputs={'table': FeatureTable[Composition],
-            'tree': Hierarchy_g},
-    parameters={'formula' : Str, 'metadata': Metadata},
+            'tree': Phylogeny,
+            'metadata': Metadata},
+    parameters={'formula' : Str},
     outputs=[('linear_mixed_effects_model', Regression_g[LinearMixedEffects_g])],
     name='Simplicial Linear mixed effects models',
     description="Perform linear mixed effects model on balances."

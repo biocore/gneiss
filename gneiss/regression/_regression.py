@@ -88,3 +88,15 @@ def _to_balances(table, tree):
                              columns=non_tips,
                              index=table.index)
     return ilr_table, basis
+
+# q2
+from ._mixedlm import LinearMixedEffects_g
+from ._ols import Linear_g
+from ._model import RegressionDirectory_g, RegressionDirectoryFormat_g
+from qiime2.plugin import SemanticType
+
+plugin.register_formats(RegressionFormat_g, RegressionDirectoryFormat_g)
+plugin.register_semantic_type_to_format(
+    Regression_g[Linear_g | LinearMixedEffects_g],
+    artifact_format=RegressionDirectoryFormat_g
+)

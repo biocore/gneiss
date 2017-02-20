@@ -8,6 +8,11 @@
 import pandas as pd
 from skbio.stats.composition import ilr_inv
 from gneiss._model import Model
+try:
+    from gneiss.plugin_setup import plugin
+    import qiime2.plugin.model as model
+except ImportError:
+    print('qiime2 not installed.')
 
 
 class RegressionModel(Model):
@@ -186,3 +191,40 @@ class RegressionModel(Model):
             p.name = r.model.endog_names
             pvals = pvals.append(p)
         return pvals
+
+# q2
+from qiime2.plugin import SemanticType
+
+Regression_g = SemanticType('Regression_g', field_names=['type'])
+
+class RegressionFormat_g(model.BinaryFileFormat):
+    def sniff(self):
+        try:
+            res = RegressionModel.read_pickle(open(str(self)))
+            return isinstance(res, RegressionModel)
+        except:
+            return False
+
+
+RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
+    'RegressionDirectoryFormat_g', 'regression.pickle', RegressionFormat_g)
+
+plugin.register_semantic_types(Regression_g)
+plugin.register_formats(
+    RegressionFormat_g,
+    RegressionDirectoryFormat_g
+)
+
+# @plugin.register_transformer
+# def _1(data: RegressionModel) -> RegressionFormat_g:
+#     ff = RegressionFormat_g()
+#     with ff.open() as fh:
+#         data.write_pickle(fh)
+#     return ff
+
+
+# @plugin.register_transformer
+# def _2(data: RegressionModel) -> RegressionFormat_g:
+#     with ff.open() as fh:
+#         return data.read_pickle(fh)
+

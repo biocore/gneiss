@@ -93,7 +93,7 @@ setup(name='gneiss',
       package_data={
           },
       entry_points={
-          'qiime.plugins':
-          ['gneiss=gneiss.q2.plugin_setup:plugin']
+          'qiime2.plugins':
+          ['gneiss=gneiss.plugin_setup:plugin']
       }
 )

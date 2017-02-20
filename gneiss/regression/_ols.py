@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 from decimal import Decimal
 from collections import OrderedDict
+import skbio
 import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
@@ -19,16 +20,14 @@ from patsy import dmatrix
 
 try:
     from q2_composition.plugin_setup import Composition
-    from q2_types.tree import FeatureTable
+    from q2_types.feature_table import FeatureTable
+    from q2_types.tree import Phylogeny
     from qiime2.plugin import Str, Metadata
-
-    from gneiss.q2 import Regression_g, Linear_g, Hierarchy_g
     from gneiss.plugin_setup import plugin
 except ImportError:
     print('qiime2 not installed.')
 
-
-def _fit_ols(x_data, y_data, **kwargs)
+def _fit_ols(x_data, y_data, **kwargs):
     submodels = []
     for b in y_data.columns:
         # mixed effects code is obtained here:
@@ -429,12 +428,19 @@ def ols(formula : str, table : pd.DataFrame,
                     balances=ilr_table,
                     tree=tree)
 
+# q2
+
+from qiime2.plugin import SemanticType
+from ._model import Regression_g
+Linear_g = SemanticType('Linear_g',
+                        variant_of=Regression_g.field['type'])
 
 plugin.methods.register_function(
-    function=gneiss.regression.ols,
+    function=ols,
     inputs={'table': FeatureTable[Composition],
-            'tree': Hierarchy_g},
-    parameters={'formula' : Str, 'metadata': Metadata},
+            'tree': Phylogeny,
+            'metadata': Metadata},
+    parameters={'formula' : Str},
     outputs=[('linear_model', Regression_g[Linear_g])],
     name='Simplicial Linear Regression',
     description="Perform linear regression on balances."
