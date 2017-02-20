@@ -11,6 +11,7 @@ from gneiss._model import Model
 try:
     from gneiss.plugin_setup import plugin
     import qiime2.plugin.model as model
+    from qiime2.plugin import SemanticType
 except ImportError:
     print('qiime2 not installed.')
 
@@ -192,10 +193,9 @@ class RegressionModel(Model):
             pvals = pvals.append(p)
         return pvals
 
-# q2
-from qiime2.plugin import SemanticType
-
+# q2 cli
 Regression_g = SemanticType('Regression_g', field_names=['type'])
+
 
 class RegressionFormat_g(model.BinaryFileFormat):
     def sniff(self):
@@ -214,17 +214,3 @@ plugin.register_formats(
     RegressionFormat_g,
     RegressionDirectoryFormat_g
 )
-
-# @plugin.register_transformer
-# def _1(data: RegressionModel) -> RegressionFormat_g:
-#     ff = RegressionFormat_g()
-#     with ff.open() as fh:
-#         data.write_pickle(fh)
-#     return ff
-
-
-# @plugin.register_transformer
-# def _2(data: RegressionModel) -> RegressionFormat_g:
-#     with ff.open() as fh:
-#         return data.read_pickle(fh)
-

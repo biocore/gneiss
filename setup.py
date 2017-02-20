@@ -23,6 +23,7 @@ class build_ext(_build_ext):
         __builtins__.__NUMPY_SETUP__ = False
         import numpy
         self.include_dirs.append(numpy.get_include())
+
 # Dealing with Cython
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.c'
@@ -87,7 +88,7 @@ setup(name='gneiss',
           'ete3'
       ],
       extra_require={
-          'q2' : ['qiime >= 2.0.5', 'biom-format', 'seaborn']
+          'q2': ['qiime >= 2.0.5', 'biom-format', 'seaborn']
       },
       classifiers=classifiers,
       package_data={
@@ -95,5 +96,4 @@ setup(name='gneiss',
       entry_points={
           'qiime2.plugins':
           ['gneiss=gneiss.plugin_setup:plugin']
-      }
-)
+      })

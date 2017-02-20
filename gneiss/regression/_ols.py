@@ -11,8 +11,8 @@ import skbio
 import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
-from ._regression import (_intersect_of_table_metadata_tree,
-                          _to_balances)
+from gneiss.util import (_intersect_of_table_metadata_tree,
+                         _to_balances)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
@@ -21,11 +21,13 @@ from patsy import dmatrix
 try:
     from q2_composition.plugin_setup import Composition
     from q2_types.feature_table import FeatureTable
-    from q2_types.tree import Phylogeny
-    from qiime2.plugin import Str, Metadata
+    from q2_types.tree import Phylogeny, Rooted, Unrooted
+    from qiime2.plugin import Str, Metadata, SemanticType
     from gneiss.plugin_setup import plugin
+    from ._model import Regression_g
 except ImportError:
-    print('qiime2 not installed.')
+    raise ImportWarning('Qiime2 not installed.')
+
 
 def _fit_ols(x_data, y_data, **kwargs):
     submodels = []
@@ -200,7 +202,7 @@ class OLSModel(RegressionModel):
         --------
         RegressionModel
         """
-        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
         cv_iter = LeaveOneOut(nobs)
         endog = self.balances
         exog = self.results[0].exog
@@ -244,7 +246,7 @@ class OLSModel(RegressionModel):
                Mean sum of squares error for each iteration of
                the cross validation.
         """
-        nobs = self.balances.shape[0] # number of observations (i.e. samples)
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
         cv_iter = LeaveOneOut(nobs)
         endog = self.balances
         exog = self.results[0].exog
@@ -261,7 +263,7 @@ class OLSModel(RegressionModel):
             # sum of squares regression. Also referred to as
             # explained sum of squares.
             ssr = sum([r.ess for r in res_i])
-            # sum of squares error.  Also referred to as sum of squares residuals
+            # sum of squares error. Also called sum of squares residuals
             sse = sum([r.ssr for r in res_i])
             # calculate the overall coefficient of determination (i.e. R2)
             sst = sse + ssr
@@ -279,8 +281,8 @@ class OLSModel(RegressionModel):
         return axis_vars / axis_vars.sum()
 
 
-def ols(formula : str, table : pd.DataFrame,
-        metadata : pd.DataFrame, tree : skbio.TreeNode,
+def ols(formula: str, table: pd.DataFrame,
+        metadata: pd.DataFrame, tree: skbio.TreeNode,
         **kwargs) -> OLSModel:
     """ Ordinary Least Squares applied to balances.
 
@@ -428,20 +430,21 @@ def ols(formula : str, table : pd.DataFrame,
                     balances=ilr_table,
                     tree=tree)
 
-# q2
-
-from qiime2.plugin import SemanticType
-from ._model import Regression_g
+# q2 cli
 Linear_g = SemanticType('Linear_g',
                         variant_of=Regression_g.field['type'])
 
+
+def ols_regression(table: pd.DataFrame, tree: skbio.TreeNode,
+                   metadata: pd.DataFrame, formula: str) -> OLSModel:
+    return ols(table=table, tree=tree, metadata=metadata, formua=formula)
+
 plugin.methods.register_function(
-    function=ols,
+    function=ols_regression,
     inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny,
-            'metadata': Metadata},
-    parameters={'formula' : Str},
+            'tree': Phylogeny[Rooted | Unrooted]},
+    parameters={'formula': Str, 'metadata': Metadata},
     outputs=[('linear_model', Regression_g[Linear_g])],
-    name='Simplicial Linear Regression',
+    name='Simplicial Ordinary Least Squares Regression',
     description="Perform linear regression on balances."
 )

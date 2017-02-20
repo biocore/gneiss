@@ -10,10 +10,20 @@ import skbio
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
-from ._regression import (_intersect_of_table_metadata_tree,
-                          _to_balances)
+from gneiss.util import (_intersect_of_table_metadata_tree,
+                         _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
+try:
+    from gneiss.plugin_setup import plugin
+    from qiime2.plugin import SemanticType
+    from ._model import Regression_g
+    from q2_types.feature_table import FeatureTable
+    from q2_composition.plugin_setup import Composition
+    from q2_types.tree import Phylogeny, Rooted, Unrooted
+    from qiime2.plugin import Str, Metadata
+except ImportError:
+    raise ImportWarning('Qiime2 not installed.')
 
 
 class LMEModel(RegressionModel):
@@ -124,9 +134,9 @@ class LMEModel(RegressionModel):
         return smry
 
 
-def mixedlm(formula : str, table : pd.DataFrame,
-            metadata : pd.DataFrame, tree : skbio.TreeNode,
-            groups : str, **kwargs) -> LMEModel:
+def mixedlm(formula: str, table: pd.DataFrame,
+            metadata: pd.DataFrame, tree: skbio.TreeNode,
+            groups: str, **kwargs) -> LMEModel:
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -268,26 +278,24 @@ def mixedlm(formula : str, table : pd.DataFrame,
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
 
-# q2
-from gneiss.plugin_setup import plugin
-from qiime2.plugin import SemanticType
-from ._model import Regression_g
-from q2_types.feature_table import FeatureTable
-from q2_composition.plugin_setup import Composition
-from q2_types.tree import Phylogeny
-from qiime2.plugin import Str, Metadata
-
+# q2 cli
 LinearMixedEffects_g = SemanticType('LinearMixedEffects_g',
                                     variant_of=Regression_g.field['type'])
 
-plugin.methods.register_function(
-    function=mixedlm,
-    inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny,
-            'metadata': Metadata},
-    parameters={'formula' : Str},
-    outputs=[('linear_mixed_effects_model', Regression_g[LinearMixedEffects_g])],
-    name='Simplicial Linear mixed effects models',
-    description="Perform linear mixed effects model on balances."
-)
 
+def lme_regression(table: pd.DataFrame, tree: skbio.TreeNode,
+                   metadata: pd.DataFrame, formula: str,
+                   groups: str) -> LMEModel:
+    return mixedlm(table=table, tree=tree, metadata=metadata,
+                   formula=formula, groups=groups)
+
+plugin.methods.register_function(
+    function=lme_regression,
+    inputs={'table': FeatureTable[Composition],
+            'tree': Phylogeny[Rooted | Unrooted]},
+    parameters={'metadata': Metadata, 'formula': Str, 'groups': Str},
+    outputs=[('linear_mixed_effects_model',
+              Regression_g[LinearMixedEffects_g])],
+    name='Simplicial Linear mixed effects regression',
+    description="Build and run linear mixed effects model on balances."
+)
