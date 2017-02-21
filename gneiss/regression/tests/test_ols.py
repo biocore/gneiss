@@ -293,5 +293,6 @@ class TestOLS(unittest.TestCase):
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
 
+
 if __name__ == "__main__":
     unittest.main()
