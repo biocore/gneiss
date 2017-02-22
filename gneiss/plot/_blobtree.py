@@ -147,9 +147,8 @@ def diamondtree(tree, **kwargs):
         # Run the layout passed in first before
         # filling in the heatmap
         layout(node)
-        # Don't include label if it is None or 0
-        if label_size:
-            N = AttrFace("name", fsize=label_size, fgcolor=labelcolor)
+
+        N = AttrFace("name", fsize=label_size, fgcolor=labelcolor)
 
         # background colors
         c, found = _get_node_color(bgcolors, node, "")
@@ -171,9 +170,8 @@ def diamondtree(tree, **kwargs):
 
             # And place as a float face over the tree
             faces.add_face_to_node(C, node, 0, position="float")
-            if label_size:
-                faces.add_face_to_node(N, node, 1, position="float")
-        elif label_size:
+            faces.add_face_to_node(N, node, 1, position="float")
+        else:
             faces.add_face_to_node(N, node, 0)
 
     ts = TreeStyle()
