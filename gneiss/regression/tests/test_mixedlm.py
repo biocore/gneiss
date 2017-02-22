@@ -93,8 +93,7 @@ class TestMixedLM(unittest.TestCase):
 
         # Equivalent model in R:
         # df.to_csv("tst.csv")
-        # model = lmer(y ~ x1 + x2 + (0 + z1 + z2 | groups) + (1 | v1) + (1 |
-        # v2), df)
+        # model = lmer(y ~ x1 + x2)
 
         model1 = smf.mixedlm("y ~ x1 + x2", groups=groups,
                              data=df)
@@ -108,14 +107,13 @@ class TestMixedLM(unittest.TestCase):
         npt.assert_allclose(result1.bse.iloc[0:3], [
             0.128377,  0.082644,  0.081031], rtol=1e-3)
 
-
     def test_mixedlm_balances(self):
 
         res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
                       groups="groups")
         res.fit()
         exp_pvalues = pd.DataFrame(
-            [[4.82688604923e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
+            [[4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
              [0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
             index=['Y1', 'Y2'],
             columns=['Intercept', 'groups RE', 'x1', 'x2'])
@@ -244,6 +242,7 @@ class TestMixedLM(unittest.TestCase):
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
+
 
 
 if __name__ == '__main__':
