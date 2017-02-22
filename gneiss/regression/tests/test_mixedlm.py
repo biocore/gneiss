@@ -107,6 +107,12 @@ class TestMixedLM(unittest.TestCase):
         npt.assert_allclose(result1.bse.iloc[0:3], [
             0.128377,  0.082644,  0.081031], rtol=1e-3)
 
+        pdt.assert_series_equal(result1.pvalues,
+                                pd.Series([9.941109e-02, 3.970494e-35,
+                                           3.569121e-30, 4.419380e-05],
+                                          index=['Intercept', 'x1', 'x2',
+                                                 'groups RE']))
+
     def test_mixedlm_balances(self):
 
         res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
