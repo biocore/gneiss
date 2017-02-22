@@ -24,6 +24,7 @@ class build_ext(_build_ext):
         import numpy
         self.include_dirs.append(numpy.get_include())
 
+
 # Dealing with Cython
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.c'
@@ -84,8 +85,8 @@ setup(name='gneiss',
           'scipy >= 0.15.1',
           'nose >= 1.3.7',
           'scikit-bio==0.5.1',
-          'statsmodels',
-          'ete3'
+          'statsmodels>=0.8.0',
+          'ete3',
       ],
       extra_require={
           'q2': ['qiime >= 2.0.5', 'biom-format', 'seaborn']
