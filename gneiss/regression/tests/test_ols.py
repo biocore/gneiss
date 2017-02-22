@@ -13,10 +13,10 @@ from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from skbio.util import get_data_path
 from gneiss.regression import ols
+from gneiss.regression._ols import ols_regression
 
 
 class TestOLS(unittest.TestCase):
-
     def setUp(self):
         A = np.array  # aliasing for the sake of pep8
         self.table = pd.DataFrame({
@@ -46,6 +46,10 @@ class TestOLS(unittest.TestCase):
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
         self.t2 = TreeNode.read([r"((a,b)n,c);"])
+
+
+class TestOLSFunctions(TestOLS):
+
 
     def test_ols(self):
         res = ols('real', self.table, self.metadata, self.tree)
@@ -292,6 +296,34 @@ class TestOLS(unittest.TestCase):
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
+
+
+class TestOLSPlugin(TestOLS):
+
+    def test_ols_regression(self):
+        res = ols_regression(self.table, self.tree, self.metadata, 'real')
+        res_coef = res.coefficients()
+        exp_coef = pd.DataFrame(
+            {'Intercept': [0, 1.00],
+             'real': [1.0, 0]},
+            index=['Y1', 'Y2'])
+
+        pdt.assert_frame_equal(res_coef, exp_coef,
+                               check_exact=False,
+                               check_less_precise=True)
+        # Double check to make sure the fit is perfect
+        self.assertAlmostEqual(res.r2, 1)
+
+        # Double check to make sure residuals are zero
+        exp_resid = pd.DataFrame([[0., 0.],
+                                  [0., 0.],
+                                  [0., 0.],
+                                  [0., 0.],
+                                  [0., 0.]],
+                                 index=['s1', 's2', 's3', 's4', 's5'],
+                                 columns=['Y1', 'Y2'])
+        pdt.assert_frame_equal(exp_resid, res.residuals())
+
 
 if __name__ == "__main__":
     unittest.main()

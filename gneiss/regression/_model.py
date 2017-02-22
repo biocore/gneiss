@@ -193,6 +193,7 @@ class RegressionModel(Model):
             pvals = pvals.append(p)
         return pvals
 
+
 # q2 cli
 Regression_g = SemanticType('Regression_g', field_names=['type'])
 
