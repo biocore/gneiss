@@ -23,14 +23,14 @@ class TestMixedLM(unittest.TestCase):
         np.random.seed(6241)
         n = 1600
         exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
+        groups = np.kron(np.arange(n // 16), np.ones(16))
 
         # Build up the random error vector
         errors = 0
 
         # The random effects
         exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.random.normal(size=(n // 16, 2))
         slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
         errors += slopes.sum(1)
 
@@ -58,21 +58,19 @@ class TestMixedLM(unittest.TestCase):
         self.metadata = df[['x1', 'x2', 'groups']]
 
     # test case borrowed from statsmodels
-    # https://github.com/statsmodels/statsmodels/blob/master/statsmodels
-    # /regression/tests/test_lme.py#L254
     def test_mixedlm_univariate(self):
 
         np.random.seed(6241)
         n = 1600
         exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
+        groups = np.kron(np.arange(n // 16), np.ones(16))
 
         # Build up the random error vector
         errors = 0
 
         # The random effects
         exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.random.normal(size=(n // 16, 2))
         slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
         errors += slopes.sum(1)
 
@@ -95,8 +93,7 @@ class TestMixedLM(unittest.TestCase):
 
         # Equivalent model in R:
         # df.to_csv("tst.csv")
-        # model = lmer(y ~ x1 + x2 + (0 + z1 + z2 | groups) + (1 | v1) + (1 |
-        # v2), df)
+        # model = lmer(y ~ x1 + x2)
 
         model1 = smf.mixedlm("y ~ x1 + x2", groups=groups,
                              data=df)
@@ -110,24 +107,30 @@ class TestMixedLM(unittest.TestCase):
         npt.assert_allclose(result1.bse.iloc[0:3], [
             0.128377,  0.082644,  0.081031], rtol=1e-3)
 
+        pdt.assert_series_equal(result1.pvalues,
+                                pd.Series([9.941109e-02, 3.970494e-35,
+                                           3.569121e-30, 4.419380e-05],
+                                          index=['Intercept', 'x1', 'x2',
+                                                 'groups RE']))
+
     def test_mixedlm_balances(self):
 
         res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
                       groups="groups")
         res.fit()
         exp_pvalues = pd.DataFrame(
-            [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
-             [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
+            [[4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
+             [0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
             index=['Y1', 'Y2'],
-            columns=['Intercept', 'Intercept RE', 'x1', 'x2'])
+            columns=['Intercept', 'groups RE', 'x1', 'x2'])
 
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
 
         exp_coefficients = pd.DataFrame(
-            [[4.211451,  -0.305906, 1.022008, 0.924873],
-             [0.211451,  -0.305906, 1.022008, 0.924873]],
-            columns=['Intercept', 'Intercept RE', 'x1', 'x2'],
+            [[4.211451,  0.0935786, 1.022008, 0.924873],
+             [0.211451,  0.0935786, 1.022008, 0.924873]],
+            columns=['Intercept', 'groups RE', 'x1', 'x2'],
             index=['Y1', 'Y2'])
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
@@ -137,23 +140,23 @@ class TestMixedLM(unittest.TestCase):
         np.random.seed(6241)
         n = 1600
         exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n / 16), np.ones(16))
+        groups = np.kron(np.arange(n // 16), np.ones(16))
 
         # Build up the random error vector
         errors = 0
 
         # The random effects
         exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n / 16, 2))
+        slopes = np.random.normal(size=(n // 16, 2))
         slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
         errors += slopes.sum(1)
 
         # First variance component
-        subgroups1 = np.kron(np.arange(n / 4), np.ones(4))
+        subgroups1 = np.kron(np.arange(n // 4), np.ones(4))
         errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
 
         # Second variance component
-        subgroups2 = np.kron(np.arange(n / 2), np.ones(2))
+        subgroups2 = np.kron(np.arange(n // 2), np.ones(2))
         errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
 
         # iid errors
@@ -184,19 +187,19 @@ class TestMixedLM(unittest.TestCase):
             [[4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30],
              [9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
             index=['Y1', 'Y2'],
-            columns=['Intercept', 'Intercept RE', 'x1', 'x2'])
+            columns=['Intercept', 'groups RE', 'x1', 'x2'])
 
         exp_pvalues = pd.DataFrame([
             [0.000000, 3.858750e-39, 2.245068e-33,
-             2.434437e-35, 0.776775, 6.645741e-34],
+             2.552217e-05, 0.923418, 6.645741e-34],
             [0.038015, 3.858750e-39, 2.245068e-33,
-             2.434437e-35, 0.776775, 6.645741e-34]],
+             2.552217e-05, 0.923418, 6.645741e-34]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
             index=['Y1', 'Y2'])
         exp_coefficients = pd.DataFrame(
-            [[4.163141, 1.030013, 0.935514, 0.339239, -0.005792, 0.38456],
-             [0.163141, 1.030013, 0.935514, 0.339239, -0.005792, 0.38456]],
+            [[4.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792],
+             [0.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
             index=['Y1', 'Y2'])

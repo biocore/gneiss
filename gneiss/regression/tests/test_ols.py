@@ -33,6 +33,20 @@ class TestOLS(unittest.TestCase):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
 
+        np.random.seed(0)
+        n = 15
+        a = np.array([1, 4.2, 5.3, -2.2, 8])
+        x1 = np.linspace(.01, 0.1, n)
+        x2 = np.logspace(0, 0.01, n)
+        x3 = np.exp(np.linspace(0, 0.01, n))
+        x4 = x1 ** 2
+        self.x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4})
+        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 +
+             np.random.normal(size=n))
+        sy = np.vstack((y, y/10)).T
+        self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
+        self.t2 = TreeNode.read([r"((a,b)n,c);"])
+
     def test_ols(self):
         res = ols('real', self.table, self.metadata, self.tree)
         res.fit()
@@ -225,6 +239,59 @@ class TestOLS(unittest.TestCase):
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
+
+    def test_loo(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        exp_loo = pd.DataFrame([[0.66953263510975791, 10.994700550912553],
+                                [0.69679777354984163, 2.3613911713947062],
+                                [0.84934173316473072, 0.4057812892157881],
+                                [0.6990546679957772, 2.2872776593899351],
+                                [0.72855466737125463, 1.7615637744849277],
+                                [0.55998953661859308, 3.617823652256889],
+                                [0.81787392852582308, 0.72395497360494043],
+                                [0.8653549732546999, 0.17706927499520822],
+                                [0.86983181933002329, 0.1216027316667969],
+                                [0.87779006612352628, 0.028600627330344405],
+                                [0.86591226075609384, 0.16724511075065476],
+                                [0.7787232221539, 1.2820054843437292],
+                                [0.88032413856094505, 3.4113910096200831e-06],
+                                [0.83195133809800792, 0.62276589277034022],
+                                [0.85352707356786695, 1.4038585971691198]],
+                               columns=['mse', 'pred_err'],
+                               index=self.y.index)
+        res_loo = res.loo().astype(np.float)
+        pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
+
+    def test_lovo(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        exp_lovo = pd.DataFrame([[0.799364, 0.978214],
+                                 [0.799363, 0.097355],
+                                 [0.799368, 0.0973498],
+                                 [0.799364, 0.097354],
+                                 [0.799361, 0.0973575]],
+                                columns=['mse', 'Rsquared'],
+                                index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
+        res_lovo = res.lovo().astype(np.float)
+        pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
+
+    def test_percent_explained(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        res_perc = res.percent_explained()
+        exp_perc = pd.Series({'y0': 0.009901,
+                              'y1': 0.990099})
+        pdt.assert_series_equal(res_perc, exp_perc)
+
+    def test_mse(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
 
 
 if __name__ == "__main__":
