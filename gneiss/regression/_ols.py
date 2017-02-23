@@ -17,16 +17,15 @@ import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
 from patsy import dmatrix
-
-try:
+from gneiss.util import HAVE_Q2
+if HAVE_Q2:
     from q2_composition.plugin_setup import Composition
     from q2_types.feature_table import FeatureTable
     from q2_types.tree import Phylogeny, Rooted, Unrooted
     from qiime2.plugin import Str, Metadata, SemanticType
     from gneiss.plugin_setup import plugin
     from ._model import Regression_g
-except ImportError:
-    raise ImportWarning('Qiime2 not installed.')
+
 
 
 def _fit_ols(y, x, **kwargs):

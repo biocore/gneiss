@@ -14,7 +14,8 @@ from gneiss.util import (_intersect_of_table_metadata_tree,
                          _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
-try:
+from gneiss.util import HAVE_Q2
+if HAVE_Q2:
     from gneiss.plugin_setup import plugin
     from qiime2.plugin import SemanticType
     from ._model import Regression_g
@@ -22,8 +23,6 @@ try:
     from q2_composition.plugin_setup import Composition
     from q2_types.tree import Phylogeny, Rooted, Unrooted
     from qiime2.plugin import Str, Metadata
-except ImportError:
-    raise ImportWarning('Qiime2 not installed.')
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):

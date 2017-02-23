@@ -30,6 +30,13 @@ import pandas as pd
 from .balances import balance_basis
 from skbio.stats.composition import ilr
 
+try:
+    import qiime2
+    HAVE_Q2 = True
+except ImportError:
+    HAVE_Q2 = False
+    raise ImportWarning('Qiime2 not installed.')
+
 
 def match(table, metadata):
     """ Matches samples between a contingency table and a metadata table.
