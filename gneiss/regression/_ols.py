@@ -27,7 +27,6 @@ if HAVE_Q2:
     from ._model import Regression_g
 
 
-
 def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
     # mixed effects code is obtained here:

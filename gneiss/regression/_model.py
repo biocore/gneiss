@@ -13,7 +13,6 @@ if HAVE_Q2:
     from gneiss.plugin_setup import plugin
     import qiime2.plugin.model as model
     from qiime2.plugin import SemanticType
-    
 
 
 class RegressionModel(Model):
@@ -198,7 +197,6 @@ class RegressionModel(Model):
 if HAVE_Q2:
     Regression_g = SemanticType('Regression_g', field_names=['type'])
 
-
     class RegressionFormat_g(model.BinaryFileFormat):
         def sniff(self):
             try:
@@ -206,7 +204,6 @@ if HAVE_Q2:
                 return isinstance(res, RegressionModel)
             except:
                 return False
-
 
     RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
         'RegressionDirectoryFormat_g', 'regression.pickle', RegressionFormat_g)

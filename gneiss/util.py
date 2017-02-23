@@ -196,6 +196,7 @@ def rename_internal_nodes(tree, names=None, inplace=False):
             i += 1
     return _tree
 
+
 def _intersect_of_table_metadata_tree(table, metadata, tree):
     """ Matches tips, features and samples between the table, metadata
     and tree.  This module returns the features and samples that are
