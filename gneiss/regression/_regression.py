@@ -5,22 +5,16 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import numpy as np
-import pandas as pd
-from skbio.stats.composition import ilr
-from gneiss.util import match, match_tips, rename_internal_nodes
 from gneiss.util import HAVE_Q2
-from gneiss.balances import balance_basis
-
 if HAVE_Q2:
     from ._mixedlm import LinearMixedEffects_g
     from ._ols import Linear_g
-    from ._model import RegressionDirectory_g, RegressionDirectoryFormat_g
-    from qiime2.plugin import SemanticType
+    from ._model import (Regression_g, RegressionFormat_g,
+                         RegressionDirectoryFormat_g)
+    from gneiss.plugin_setup import plugin
 
-
-plugin.register_formats(RegressionFormat_g, RegressionDirectoryFormat_g)
-plugin.register_semantic_type_to_format(
-    Regression_g[Linear_g | LinearMixedEffects_g],
-    artifact_format=RegressionDirectoryFormat_g
-)
+    plugin.register_formats(RegressionFormat_g, RegressionDirectoryFormat_g)
+    plugin.register_semantic_type_to_format(
+        Regression_g[Linear_g | LinearMixedEffects_g],
+        artifact_format=RegressionDirectoryFormat_g
+    )
