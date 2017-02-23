@@ -285,6 +285,7 @@ def lme_regression(table: pd.DataFrame, tree: skbio.TreeNode,
     res.fit()
     return res
 
+
 plugin.methods.register_function(
     function=lme_regression,
     inputs={'table': FeatureTable[Composition],
