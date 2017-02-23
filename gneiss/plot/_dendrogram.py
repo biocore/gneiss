@@ -9,6 +9,7 @@ from skbio import TreeNode
 import pandas as pd
 import numpy
 from skbio import TreeNode
+import abc
 
 
 def _sign(x):
@@ -190,7 +191,7 @@ class UnrootedDendrogram(Dendrogram):
         Notes
         -----
         """
-        angle = (2 * numpy.pi) / self._n_tips
+        angle = (2 * numpy.pi) / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
         # the best rotation of the tree to fit the display.
@@ -265,7 +266,7 @@ class UnrootedDendrogram(Dendrogram):
             # need to be refactored to remove the recursion.
             for child in self.children:
                 # calculate the arc that covers the subtree.
-                ca = child._n_tips * da
+                ca = child.leafcount * da
                 points += child.update_coordinates(s, x2, y2, a+ca/2, da)
                 a += ca
         return points

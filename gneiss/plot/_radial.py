@@ -112,7 +112,7 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
 
     edges = pd.merge(edges, attrs, left_on='dest_node',
                      right_index=True, how='outer')
-
+    edges = edges.dropna(subset=['src_node'])
 
     node_glyph = Circle(x="x", y="y",
                         radius=node_size,
@@ -134,6 +134,7 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     plot = Plot(x_range=xdr, y_range=ydr, **kwargs)
     plot.add_glyph(df2ds(edges), edge_glyph)
     ns = plot.add_glyph(df2ds(nodes), node_glyph)
+
 
     # TODO: Will need to make the hovertool options more configurable
     tooltip = """
