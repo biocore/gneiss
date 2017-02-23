@@ -58,6 +58,7 @@ class TestMixedLM(unittest.TestCase):
         self.table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
         self.metadata = df[['x1', 'x2', 'groups']]
 
+
 class TestMixedLMFunctions(TestMixedLM):
 
     # test case borrowed from statsmodels

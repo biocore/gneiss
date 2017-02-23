@@ -50,7 +50,6 @@ class TestOLS(unittest.TestCase):
 
 class TestOLSFunctions(TestOLS):
 
-
     def test_ols(self):
         res = ols('real', self.table, self.metadata, self.tree)
         res.fit()

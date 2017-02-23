@@ -28,6 +28,7 @@ try:
 except ImportError:
     raise ImportWarning('Qiime2 not installed.')
 
+
 def _fit_ols(y, x, **kwargs):
     """ Perform the basic ols regression."""
     # mixed effects code is obtained here:
