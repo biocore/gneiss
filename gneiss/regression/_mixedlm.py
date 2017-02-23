@@ -19,6 +19,7 @@ if HAVE_Q2:
     from gneiss.plugin_setup import plugin
     from qiime2.plugin import SemanticType
     from ._model import Regression_g
+    from ._regression import LinearMixedEffects_g
     from q2_types.feature_table import FeatureTable
     from q2_composition.plugin_setup import Composition
     from q2_types.tree import Phylogeny, Rooted, Unrooted
@@ -273,8 +274,6 @@ class LMEModel(RegressionModel):
 
 
 # q2 cli
-LinearMixedEffects_g = SemanticType('LinearMixedE qffects_g',
-                                    variant_of=Regression_g.field['type'])
 
 
 def lme_regression(table: pd.DataFrame, tree: skbio.TreeNode,

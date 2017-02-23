@@ -25,6 +25,7 @@ if HAVE_Q2:
     from qiime2.plugin import Str, Metadata, SemanticType
     from gneiss.plugin_setup import plugin
     from ._model import Regression_g
+    from ._regression import Linear_g
 
 
 def _fit_ols(y, x, **kwargs):
@@ -433,9 +434,6 @@ class OLSModel(RegressionModel):
 
 
 # q2 cli
-Linear_g = SemanticType('Linear_g',
-                        variant_of=Regression_g.field['type'])
-
 
 def ols_regression(table: pd.DataFrame, tree: skbio.TreeNode,
                    metadata: pd.DataFrame, formula: str) -> OLSModel:
