@@ -12,7 +12,7 @@ import subprocess
 
 import pandas as pd
 import pandas.util.testing as pdt
-
+from skbio.util import get_data_path
 from gneiss.regression._regression import lme_regression, ols_regression
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
@@ -48,13 +48,18 @@ class TestOLSPlugin(TestOLS):
 
     def test_ols_cli(self):
         # TODO: Is there a better way to test this?
+        in_table = get_data_path("test_ols_composition.qza")
+        in_tree = get_data_path("test_tree.qza")
+        in_metadata = get_data_path("test_ols_metadata.txt")
+
         cmd = ("qiime gneiss ols-regression "
-               "--i-table data/test_ols_composition.qza "
-               "--i-tree data/test_tree.qza "
+               "--i-table %s "
+               "--i-tree %s "
                "--o-linear-model test_ols "
                "--p-formula 'ph' "
-               "--m-metadata-file data/test_ols_metadata.txt")
-        proc = subprocess.Popen(cmd, shell=True)
+               "--m-metadata-file %s")
+        proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
+                                shell=True)
         proc.wait()
         self.assertTrue(os.path.exists("test_ols.qza"))
         os.remove("test_ols.qza")
@@ -88,15 +93,20 @@ class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_cli(self):
         # TODO: Is there a better way to test this?
+        in_table = get_data_path("test_ols_composition.qza")
+        in_tree = get_data_path("test_tree.qza")
+        in_metadata = get_data_path("test_ols_metadata.txt")
+
         cmd = ("qiime gneiss lme-regression "
-               "--i-table data/test_lme_composition.qza "
-               "--i-tree data/test_tree.qza "
+               "--i-table %s "
+               "--i-tree %s "
                "--o-linear-mixed-effects-model test_lme "
                "--p-formula 'ph' "
                "--p-groups 'host_subject_id' "
-               "--m-metadata-file data/test_lme_metadata.txt")
+               "--m-metadata-file %s")
         print(cmd)
-        proc = subprocess.Popen(cmd, shell=True)
+        proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
+                                shell=True)
         proc.wait()
         self.assertTrue(os.path.exists("test_lme.qza"))
         os.remove("test_lme.qza")
