@@ -59,7 +59,7 @@ class TestOLSPlugin(TestOLS):
         # TODO: Is there a better way to test this?
         cmd = ("qiime gneiss ols-regression "
                "--i-table data/test_ols_composition.qza "
-               "--i-tree data/test_ols_tree.qza "
+               "--i-tree data/test_tree.qza "
                "--o-linear-model test_ols "
                "--p-formula 'ph' "
                "--m-metadata-file data/test_ols_metadata.txt")
@@ -97,13 +97,14 @@ class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_cli(self):
         # TODO: Is there a better way to test this?
-        cmd = ("qiime gneiss ols-regression "
+        cmd = ("qiime gneiss lme-regression "
                "--i-table data/test_lme_composition.qza "
-               "--i-tree data/test_lme_tree.qza "
-               "--o-linear-model test_lme "
+               "--i-tree data/test_tree.qza "
+               "--o-linear-mixed-effects-model test_lme "
                "--p-formula 'ph' "
-               "--p-groups 'host_subject_id'"
+               "--p-groups 'host_subject_id' "
                "--m-metadata-file data/test_lme_metadata.txt")
+        print(cmd)
         proc = subprocess.Popen(cmd, shell=True)
         proc.wait()
         self.assertTrue(os.path.exists("test_lme.qza"))
