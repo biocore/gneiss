@@ -295,6 +295,11 @@ class TestOLSFunctions(TestOLS):
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
 
+    def test_write(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        res.write_pickle('ols.pickle')
 
 if __name__ == "__main__":
     unittest.main()

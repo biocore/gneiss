@@ -18,17 +18,10 @@ class TestFormats(TestPluginBase):
     package = "gneiss.regression.tests"
 
     def test_regression_format_validate_positive(self):
-        # setup
-        ols_f = self.get_data_path('ols.pickle.tgz')
-        proc = subprocess.Popen('tar -zxvf %s' % ols_f, shell=True)
-        proc.wait()
-        # this needs to be done since q2 looks inside the data folder
-        os.rename("ols.pickle", os.path.splitext(ols_f)[0])
-
         filepath = self.get_data_path('ols.pickle')
         format = RegressionFormat_g(filepath, mode='r')
 
-        print(str(format), format.sniff())
+        print(filepath, str(format), format.sniff())
         format.validate()
 
     def test_regression_format_validate_negative(self):
@@ -39,13 +32,6 @@ class TestFormats(TestPluginBase):
             format.validate()
 
     def test_regression_directory_format_validate_positive(self):
-        # setup
-        ols_f = self.get_data_path('ols.pickle.tgz')
-        proc = subprocess.Popen('tar -zxvf %s' % ols_f, shell=True)
-        proc.wait()
-        # this needs to be done since q2 looks inside the data folder
-        os.rename("ols.pickle", os.path.splitext(ols_f)[0])
-
         filepath = self.get_data_path('ols.pickle')
         shutil.copy(filepath, os.path.join(self.temp_dir.name,
                                            'regression.pickle'))

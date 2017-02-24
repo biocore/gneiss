@@ -252,6 +252,12 @@ class TestMixedLMFunctions(TestMixedLM):
             exp = fh.read()
             self.assertEqual(res, exp)
 
+    def test_write(self):
+        res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                        groups="groups")
+
+        res.fit()
+        res.write_pickle('lme.pickle')
 
 if __name__ == '__main__':
     unittest.main()
