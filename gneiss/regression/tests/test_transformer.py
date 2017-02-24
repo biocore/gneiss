@@ -38,6 +38,7 @@ class TestTransformers(TestPluginBase):
         ols_f = self.get_data_path('ols.pickle.tgz')
         proc = subprocess.Popen('tar -zxvf %s' % ols_f, shell=True)
         proc.wait()
+        # this needs to be done since q2 looks inside the data folder
         os.rename("ols.pickle", os.path.splitext(ols_f)[0])
 
         filename = 'ols.pickle'
@@ -66,6 +67,7 @@ class TestTransformers(TestPluginBase):
         lme_f = self.get_data_path('lme.pickle.tgz')
         proc = subprocess.Popen('tar -zxvf %s' % lme_f, shell=True)
         proc.wait()
+        # this needs to be done since q2 looks inside the data folder
         os.rename("lme.pickle", os.path.splitext(lme_f)[0])
 
         filename = 'lme.pickle'

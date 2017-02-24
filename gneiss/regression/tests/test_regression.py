@@ -61,7 +61,9 @@ class TestOLSPlugin(TestOLS):
         proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
                                 shell=True)
         proc.wait()
+
         self.assertTrue(os.path.exists("test_ols.qza"))
+
         os.remove("test_ols.qza")
 
 
@@ -107,6 +109,7 @@ class TestMixedLMPlugin(TestMixedLM):
         proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
                                 shell=True)
         proc.wait()
+
         self.assertTrue(os.path.exists("test_lme.qza"))
         os.remove("test_lme.qza")
 

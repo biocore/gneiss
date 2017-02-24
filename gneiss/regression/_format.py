@@ -12,13 +12,13 @@ import pickle
 
 class RegressionFormat_g(model.BinaryFileFormat):
     def sniff(self):
-        return True
         try:
             # just check if the file is pickleable.
-            pickle.load(open(str(self)))
+            with open(str(self), 'rb') as fh:
+                pickle.load(fh)
             return True
         except:
-            return False
+            return None
 
 
 RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
