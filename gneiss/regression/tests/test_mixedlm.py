@@ -15,7 +15,7 @@ import statsmodels.formula.api as smf
 import numpy.testing as npt
 from skbio.util import get_data_path
 from gneiss.regression import mixedlm
-from gneiss.regression._mixedlm import lme_regression
+from qiime2.plugin import Metadata
 
 
 class TestMixedLM(unittest.TestCase):
@@ -252,33 +252,6 @@ class TestMixedLMFunctions(TestMixedLM):
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
-
-
-class TestMixedLMPlugin(TestMixedLM):
-
-    def test_mixedlm_balances(self):
-
-        res = lme_regression(formula="x1 + x2", table=self.table,
-                             metadata=self.metadata, tree=self.tree,
-                             groups="groups")
-        res.fit()
-        exp_pvalues = pd.DataFrame(
-            [[4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
-             [0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
-            index=['Y1', 'Y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'])
-
-        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
-                               check_less_precise=True)
-
-        exp_coefficients = pd.DataFrame(
-            [[4.211451,  0.0935786, 1.022008, 0.924873],
-             [0.211451,  0.0935786, 1.022008, 0.924873]],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'],
-            index=['Y1', 'Y2'])
-
-        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
-                               check_less_precise=True)
 
 
 if __name__ == '__main__':

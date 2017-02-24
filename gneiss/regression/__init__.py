@@ -32,9 +32,12 @@ Classes
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-
+import importlib
 from ._ols import ols, OLSModel
 from ._mixedlm import mixedlm, LMEModel
 
 
 __all__ = ["ols", "OLSModel", "mixedlm", "LMEModel"]
+
+
+importlib.import_module('q2_types.tree._transformer')

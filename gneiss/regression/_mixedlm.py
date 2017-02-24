@@ -15,15 +15,112 @@ from gneiss.util import (_intersect_of_table_metadata_tree,
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 from gneiss.util import HAVE_Q2
-if HAVE_Q2:
-    from gneiss.plugin_setup import plugin
-    from qiime2.plugin import SemanticType
-    from ._model import Regression_g
-    from ._regression import LinearMixedEffects_g
-    from q2_types.feature_table import FeatureTable
-    from q2_composition.plugin_setup import Composition
-    from q2_types.tree import Phylogeny, Rooted, Unrooted
-    from qiime2.plugin import Str, Metadata
+
+
+class LMEModel(RegressionModel):
+    def __init__(self, *args, **kwargs):
+        """
+        Summary object for storing linear mixed effects results.
+
+        A `LMEModel` object stores information about the
+        individual balances used in the regression, the coefficients,
+        residuals. This object can be used to perform predictions.
+        In addition, summary statistics such as the coefficient
+        of determination for the overall fit can be calculated.
+
+
+        Parameters
+        ----------
+        submodels : list of statsmodels objects
+            List of statsmodels result objects.
+        basis : pd.DataFrame
+            Orthonormal basis in the Aitchison simplex.
+            Row names correspond to the leafs of the tree
+            and the column names correspond to the internal nodes
+            in the tree.
+        tree : skbio.TreeNode
+            Bifurcating tree that defines `basis`.
+        balances : pd.DataFrame
+            A table of balances where samples are rows and
+            balances are columns. These balances were calculated
+            using `tree`.
+        """
+        super().__init__(*args, **kwargs)
+
+    def fit(self, **kwargs):
+        """ Fit the model """
+        # assumes that the underlying submodels have implemented `fit`.
+        # TODO: Add regularized fit
+        self.results = [s.fit(**kwargs) for s in self.submodels]
+
+    def summary(self, ndim=10):
+        """ Summarize the Ordinary Least Squares Regression Results.
+
+        Parameters
+        ----------
+        ndim : int
+            Number of dimensions to summarize for coefficients.
+            If `ndim` is None, then all of the dimensions of the covariates
+            will be printed.
+
+        Returns
+        -------
+        str :
+            This holds the summary of regression coefficients and fit
+            information.
+
+        """
+
+        # calculate the aitchison norm for all of the coefficients
+        coefs = self.coefficients()
+        if ndim:
+            coefs = coefs.head(ndim)
+        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
+        # We need a hierarchical index.  The outer index for each balance
+        # and the inner index for each covariate
+        if ndim:
+            pvals = self.pvalues.head(ndim)
+        # adding blank column just for the sake of display
+        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
+        scores = pd.concat((coefs, pvals))
+        scores = scores.sort_values(by='     ', ascending=False)
+        scores = scores.sort_index(kind='mergesort')
+
+        def _format(x):
+            # format scores to be printable
+            if x.dtypes == float:
+                return ["%3.2E" % Decimal(k) for k in x]
+            else:
+                return x
+
+        scores = scores.apply(_format)
+        # TODO: Will want to add results for Aitchison norm
+        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
+        #                        for c in coefs.columns}, index=['A-Norm']).T
+        # cnorms = cnorms.apply(_format)
+
+        self.params = coefs
+        # TODO: Will want results from Hotelling t-test
+
+        # number of observations
+        self.nobs = self.balances.shape[0]
+        self.model = None
+
+        # Start filling in summary information
+        smry = Summary()
+        # Top results
+        info = OrderedDict()
+        info["No. Observations"] = self.balances.shape[0]
+        info["Model:"] = "Simplicial MixedLM"
+
+        smry.add_dict(info)
+
+        smry.add_title("Simplicial Mixed Linear Model Results")
+        # TODO
+        # smry.add_df(cnorms, align='r')
+        smry.add_df(scores, align='r')
+
+        return smry
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):
@@ -165,133 +262,3 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
 
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
-
-
-class LMEModel(RegressionModel):
-    def __init__(self, *args, **kwargs):
-        """
-        Summary object for storing linear mixed effects results.
-
-        A `LMEModel` object stores information about the
-        individual balances used in the regression, the coefficients,
-        residuals. This object can be used to perform predictions.
-        In addition, summary statistics such as the coefficient
-        of determination for the overall fit can be calculated.
-
-
-        Parameters
-        ----------
-        submodels : list of statsmodels objects
-            List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leafs of the tree
-            and the column names correspond to the internal nodes
-            in the tree.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
-        balances : pd.DataFrame
-            A table of balances where samples are rows and
-            balances are columns. These balances were calculated
-            using `tree`.
-        """
-        super().__init__(*args, **kwargs)
-
-    def fit(self, **kwargs):
-        """ Fit the model """
-        # assumes that the underlying submodels have implemented `fit`.
-        # TODO: Add regularized fit
-        self.results = [s.fit(**kwargs) for s in self.submodels]
-
-    def summary(self, ndim=10):
-        """ Summarize the Ordinary Least Squares Regression Results.
-
-        Parameters
-        ----------
-        ndim : int
-            Number of dimensions to summarize for coefficients.
-            If `ndim` is None, then all of the dimensions of the covariates
-            will be printed.
-
-        Returns
-        -------
-        str :
-            This holds the summary of regression coefficients and fit
-            information.
-
-        """
-
-        # calculate the aitchison norm for all of the coefficients
-        coefs = self.coefficients()
-        if ndim:
-            coefs = coefs.head(ndim)
-        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
-        # We need a hierarchical index.  The outer index for each balance
-        # and the inner index for each covariate
-        if ndim:
-            pvals = self.pvalues.head(ndim)
-        # adding blank column just for the sake of display
-        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
-        scores = pd.concat((coefs, pvals))
-        scores = scores.sort_values(by='     ', ascending=False)
-        scores = scores.sort_index(kind='mergesort')
-
-        def _format(x):
-            # format scores to be printable
-            if x.dtypes == float:
-                return ["%3.2E" % Decimal(k) for k in x]
-            else:
-                return x
-
-        scores = scores.apply(_format)
-        # TODO: Will want to add results for Aitchison norm
-        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
-        #                        for c in coefs.columns}, index=['A-Norm']).T
-        # cnorms = cnorms.apply(_format)
-
-        self.params = coefs
-        # TODO: Will want results from Hotelling t-test
-
-        # number of observations
-        self.nobs = self.balances.shape[0]
-        self.model = None
-
-        # Start filling in summary information
-        smry = Summary()
-        # Top results
-        info = OrderedDict()
-        info["No. Observations"] = self.balances.shape[0]
-        info["Model:"] = "Simplicial MixedLM"
-
-        smry.add_dict(info)
-
-        smry.add_title("Simplicial Mixed Linear Model Results")
-        # TODO
-        # smry.add_df(cnorms, align='r')
-        smry.add_df(scores, align='r')
-
-        return smry
-
-
-# q2 cli
-
-
-def lme_regression(table: pd.DataFrame, tree: skbio.TreeNode,
-                   metadata: pd.DataFrame, formula: str,
-                   groups: str) -> LMEModel:
-    res = mixedlm(table=table, tree=tree, metadata=metadata,
-                  formula=formula, groups=groups)
-    res.fit()
-    return res
-
-
-plugin.methods.register_function(
-    function=lme_regression,
-    inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted | Unrooted]},
-    parameters={'metadata': Metadata, 'formula': Str, 'groups': Str},
-    outputs=[('linear_mixed_effects_model',
-              Regression_g[LinearMixedEffects_g])],
-    name='Simplicial Linear mixed effects regression',
-    description="Build and run linear mixed effects model on balances."
-)

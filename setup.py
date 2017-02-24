@@ -89,7 +89,7 @@ setup(name='gneiss',
           'ete3',
       ],
       extra_require={
-          'q2': ['qiime >= 2.0.5', 'biom-format', 'seaborn']
+          'q2': ['qiime2 >= 2017.2.0', 'biom-format', 'seaborn']
       },
       classifiers=classifiers,
       package_data={
