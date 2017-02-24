@@ -5,24 +5,27 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+
+import os
+import unittest
+import subprocess
+
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-import unittest
+
 from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 import statsmodels.formula.api as smf
 import numpy.testing as npt
+
 from skbio.util import get_data_path
 from gneiss.regression import mixedlm
 
 from gneiss.regression._regression import lme_regression, ols_regression
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
-from gneiss.util import HAVE_Q2
-
-if HAVE_Q2:
-    from qiime2.metadata import Metadata
+from qiime2.metadata import Metadata
 
 
 class TestOLSPlugin(TestOLS):
@@ -52,6 +55,20 @@ class TestOLSPlugin(TestOLS):
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
+    def test_ols_cli(self):
+        # TODO: Is there a better way to test this?
+        cmd = ("qiime gneiss ols-regression "
+               "--i-table data/test_ols_composition.qza "
+               "--i-tree data/test_ols_tree.qza "
+               "--o-linear-model test_ols "
+               "--p-formula 'ph' "
+               "--m-metadata-file data/test_ols_metadata.txt")
+        proc = subprocess.Popen(cmd, shell=True)
+        proc.wait()
+        self.assertTrue(os.path.exists("test_ols.qza"))
+        os.remove("test_ols.qza")
+
+
 class TestMixedLMPlugin(TestMixedLM):
 
     def test_mixedlm_balances(self):
@@ -77,6 +94,20 @@ class TestMixedLMPlugin(TestMixedLM):
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
+
+    def test_lme_cli(self):
+        # TODO: Is there a better way to test this?
+        cmd = ("qiime gneiss ols-regression "
+               "--i-table data/test_lme_composition.qza "
+               "--i-tree data/test_lme_tree.qza "
+               "--o-linear-model test_lme "
+               "--p-formula 'ph' "
+               "--p-groups 'host_subject_id'"
+               "--m-metadata-file data/test_lme_metadata.txt")
+        proc = subprocess.Popen(cmd, shell=True)
+        proc.wait()
+        self.assertTrue(os.path.exists("test_lme.qza"))
+        os.remove("test_lme.qza")
 
 
 if __name__ == '__main__':

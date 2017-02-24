@@ -14,7 +14,6 @@ from gneiss.util import (_intersect_of_table_metadata_tree,
                          _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
-from gneiss.util import HAVE_Q2
 
 
 def mixedlm(formula, table, metadata, tree, groups, **kwargs):

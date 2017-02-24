@@ -8,7 +8,6 @@
 import pandas as pd
 from skbio.stats.composition import ilr_inv
 from gneiss._model import Model
-from gneiss.util import HAVE_Q2
 
 
 class RegressionModel(Model):

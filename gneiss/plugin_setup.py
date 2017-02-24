@@ -1,6 +1,4 @@
 import importlib
-from gneiss.util import HAVE_Q2
-
 
 import qiime2.plugin
 import qiime2.sdk
