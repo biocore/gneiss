@@ -20,6 +20,7 @@ class RegressionFormat_g(model.BinaryFileFormat):
         except:
             return False
 
+
 RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
     'RegressionDirectoryFormat_g', 'regression.pickle', RegressionFormat_g)
 
