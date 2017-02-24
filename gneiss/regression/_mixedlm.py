@@ -156,6 +156,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     return LMEModel(submodels, basis=basis,
                     balances=ilr_table, tree=tree)
 
+
 class LMEModel(RegressionModel):
     def __init__(self, *args, **kwargs):
         """
@@ -260,5 +261,3 @@ class LMEModel(RegressionModel):
         smry.add_df(scores, align='r')
 
         return smry
-
-

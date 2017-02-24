@@ -25,6 +25,7 @@ def _fit_ols(y, x, **kwargs):
     # http://stackoverflow.com/a/22439820/1167475
     return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
 
+
 def ols(formula, table, metadata, tree, **kwargs):
     """ Ordinary Least Squares applied to balances.
 
@@ -170,6 +171,7 @@ def ols(formula, table, metadata, tree, **kwargs):
     return OLSModel(submodels, basis=basis,
                     balances=ilr_table,
                     tree=tree)
+
 
 class OLSModel(RegressionModel):
     def __init__(self, *args, **kwargs):
