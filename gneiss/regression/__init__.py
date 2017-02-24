@@ -40,4 +40,4 @@ from ._mixedlm import mixedlm, LMEModel
 __all__ = ["ols", "OLSModel", "mixedlm", "LMEModel"]
 
 
-importlib.import_module('q2_types.tree._transformer')
+importlib.import_module('gneiss.regression._transformer')
