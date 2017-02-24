@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 from collections import OrderedDict
-import skbio
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel

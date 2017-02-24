@@ -13,7 +13,6 @@ from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from skbio.util import get_data_path
 from gneiss.regression import ols
-from qiime2.plugin import Metadata
 
 
 class TestOLS(unittest.TestCase):

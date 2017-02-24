@@ -10,17 +10,8 @@ import os
 import unittest
 import subprocess
 
-import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
-
-from skbio.stats.composition import ilr_inv
-from skbio import TreeNode
-import statsmodels.formula.api as smf
-import numpy.testing as npt
-
-from skbio.util import get_data_path
-from gneiss.regression import mixedlm
 
 from gneiss.regression._regression import lme_regression, ols_regression
 from gneiss.regression.tests.test_ols import TestOLS

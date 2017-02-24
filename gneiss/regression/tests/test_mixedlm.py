@@ -15,7 +15,6 @@ import statsmodels.formula.api as smf
 import numpy.testing as npt
 from skbio.util import get_data_path
 from gneiss.regression import mixedlm
-from qiime2.plugin import Metadata
 
 
 class TestMixedLM(unittest.TestCase):

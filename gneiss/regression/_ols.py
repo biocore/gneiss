@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 from decimal import Decimal
 from collections import OrderedDict
-import skbio
 import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
