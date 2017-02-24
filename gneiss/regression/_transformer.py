@@ -15,7 +15,7 @@ def _1(data: OLSModel) -> RegressionFormat_g:
 @plugin.register_transformer
 def _2(ff: RegressionFormat_g) -> OLSModel:
     with ff.open() as fh:
-        return fh.read_pickle(fh)
+        return OLSModel.read_pickle(fh)
 
 
 @plugin.register_transformer
@@ -29,4 +29,4 @@ def _3(data: LMEModel) -> RegressionFormat_g:
 @plugin.register_transformer
 def _4(ff: RegressionFormat_g) -> LMEModel:
     with ff.open() as fh:
-        return fh.read_pickle(fh)
+        return LMEModel.read_pickle(fh)

@@ -93,9 +93,9 @@ class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_cli(self):
         # TODO: Is there a better way to test this?
-        in_table = get_data_path("test_ols_composition.qza")
+        in_table = get_data_path("test_lme_composition.qza")
         in_tree = get_data_path("test_tree.qza")
-        in_metadata = get_data_path("test_ols_metadata.txt")
+        in_metadata = get_data_path("test_lme_metadata.txt")
 
         cmd = ("qiime gneiss lme-regression "
                "--i-table %s "
@@ -104,7 +104,6 @@ class TestMixedLMPlugin(TestMixedLM):
                "--p-formula 'ph' "
                "--p-groups 'host_subject_id' "
                "--m-metadata-file %s")
-        print(cmd)
         proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
                                 shell=True)
         proc.wait()
