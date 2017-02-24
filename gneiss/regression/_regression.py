@@ -57,5 +57,3 @@ plugin.methods.register_function(
     name='Simplicial Linear mixed effects regression',
     description="Build and run linear mixed effects model on balances."
 )
-
-
