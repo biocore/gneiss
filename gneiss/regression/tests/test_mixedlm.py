@@ -259,5 +259,6 @@ class TestMixedLMFunctions(TestMixedLM):
         res.fit()
         res.write_pickle('lme.pickle')
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -301,5 +301,6 @@ class TestOLSFunctions(TestOLS):
         res.fit()
         res.write_pickle('ols.pickle')
 
+
 if __name__ == "__main__":
     unittest.main()
