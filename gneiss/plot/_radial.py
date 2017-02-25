@@ -65,27 +65,25 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
 
     # fill in all of the node attributes
     default_node_hue = '#D3D3D3'
-    nodes[node_hue] = pd.Series({n.name:getattr(n, node_hue,
-                                                default_node_hue)
-                               for n in t.levelorder(include_self=True)})
-
-    default_node_size = 1
-    nodes[node_size] = pd.Series({n.name:getattr(n, node_size,
-                                                 default_node_size)
-                                for n in t.levelorder(include_self=True)})
-
-    default_node_alpha = 1
-    nodes[node_alpha] = pd.Series({n.name:getattr(n, node_alpha,
-                                                  default_node_alpha)
+    nodes[node_hue] = pd.Series({n.name: getattr(n, node_hue,
+                                                 default_node_hue)
                                  for n in t.levelorder(include_self=True)})
 
+    default_node_size = 1
+    nodes[node_size] = pd.Series({n.name: getattr(n, node_size,
+                                                  default_node_size)
+                                  for n in t.levelorder(include_self=True)})
 
+    default_node_alpha = 1
+    nodes[node_alpha] = pd.Series({n.name: getattr(n, node_alpha,
+                                                   default_node_alpha)
+                                   for n in t.levelorder(include_self=True)})
 
     edges = nodes[['child0', 'child1']]
     edges = edges.dropna(subset=['child0', 'child1'])
     edges = edges.unstack()
     edges = pd.DataFrame({'src_node': edges.index.get_level_values(1),
-                          'dest_node' : edges.values})
+                          'dest_node': edges.values})
     edges['x0'] = [nodes.loc[n].x for n in edges.src_node]
     edges['x1'] = [nodes.loc[n].x for n in edges.dest_node]
     edges['y0'] = [nodes.loc[n].y for n in edges.src_node]
@@ -94,21 +92,19 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     attrs = pd.DataFrame(index=ns)
 
     default_edge_hue = '#000000'
-    attrs[edge_hue] = pd.Series({n.name:getattr(n, edge_hue,
-                                                default_edge_hue)
+    attrs[edge_hue] = pd.Series({n.name: getattr(n, edge_hue,
+                                                 default_edge_hue)
                                  for n in t.levelorder(include_self=True)})
 
     default_edge_width = 1
-    attrs[edge_width] = pd.Series({n.name:getattr(n, edge_width,
-                                                  default_edge_width)
-                                  for n in t.levelorder(include_self=True)})
-
-
-    default_edge_alpha = 1
-    attrs[edge_alpha] = pd.Series({n.name:getattr(n, edge_alpha,
-                                                  default_edge_alpha)
+    attrs[edge_width] = pd.Series({n.name: getattr(n, edge_width,
+                                                   default_edge_width)
                                    for n in t.levelorder(include_self=True)})
 
+    default_edge_alpha = 1
+    attrs[edge_alpha] = pd.Series({n.name: getattr(n, edge_alpha,
+                                                   default_edge_alpha)
+                                   for n in t.levelorder(include_self=True)})
 
     edges = pd.merge(edges, attrs, left_on='dest_node',
                      right_index=True, how='outer')
@@ -135,7 +131,6 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     plot.add_glyph(df2ds(edges), edge_glyph)
     ns = plot.add_glyph(df2ds(nodes), node_glyph)
 
-
     # TODO: Will need to make the hovertool options more configurable
     tooltip = """
         <div>
@@ -143,8 +138,7 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
             <span style="font-size: 15px; color: #151515;">@index</span>
         </div>
     """
-
-    hover = HoverTool(renderers = [ns], tooltips=tooltip)
+    hover = HoverTool(renderers=[ns], tooltips=tooltip)
     plot.add_tools(hover, BoxZoomTool(), ResetTool())
 
     return plot

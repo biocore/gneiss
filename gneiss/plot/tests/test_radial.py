@@ -11,18 +11,20 @@ from gneiss.plot._dendrogram import UnrootedDendrogram
 class TestRadial(unittest.TestCase):
     def setUp(self):
 
-        self.coords = pd.DataFrame([['487.5','347.769','NaN','NaN','True'],
-                                    ['12.5','483.28','NaN','NaN','True'],
-                                    ['324.897','16.7199','NaN','NaN','True'],
-                                    ['338.261','271.728','0','2','False'],
-                                    ['193.169','365.952','1','y3','False']],
-                                   columns=['x', 'y', 'child0', 'child1', 'is_tip'],
-                                   index = ['0', '1', '2', 'y3', 'y4'])
+        self.coords = pd.DataFrame(
+            [['487.5', '347.769', 'NaN', 'NaN', 'True'],
+             ['12.5', '483.28', 'NaN', 'NaN', 'True'],
+             ['324.897', '16.7199', 'NaN', 'NaN', 'True'],
+             ['338.261', '271.728', '0', '2', 'False'],
+             ['193.169', '365.952', '1', 'y3', 'False']],
+            columns=['x', 'y', 'child0', 'child1', 'is_tip'],
+            index=['0', '1', '2', 'y3', 'y4'])
 
     def test_basic_plot(self):
         exp_edges = {'dest_node': ['0', '1', '2', 'y3'],
                      'edge_alpha': [1, 1, 1, 1],
-                     'edge_color': ['#00FF00', '#00FF00', '#00FF00', '#FF0000'],
+                     'edge_color': ['#00FF00', '#00FF00',
+                                    '#00FF00', '#FF0000'],
                      'edge_width': [2, 2, 2, 2],
                      'index': [0, 1, 2, 3],
                      'src_node': ['y3', 'y4', 'y3', 'y4'],
@@ -60,26 +62,27 @@ class TestRadial(unittest.TestCase):
                            271.72822561264161,
                            365.95231443706376]}
         np.random.seed(0)
-        num_otus = 3  #otus
+        num_otus = 3  # otus
         x = np.random.rand(num_otus)
         dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
         lm = ward(dm.condensed_form())
         t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
         t = UnrootedDendrogram.from_tree(t)
+        # incorporate colors in tree
         for i, n in enumerate(t.postorder(include_self=True)):
             if not n.is_tip():
                 n.name = "y%d" % i
-                n.color='#FF999F'
-                n.edge_color='#FF0000'
-                n.node_size=10
+                n.color = '#FF999F'
+                n.edge_color = '#FF0000'
+                n.node_size = 10
             else:
-                n.color='#1C9099'
-                n.edge_color='#00FF00'
-                n.node_size=10
+                n.color = '#1C9099'
+                n.edge_color = '#00FF00'
+                n.node_size = 10
             n.length = np.random.rand()*3
             n.edge_width = 2
         p = radialplot(t, node_hue='color', edge_hue='edge_color',
-               node_size='node_size', edge_width='edge_width')
+                       node_size='node_size', edge_width='edge_width')
 
         self.assertDictEqual(p.renderers[0].data_source.data, exp_edges)
         self.assertDictEqual(p.renderers[1].data_source.data, exp_nodes)
