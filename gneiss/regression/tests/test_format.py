@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 import shutil
 import unittest
-import subprocess
 import os
 from gneiss.regression._format import (RegressionFormat_g,
                                        RegressionDirectoryFormat_g)

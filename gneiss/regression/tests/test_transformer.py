@@ -7,8 +7,6 @@
 # ----------------------------------------------------------------------------
 import unittest
 
-import os
-import subprocess
 from gneiss.regression._format import RegressionFormat_g
 from qiime2.plugin.testing import TestPluginBase
 from gneiss.regression._ols import OLSModel
