@@ -8,7 +8,6 @@
 from skbio import TreeNode
 import pandas as pd
 import numpy
-from skbio import TreeNode
 import abc
 
 

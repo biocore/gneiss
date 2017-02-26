@@ -10,7 +10,7 @@ from gneiss.plot._dendrogram import UnrootedDendrogram
 
 try:
     from bokeh.models.glyphs import Circle, Segment
-    from bokeh.models import ColumnDataSource, Range1d, DataRange1d, Plot
+    from bokeh.models import ColumnDataSource, DataRange1d, Plot
     from bokeh.models import HoverTool, BoxZoomTool, ResetTool
 except ImportError:
     raise ImportWarning('Bokeh not installed. '
