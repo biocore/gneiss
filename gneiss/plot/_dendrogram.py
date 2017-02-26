@@ -70,7 +70,7 @@ class Dendrogram(TreeNode):
             for c in children:
                 c.update_geometry(use_lengths, self.depth)
             self.height = max([c.height for c in children]) + self.length
-            self.leafcount  = sum([c.leafcount for c in children])
+            self.leafcount = sum([c.leafcount for c in children])
 
         else:
             self.height = self.length
