@@ -32,13 +32,13 @@ class TestDendrogram(unittest.TestCase):
 
         t._cache_ntips()
 
-        self.assertEquals(t._n_tips, 4)
-        self.assertEquals(t.children[0]._n_tips, 2)
-        self.assertEquals(t.children[1]._n_tips, 2)
-        self.assertEquals(t.children[0].children[0]._n_tips, 1)
-        self.assertEquals(t.children[0].children[1]._n_tips, 1)
-        self.assertEquals(t.children[1].children[0]._n_tips, 1)
-        self.assertEquals(t.children[1].children[1]._n_tips, 1)
+        self.assertEquals(t.leafcount, 4)
+        self.assertEquals(t.children[0].leafcount, 2)
+        self.assertEquals(t.children[1].leafcount, 2)
+        self.assertEquals(t.children[0].children[0].leafcount, 1)
+        self.assertEquals(t.children[0].children[1].leafcount, 1)
+        self.assertEquals(t.children[1].children[0].leafcount, 1)
+        self.assertEquals(t.children[1].children[1].leafcount, 1)
 
 
 class TestUnrootedDendrogram(unittest.TestCase):
