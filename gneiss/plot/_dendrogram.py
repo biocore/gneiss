@@ -33,6 +33,17 @@ class Dendrogram(TreeNode):
     Attributes
     ----------
     length
+    leafcount
+    height
+    depth
+
+    Notes
+    -----
+    `length` refers to the branch length connect to the specified subtree.
+    `leafcount` is the number of tips within a subtree.
+    `height` refers to the longest path from root to the deepst leaf in that subtree.
+    `depth` is the number of nodes found in the longest path.
+
     """
     aspect_distorts_lengths = True
 
@@ -44,6 +55,7 @@ class Dendrogram(TreeNode):
         self.use_lengths_default = use_lengths
 
     def _cache_ntips(self):
+        """ Counts the number of leaves under each subtree."""
         for n in self.postorder():
             if n.is_tip():
                 n.leafcount = 1
@@ -52,8 +64,17 @@ class Dendrogram(TreeNode):
 
     def update_geometry(self, use_lengths, depth=None):
         """Calculate tree node attributes such as height and depth.
-        Despite the name this first pass is ignorant of issues like
-        scale and orientation"""
+
+        Parameters
+        ----------
+        use_lengths: bool
+           Specify if the branch length should be incorporated into
+           the geometry calculations for visualization.
+        depth: int
+           The number of nodes in the longest path from root to leaf.
+
+        This is agnostic to scale and orientation.
+        """
         if self.length is None or not use_lengths:
             if depth is None:
                 self.length = 0
