@@ -40,8 +40,8 @@ class Dendrogram(TreeNode):
     Notes
     -----
     `length` refers to the branch length connect to the specified subtree.
-    `leafcount` is the number of tips within a subtree.
-    `height` refers to the longest path from root to the deepst leaf in that subtree.
+    `leafcount` is the number of tips within a subtree. `height` refers
+    to the longest path from root to the deepst leaf in that subtree.
     `depth` is the number of nodes found in the longest path.
 
     """

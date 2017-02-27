@@ -81,7 +81,7 @@ class TestRadial(unittest.TestCase):
                 n.node_size = 10
             n.length = np.random.rand()*3
             n.edge_width = 2
-        p = radialplot(t, node_hue='color', edge_hue='edge_color',
+        p = radialplot(t, node_color='color', edge_color='edge_color',
                        node_size='node_size', edge_width='edge_width')
 
         self.assertDictEqual(p.renderers[0].data_source.data, exp_edges)

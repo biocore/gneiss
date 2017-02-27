@@ -17,8 +17,8 @@ except ImportError:
                         '`radialplot` will not be available')
 
 
-def radialplot(tree, node_hue='node_hue', node_size='node_size',
-               node_alpha='node_alpha', edge_hue='edge_hue',
+def radialplot(tree, node_color='node_color', node_size='node_size',
+               node_alpha='node_alpha', edge_color='edge_color',
                edge_alpha='edge_alpha', edge_width='edge_width',
                figsize=(500, 500), **kwargs):
     """ Plots unrooted radial tree.
