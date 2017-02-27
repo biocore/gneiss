@@ -27,13 +27,13 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     ----------
     tree : instance of skbio.TreeNode
        Input tree for plotting.
-    node_hue : str
+    node_color : str
        Name of variable in `tree` to color nodes.
     node_size : str
-       Name of variable in `tree` that species the radius of nodes.
+       Name of variable in `tree` that specifies the radius of nodes.
     node_alpha : str
        Name of variable in `tree` to specify node transparency.
-    edge_hue : str
+    edge_color : str
        Name of variable in `tree` to color edges.
     edge_alpha : str
        Name of variable in `tree` to specify edge transparency.
@@ -64,20 +64,14 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     nodes = t.coords(figsize[0], figsize[1])
 
     # fill in all of the node attributes
-    default_node_hue = '#D3D3D3'
-    nodes[node_hue] = pd.Series({n.name: getattr(n, node_hue,
-                                                 default_node_hue)
-                                 for n in t.levelorder(include_self=True)})
+    def _retreive(tree, x, default):
+        return pd.Series({n.name: getattr(n, x, default)
+                          for n in tree.levelorder()})
 
-    default_node_size = 1
-    nodes[node_size] = pd.Series({n.name: getattr(n, node_size,
-                                                  default_node_size)
-                                  for n in t.levelorder(include_self=True)})
-
-    default_node_alpha = 1
-    nodes[node_alpha] = pd.Series({n.name: getattr(n, node_alpha,
-                                                   default_node_alpha)
-                                   for n in t.levelorder(include_self=True)})
+    # default node color to light grey
+    nodes[node_color] = _retreive(t, node_color, default='#D3D3D3')
+    nodes[node_size] = _retreive(t, node_size, default=1)
+    nodes[node_alpha] = _retreive(t, node_alpha, default=1)
 
     edges = nodes[['child0', 'child1']]
     edges = edges.dropna(subset=['child0', 'child1'])
@@ -91,20 +85,10 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
     ns = [n.name for n in t.levelorder(include_self=True)]
     attrs = pd.DataFrame(index=ns)
 
-    default_edge_hue = '#000000'
-    attrs[edge_hue] = pd.Series({n.name: getattr(n, edge_hue,
-                                                 default_edge_hue)
-                                 for n in t.levelorder(include_self=True)})
-
-    default_edge_width = 1
-    attrs[edge_width] = pd.Series({n.name: getattr(n, edge_width,
-                                                   default_edge_width)
-                                   for n in t.levelorder(include_self=True)})
-
-    default_edge_alpha = 1
-    attrs[edge_alpha] = pd.Series({n.name: getattr(n, edge_alpha,
-                                                   default_edge_alpha)
-                                   for n in t.levelorder(include_self=True)})
+    # default edge color to black
+    nodes[edge_color] = _retreive(t, node_color, default='#000000')
+    nodes[edge_size] = _retreive(t, node_size, default=1)
+    nodes[edge_alpha] = _retreive(t, node_alpha, default=1)
 
     edges = pd.merge(edges, attrs, left_on='dest_node',
                      right_index=True, how='outer')
@@ -112,12 +96,12 @@ def radialplot(tree, node_hue='node_hue', node_size='node_size',
 
     node_glyph = Circle(x="x", y="y",
                         radius=node_size,
-                        fill_color=node_hue,
+                        fill_color=node_color,
                         fill_alpha=node_alpha)
 
     edge_glyph = Segment(x0="x0", y0="y0",
                          x1="x1", y1="y1",
-                         line_color=edge_hue,
+                         line_color=edge_color,
                          line_alpha=edge_alpha,
                          line_width=edge_width)
 
