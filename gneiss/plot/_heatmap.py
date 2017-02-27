@@ -5,7 +5,6 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import io
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches

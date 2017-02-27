@@ -1,4 +1,3 @@
-import os
 from gneiss.plot import heatmap
 import pandas as pd
 from skbio import TreeNode, DistanceMatrix
@@ -136,6 +135,7 @@ class HeatmapTest(unittest.TestCase):
 
         self.assertEqual(fig.get_axes()[1].get_ylim(),
                          (-0.5, 4.5))
+
 
 if __name__ == "__main__":
     unittest.main()
