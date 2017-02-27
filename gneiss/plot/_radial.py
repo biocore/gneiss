@@ -86,9 +86,9 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
     attrs = pd.DataFrame(index=ns)
 
     # default edge color to black
-    nodes[edge_color] = _retreive(t, node_color, default='#000000')
-    nodes[edge_size] = _retreive(t, node_size, default=1)
-    nodes[edge_alpha] = _retreive(t, node_alpha, default=1)
+    attrs[edge_color] = _retreive(t, edge_color, default='#000000')
+    attrs[edge_width] = _retreive(t, edge_width, default=1)
+    attrs[edge_alpha] = _retreive(t, edge_alpha, default=1)
 
     edges = pd.merge(edges, attrs, left_on='dest_node',
                      right_index=True, how='outer')
