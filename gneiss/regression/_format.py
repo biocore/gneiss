@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 import qiime2.plugin.model as model
 from gneiss.plugin_setup import plugin
-import pickle
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
 
