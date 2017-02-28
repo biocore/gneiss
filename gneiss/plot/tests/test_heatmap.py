@@ -61,7 +61,6 @@ class HeatmapTest(unittest.TestCase):
         res = str(fig.get_axes()[0].get_xticklabels(minor=True)[1])
         self.assertEqual(res, "Text(0,0,'b')")
 
-
     def test_basic_highlights(self):
         fig = heatmap(self.table, self.t, self.md, self.highlights)
 
