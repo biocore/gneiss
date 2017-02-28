@@ -33,6 +33,19 @@ plugin.methods.register_function(
     parameters={'formula': Str, 'metadata': Metadata},
     outputs=[('linear_model', Regression_g[Linear_g])],
     name='Simplicial Ordinary Least Squares Regression',
+    input_descriptions={
+        'table': ('The feature table containing the samples in which '
+                  'simplicial regression will be performed.'),
+        'tree': ('A hierachy of feature identifiers.'
+                 'This tree can contain tip ids that are not present in '
+                 'the table, but all feature ids in the table must be '
+                 'present in this tree.')
+    },
+    parameter_descriptions={
+        'formula': 'Statistical formula specifying the statistical model.'
+    },
+    output_descriptions={'linear_model': ('The resulting '
+                                          'fit.')},
     description="Perform linear regression on balances."
 )
 
@@ -54,5 +67,20 @@ plugin.methods.register_function(
     outputs=[('linear_mixed_effects_model',
               Regression_g[LinearMixedEffects_g])],
     name='Simplicial Linear mixed effects regression',
+    input_descriptions={
+        'table': ('The feature table containing the samples in which '
+                  'simplicial regression with mixed effects will be performed'
+                  'will be performed.'),
+        'tree': ('A hierachy of feature identifiers.'
+                 'correspond to the feature identifiers in the table. '
+                 'This tree can contain tip ids that are not present in '
+                 'the table, but all feature ids in the table must be '
+                 'present in this tree.')
+    },
+    parameter_descriptions={
+        'formula': 'Statistical formula specifying the statistical model.'
+    },
+    output_descriptions={'linear_mixed_effects_model': ('The resulting '
+                                                        'fit.')},
     description="Build and run linear mixed effects model on balances."
 )

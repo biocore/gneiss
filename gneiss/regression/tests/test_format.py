@@ -20,7 +20,6 @@ class TestFormats(TestPluginBase):
         filepath = self.get_data_path('ols.pickle')
         format = RegressionFormat_g(filepath, mode='r')
 
-        print(filepath, str(format), format.sniff())
         format.validate()
 
     def test_regression_format_validate_negative(self):

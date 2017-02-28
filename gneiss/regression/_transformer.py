@@ -15,7 +15,6 @@ def _1(data: OLSModel) -> RegressionFormat_g:
 @plugin.register_transformer
 def _2(ff: RegressionFormat_g) -> OLSModel:
     with ff.open() as fh:
-        print(fh)
         return OLSModel.read_pickle(fh)
 
 
