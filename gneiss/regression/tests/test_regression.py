@@ -13,10 +13,12 @@ import subprocess
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
-from gneiss.regression._regression import lme_regression, ols_regression
+from gneiss.regression._regression import (lme_regression, ols_regression,
+                                           OLSModel, LMEModel)
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
 from qiime2.metadata import Metadata
+import qiime2
 
 
 class TestOLSPlugin(TestOLS):
@@ -47,11 +49,13 @@ class TestOLSPlugin(TestOLS):
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
     def test_ols_cli(self):
-        # TODO: Is there a better way to test this?
+        # Just tests to make sure that the cli doesn't fail.
+        # There is a better test in `test_ols_artifact`
         in_table = get_data_path("test_ols_composition.qza")
         in_tree = get_data_path("test_tree.qza")
         in_metadata = get_data_path("test_ols_metadata.txt")
 
+        # todo
         cmd = ("qiime gneiss ols-regression "
                "--i-table %s "
                "--i-tree %s "
@@ -61,10 +65,23 @@ class TestOLSPlugin(TestOLS):
         proc = subprocess.Popen(cmd % (in_table, in_tree, in_metadata),
                                 shell=True)
         proc.wait()
-
         self.assertTrue(os.path.exists("test_ols.qza"))
-
         os.remove("test_ols.qza")
+
+    def test_ols_artifact(self):
+        from qiime2.plugins.gneiss.methods import ols_regression
+        table_f = get_data_path("test_ols_composition.qza")
+        tree_f = get_data_path("test_tree.qza")
+        metadata_f = get_data_path("test_ols_metadata.txt")
+
+        in_table = qiime2.Artifact.load(table_f)
+        in_tree = qiime2.Artifact.load(tree_f)
+        in_metadata = qiime2.Metadata(
+            pd.read_table(metadata_f, index_col=0))
+
+        result, = ols_regression(in_table, in_tree, in_metadata, 'ph')
+        res = result.view(OLSModel)
+        self.assertAlmostEqual(res.coefficients().ph, 0.356690)
 
 
 class TestMixedLMPlugin(TestMixedLM):
@@ -112,6 +129,24 @@ class TestMixedLMPlugin(TestMixedLM):
 
         self.assertTrue(os.path.exists("test_lme.qza"))
         os.remove("test_lme.qza")
+
+    def test_lme_artifact(self):
+        from qiime2.plugins.gneiss.methods import lme_regression
+        table_f = get_data_path("test_lme_composition.qza")
+        tree_f = get_data_path("test_tree.qza")
+        metadata_f = get_data_path("test_lme_metadata.txt")
+
+        in_table = qiime2.Artifact.load(table_f)
+        in_tree = qiime2.Artifact.load(tree_f)
+        in_metadata = qiime2.Metadata(
+            pd.read_table(metadata_f, index_col=0))
+
+        result, = lme_regression(in_table, in_tree, in_metadata,
+                                 'ph', 'host_subject_id')
+        res = result.view(LMEModel)
+
+        self.assertAlmostEqual(res.coefficients().host_subject_id,
+                               1.105630e+00)
 
 
 if __name__ == '__main__':
