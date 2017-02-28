@@ -206,7 +206,7 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
         correspond to columns.
     tree : skbio.TreeNode
         Tree object where the leaves correspond to the columns contained in
-        the table.
+        the sample table.
 
     Returns
     -------
@@ -223,7 +223,7 @@ def _intersect_of_table_metadata_tree(table, metadata, tree):
                          'Use pseudocounts or ``multiplicative_replacement``.'
                          )
     # check to see if there are overlapping nodes in tree and table
-    overlap = {n.name for n in tree.traverse()} & set(table.columns)
+    overlap = {n.name for n in tree.tips()} & set(table.columns)
     if len(overlap) == 0:
         raise ValueError('There are no internal nodes in `tree` after'
                          'intersection with `table`.')
