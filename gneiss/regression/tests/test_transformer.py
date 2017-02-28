@@ -42,7 +42,8 @@ class TestLinearMixedEffectsTransformers(TestPluginBase):
 
     def test_lme_model_to_regression_format(self):
         filepath = self.get_data_path('lme.pickle')
-        transformer = self.get_transformer(LMEModel, LinearMixedEffectsFormat_g)
+        transformer = self.get_transformer(LMEModel,
+                                           LinearMixedEffectsFormat_g)
         input = LMEModel.read_pickle(filepath)
 
         obs = transformer(input)
@@ -51,8 +52,8 @@ class TestLinearMixedEffectsTransformers(TestPluginBase):
 
     def test_regression_format_to_lme_model(self):
         filename = 'lme.pickle'
-        input, obs = self.transform_format(LinearMixedEffectsFormat_g, LMEModel,
-                                           filename)
+        input, obs = self.transform_format(LinearMixedEffectsFormat_g,
+                                           LMEModel, filename)
 
         exp = LMEModel.read_pickle(str(input))
         pdt.assert_frame_equal(exp.pvalues, obs.pvalues)

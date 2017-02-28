@@ -23,13 +23,15 @@ class LinearRegressionFormat_g(model.BinaryFileFormat):
 
 
 LinearRegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
-    'LinearRegressionDirectoryFormat_g', 'ols_regression.pickle', LinearRegressionFormat_g)
+    'LinearRegressionDirectoryFormat_g', 'ols_regression.pickle',
+    LinearRegressionFormat_g)
 
 
 plugin.register_formats(
     LinearRegressionFormat_g,
     LinearRegressionDirectoryFormat_g
 )
+
 
 class LinearMixedEffectsFormat_g(model.BinaryFileFormat):
     def sniff(self):
@@ -42,7 +44,8 @@ class LinearMixedEffectsFormat_g(model.BinaryFileFormat):
 
 
 LinearMixedEffectsDirectoryFormat_g = model.SingleFileDirectoryFormat(
-    'LinearMixedEffectsDirectoryFormat_g', 'lme_regression.pickle', LinearMixedEffectsFormat_g)
+    'LinearMixedEffectsDirectoryFormat_g', 'lme_regression.pickle',
+    LinearMixedEffectsFormat_g)
 
 
 plugin.register_formats(

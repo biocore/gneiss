@@ -7,7 +7,8 @@
 # ----------------------------------------------------------------------------
 from qiime2.plugin import SemanticType
 from gneiss.plugin_setup import plugin
-from ._format import LinearRegressionDirectoryFormat_g, LinearMixedEffectsDirectoryFormat_g
+from ._format import (LinearRegressionDirectoryFormat_g,
+                      LinearMixedEffectsDirectoryFormat_g)
 
 
 LinearRegression_g = SemanticType('Linear_g')

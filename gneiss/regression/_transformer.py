@@ -33,4 +33,3 @@ def _3(data: LMEModel) -> LinearMixedEffectsFormat_g:
 def _4(ff: LinearMixedEffectsFormat_g) -> LMEModel:
     with ff.open() as fh:
         return LMEModel.read_pickle(fh)
-
