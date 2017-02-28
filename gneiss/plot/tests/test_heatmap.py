@@ -61,19 +61,6 @@ class HeatmapTest(unittest.TestCase):
         res = str(fig.get_axes()[0].get_xticklabels(minor=True)[1])
         self.assertEqual(res, "Text(0,0,'b')")
 
-        # make sure that xlims are set properly
-        self.assertEqual(fig.get_axes()[0].get_xlim(),
-                         (-0.5, 4.5))
-
-        self.assertEqual(fig.get_axes()[1].get_xlim(),
-                         (-1.0, 21.0))
-
-        # make sure that ylims are set properly
-        self.assertEqual(fig.get_axes()[0].get_ylim(),
-                         (-0.5, 4.5))
-
-        self.assertEqual(fig.get_axes()[1].get_ylim(),
-                         (-0.5, 4.5))
 
     def test_basic_highlights(self):
         fig = heatmap(self.table, self.t, self.md, self.highlights)
@@ -115,26 +102,6 @@ class HeatmapTest(unittest.TestCase):
 
         res = str(fig.get_axes()[2].get_xticklabels()[0])
         self.assertEqual(res, "Text(0,0,'0')")
-
-        # make sure that xlims are set properly
-        self.assertEqual(fig.get_axes()[0].get_xlim(),
-                         (-0.5, 4.5))
-
-        self.assertEqual(fig.get_axes()[1].get_xlim(),
-                         (-1.0, 21.0))
-
-        self.assertEqual(fig.get_axes()[2].get_xlim(),
-                         (0.0, 1.0))
-
-        # make sure that ylims are set properly
-        self.assertEqual(fig.get_axes()[0].get_ylim(),
-                         (-0.5, 4.5))
-
-        self.assertEqual(fig.get_axes()[1].get_ylim(),
-                         (-0.5, 4.5))
-
-        self.assertEqual(fig.get_axes()[1].get_ylim(),
-                         (-0.5, 4.5))
 
 
 if __name__ == "__main__":
