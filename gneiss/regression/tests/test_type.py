@@ -8,28 +8,36 @@
 import unittest
 
 from gneiss.regression._type import (LinearMixedEffects_g,
-                                     Linear_g, Regression_g)
-from gneiss.regression._format import RegressionDirectoryFormat_g
+                                     LinearRegression_g)
+from gneiss.regression._format import (LinearRegressionDirectoryFormat_g,
+                                       LinearMixedEffectsDirectoryFormat_g)
 from qiime2.plugin.testing import TestPluginBase
 
 
-class TestTypes(TestPluginBase):
+class TestLinearType(TestPluginBase):
 
     package = "gneiss.regression.tests"
 
-    def test_regression_type_registration(self):
-        self.assertRegisteredSemanticType(Regression_g)
-
     def test_linear_type_registration(self):
-        self.assertRegisteredSemanticType(Linear_g)
+        self.assertRegisteredSemanticType(LinearRegression_g)
+
+    def test_regression_linear_lme_to_regression_fmt_registration(self):
+        self.assertSemanticTypeRegisteredToFormat(
+            LinearRegression_g,
+            LinearRegressionDirectoryFormat_g)
+
+
+class TestLinearMixedEffectsType(TestPluginBase):
+
+    package = "gneiss.regression.tests"
 
     def test_linear_mixed_effects_type_registration(self):
         self.assertRegisteredSemanticType(LinearMixedEffects_g)
 
     def test_regression_linear_lme_to_regression_fmt_registration(self):
         self.assertSemanticTypeRegisteredToFormat(
-            Regression_g[Linear_g | LinearMixedEffects_g],
-            RegressionDirectoryFormat_g)
+            LinearMixedEffects_g,
+            LinearMixedEffectsDirectoryFormat_g)
 
 
 if __name__ == '__main__':

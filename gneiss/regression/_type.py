@@ -7,20 +7,22 @@
 # ----------------------------------------------------------------------------
 from qiime2.plugin import SemanticType
 from gneiss.plugin_setup import plugin
-from ._format import RegressionDirectoryFormat_g
+from ._format import LinearRegressionDirectoryFormat_g, LinearMixedEffectsDirectoryFormat_g
 
-Regression_g = SemanticType('Regression_g', field_names=['type'])
 
-Linear_g = SemanticType('Linear_g',
-                        variant_of=Regression_g.field['type'])
+LinearRegression_g = SemanticType('Linear_g')
+LinearMixedEffects_g = SemanticType('LinearMixedEffects_g')
 
-LinearMixedEffects_g = SemanticType('LinearMixedEffects_g',
-                                    variant_of=Regression_g.field['type'])
 
-plugin.register_semantic_types(Regression_g, Linear_g,
+plugin.register_semantic_types(LinearRegression_g,
                                LinearMixedEffects_g)
 
 plugin.register_semantic_type_to_format(
-    Regression_g[Linear_g | LinearMixedEffects_g],
-    artifact_format=RegressionDirectoryFormat_g
+    LinearRegression_g,
+    artifact_format=LinearRegressionDirectoryFormat_g
+)
+
+plugin.register_semantic_type_to_format(
+    LinearMixedEffects_g,
+    artifact_format=LinearMixedEffectsDirectoryFormat_g
 )

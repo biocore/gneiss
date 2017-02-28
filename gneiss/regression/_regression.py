@@ -15,7 +15,7 @@ from q2_types.feature_table import FeatureTable
 from q2_types.tree import Phylogeny, Rooted, Unrooted
 from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
-from ._type import Regression_g, Linear_g, LinearMixedEffects_g
+from ._type import LinearRegression_g, LinearMixedEffects_g
 
 
 def ols_regression(table: pd.DataFrame, tree: skbio.TreeNode,
@@ -31,7 +31,7 @@ plugin.methods.register_function(
     inputs={'table': FeatureTable[Composition],
             'tree': Phylogeny[Rooted | Unrooted]},
     parameters={'formula': Str, 'metadata': Metadata},
-    outputs=[('linear_model', Regression_g[Linear_g])],
+    outputs=[('linear_model', LinearRegression_g)],
     name='Simplicial Ordinary Least Squares Regression',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -65,7 +65,7 @@ plugin.methods.register_function(
             'tree': Phylogeny[Rooted | Unrooted]},
     parameters={'metadata': Metadata, 'formula': Str, 'groups': Str},
     outputs=[('linear_mixed_effects_model',
-              Regression_g[LinearMixedEffects_g])],
+              LinearMixedEffects_g)],
     name='Simplicial Linear mixed effects regression',
     input_descriptions={
         'table': ('The feature table containing the samples in which '

@@ -8,24 +8,44 @@
 import qiime2.plugin.model as model
 from gneiss.plugin_setup import plugin
 import pickle
+from gneiss.regression._ols import OLSModel
+from gneiss.regression._mixedlm import LMEModel
 
 
-class RegressionFormat_g(model.BinaryFileFormat):
+class LinearRegressionFormat_g(model.BinaryFileFormat):
     def sniff(self):
         try:
             # just check if the file is pickleable.
-            with open(str(self), 'rb') as fh:
-                pickle.load(fh)
+            OLSModel.read_pickle(str(self))
             return True
         except:
             return None
 
 
-RegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
-    'RegressionDirectoryFormat_g', 'regression.pickle', RegressionFormat_g)
+LinearRegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
+    'LinearRegressionDirectoryFormat_g', 'ols_regression.pickle', LinearRegressionFormat_g)
 
 
 plugin.register_formats(
-    RegressionFormat_g,
-    RegressionDirectoryFormat_g
+    LinearRegressionFormat_g,
+    LinearRegressionDirectoryFormat_g
+)
+
+class LinearMixedEffectsFormat_g(model.BinaryFileFormat):
+    def sniff(self):
+        try:
+            # just check if the file is pickleable.
+            LMEModel.read_pickle(str(self))
+            return True
+        except:
+            return None
+
+
+LinearMixedEffectsDirectoryFormat_g = model.SingleFileDirectoryFormat(
+    'LinearMixedEffectsDirectoryFormat_g', 'lme_regression.pickle', LinearMixedEffectsFormat_g)
+
+
+plugin.register_formats(
+    LinearMixedEffectsFormat_g,
+    LinearMixedEffectsDirectoryFormat_g
 )

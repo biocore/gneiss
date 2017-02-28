@@ -81,7 +81,8 @@ class TestOLSPlugin(TestOLS):
 
         result, = ols_regression(in_table, in_tree, in_metadata, 'ph')
         res = result.view(OLSModel)
-        self.assertAlmostEqual(res.coefficients().ph, 0.356690)
+        self.assertAlmostEqual(res.coefficients().loc['y0', 'ph'],
+                               0.356690, places=5)
 
 
 class TestMixedLMPlugin(TestMixedLM):
@@ -145,8 +146,8 @@ class TestMixedLMPlugin(TestMixedLM):
                                  'ph', 'host_subject_id')
         res = result.view(LMEModel)
 
-        self.assertAlmostEqual(res.coefficients().host_subject_id,
-                               1.105630e+00)
+        self.assertAlmostEqual(res.coefficients().loc['y0', 'groups RE'],
+                               1.105630e+00, places=5)
 
 
 if __name__ == '__main__':
