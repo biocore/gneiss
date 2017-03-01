@@ -150,6 +150,11 @@ class TestSquareDendrogram(unittest.TestCase):
         res = t.coords(width=20, height=self.table.shape[0])
         pdt.assert_frame_equal(exp, res)
 
+    def test_rescale(self):
+        t = SquareDendrogram.from_tree(self.tree)
+        res = t.rescale(10, 10)
+        self.assertEqual(res, 2.5)
+
 
 if __name__ == "__main__":
     unittest.main()

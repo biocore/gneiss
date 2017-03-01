@@ -312,10 +312,6 @@ class RootedDendrogram(Dendrogram):
     depth
     """
 
-    """RootedDendrogram subclasses provide ycoords and xcoords, which examine
-    attributes of a node (its length, coodinates of its children) and return
-    a tuple for start/end of the line representing the edge."""
-
     def width_required(self):
         return self.leafcount
 
