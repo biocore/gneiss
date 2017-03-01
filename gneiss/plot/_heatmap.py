@@ -14,7 +14,7 @@ from gneiss.plot._dendrogram import SquareDendrogram
 
 def heatmap(table, tree, mdvar, highlights=None,
             grid_col='w', grid_width=2, dendrogram_width=20,
-            figsize=(5, 5)):
+            highlight_width=0.02, figsize=(5, 5)):
     """ Creates heatmap plotting object
 
     Parameters
@@ -33,14 +33,19 @@ def heatmap(table, tree, mdvar, highlights=None,
     mdvar: pd.Series
         Metadata values for samples.  The index must correspond to the
         index of `table`.
+    highlight_width : int
+        Width of highlights. (default=0.02)
     dendrogram_width : int
-        Width of axes for dendrogram plot.
+        Width of axes for dendrogram plot. (default=20)
     grid_col: str
         Color of vertical lines for highlighting sample metadata.
+        (default='w')
     grid_width: int
         Width of vertical lines for highlighting sample metadata.
+        (default=2)
     figsize: tuple of int
-        Species (width, height) for figure.
+        Species (width, height) for figure. (default=(5, 5))
+
 
     Returns
     -------
@@ -81,7 +86,7 @@ def heatmap(table, tree, mdvar, highlights=None,
         h = len(highlights)
     else:
         h = 0
-    hwidth = 0.02
+    hwidth = highlight_width
     [axs_x, axs_y, axs_w, axs_h] = [xwidth, top_buffer, hwidth * h, height]
 
     # dendrogram axes on the right side

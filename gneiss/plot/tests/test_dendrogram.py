@@ -91,8 +91,8 @@ class TestUnrootedDendrogram(unittest.TestCase):
 
     def test_rescale(self):
         t = UnrootedDendrogram.from_tree(self.tree)
-        self.assertAlmostEquals(t.rescale(500, 500), 91.608680314971238,
-                                places=5)
+        self.assertAlmostEqual(t.rescale(500, 500), 91.608680314971238,
+                               places=5)
 
     def test_update_coordinates(self):
         t = UnrootedDendrogram.from_tree(self.tree)
