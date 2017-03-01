@@ -36,7 +36,8 @@ plugin.methods.register_function(
     input_descriptions={
         'table': ('The feature table containing the samples in which '
                   'simplicial regression will be performed.'),
-        'tree': ('A hierachy of feature identifiers.'
+        'tree': ('A hierarchy of feature identifiers where each tip'
+                 'corresponds to the feature identifiers in the table. '
                  'This tree can contain tip ids that are not present in '
                  'the table, but all feature ids in the table must be '
                  'present in this tree.')
@@ -71,8 +72,8 @@ plugin.methods.register_function(
         'table': ('The feature table containing the samples in which '
                   'simplicial regression with mixed effects will be performed'
                   'will be performed.'),
-        'tree': ('A hierachy of feature identifiers.'
-                 'correspond to the feature identifiers in the table. '
+        'tree': ('A hierarchy of feature identifiers where each tip'
+                 'corresponds to the feature identifiers in the table. '
                  'This tree can contain tip ids that are not present in '
                  'the table, but all feature ids in the table must be '
                  'present in this tree.')

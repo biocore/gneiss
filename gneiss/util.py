@@ -191,9 +191,13 @@ def rename_internal_nodes(tree, names=None, inplace=False):
 
 
 def _intersect_of_table_metadata_tree(table, metadata, tree):
-    """ Matches tips, features and samples between the table, metadata
-    and tree.  This module returns the features and samples that are
-    contained in all 3 objects.
+    """ The intersection of tips, samples and features.
+
+    This calculates the common features between the table and the tree,
+    in addition to the common samples between the table and the metadata
+    table.  The common subset of features and samples between these
+    three objects will be returned.
+
 
     Parameters
     ----------

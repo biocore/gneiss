@@ -18,7 +18,7 @@ class LinearRegressionFormat_g(model.BinaryFileFormat):
             OLSModel.read_pickle(str(self))
             return True
         except:
-            return None
+            return False
 
 
 LinearRegressionDirectoryFormat_g = model.SingleFileDirectoryFormat(
