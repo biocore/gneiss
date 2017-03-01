@@ -17,6 +17,11 @@ def _sign(x):
     return x and x/abs(x)
 
 
+def _sign(x):
+    """Returns True if x is positive, False otherwise."""
+    return x and x/abs(x)
+
+
 class Dendrogram(TreeNode):
     """ Stores data to be plotted as a dendrogram.
     A `Dendrogram` object is represents a tree in addition to the
@@ -31,6 +36,17 @@ class Dendrogram(TreeNode):
     Attributes
     ----------
     length
+    leafcount
+    height
+    depth
+
+    Notes
+    -----
+    `length` refers to the branch length connect to the specified subtree.
+    `leafcount` is the number of tips within a subtree. `height` refers
+    to the longest path from root to the deepst leaf in that subtree.
+    `depth` is the number of nodes found in the longest path.
+
     """
     aspect_distorts_lengths = True
 
@@ -41,9 +57,11 @@ class Dendrogram(TreeNode):
         self.use_lengths_default = use_lengths
 
     def _cache_ntips(self):
+        """ Counts the number of leaves under each subtree."""
         for n in self.postorder():
             if n.is_tip():
                 n.leafcount = 1
+<<<<<<< HEAD
             else:
                 n.leafcount = sum(c.leafcount for c in n.children)
 
@@ -55,6 +73,28 @@ class Dendrogram(TreeNode):
             if depth is None:
                 self.length = 0
             else:
+=======
+            else:
+                n.leafcount = sum(c.leafcount for c in n.children)
+
+    def update_geometry(self, use_lengths, depth=None):
+        """Calculate tree node attributes such as height and depth.
+
+        Parameters
+        ----------
+        use_lengths: bool
+           Specify if the branch length should be incorporated into
+           the geometry calculations for visualization.
+        depth: int
+           The number of nodes in the longest path from root to leaf.
+
+        This is agnostic to scale and orientation.
+        """
+        if self.length is None or not use_lengths:
+            if depth is None:
+                self.length = 0
+            else:
+>>>>>>> 92b37faf8dbb7f05088e9e5edd2739d47dea8743
                 self.length = 1
         else:
             self.length = self.length

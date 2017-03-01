@@ -25,6 +25,7 @@ Functions
 
 from ._heatmap import heatmap
 from ._blobtree import diamondtree
+from ._radial import radialplot
 
 
-__all__ = ["heatmap", "diamondtree"]
+__all__ = ["heatmap", "diamondtree", "radialplot"]
