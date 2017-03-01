@@ -11,6 +11,11 @@ import numpy
 import abc
 
 
+def _sign(x):
+    """Returns True if x is positive, False otherwise."""
+    return x and x/abs(x)
+
+
 class Dendrogram(TreeNode):
     """ Stores data to be plotted as a dendrogram.
 
@@ -28,6 +33,17 @@ class Dendrogram(TreeNode):
     Attributes
     ----------
     length
+    leafcount
+    height
+    depth
+
+    Notes
+    -----
+    `length` refers to the branch length connect to the specified subtree.
+    `leafcount` is the number of tips within a subtree. `height` refers
+    to the longest path from root to the deepst leaf in that subtree.
+    `depth` is the number of nodes found in the longest path.
+
     """
     aspect_distorts_lengths = True
 
@@ -39,11 +55,46 @@ class Dendrogram(TreeNode):
         self.use_lengths_default = use_lengths
 
     def _cache_ntips(self):
+        """ Counts the number of leaves under each subtree."""
         for n in self.postorder():
             if n.is_tip():
-                n._n_tips = 1
+                n.leafcount = 1
             else:
-                n._n_tips = sum(c._n_tips for c in n.children)
+                n.leafcount = sum(c.leafcount for c in n.children)
+
+    def update_geometry(self, use_lengths, depth=None):
+        """Calculate tree node attributes such as height and depth.
+
+        Parameters
+        ----------
+        use_lengths: bool
+           Specify if the branch length should be incorporated into
+           the geometry calculations for visualization.
+        depth: int
+           The number of nodes in the longest path from root to leaf.
+
+        This is agnostic to scale and orientation.
+        """
+        if self.length is None or not use_lengths:
+            if depth is None:
+                self.length = 0
+            else:
+                self.length = 1
+        else:
+            self.length = self.length
+
+        self.depth = (depth or 0) + self.length
+
+        children = self.children
+        if children:
+            for c in children:
+                c.update_geometry(use_lengths, self.depth)
+            self.height = max([c.height for c in children]) + self.length
+            self.leafcount = sum([c.leafcount for c in children])
+
+        else:
+            self.height = self.length
+            self.leafcount = self.edgecount = 1
 
     def coords(self, height, width):
         """ Returns coordinates of nodes to be rendered in plot.
@@ -120,7 +171,7 @@ class UnrootedDendrogram(Dendrogram):
         super().__init__(**kwargs)
 
     @classmethod
-    def from_tree(cls, tree):
+    def from_tree(cls, tree, use_lengths=True):
         """ Creates an UnrootedDendrogram object from a skbio tree.
 
         Parameters
@@ -134,7 +185,8 @@ class UnrootedDendrogram(Dendrogram):
         """
         for n in tree.postorder():
             n.__class__ = UnrootedDendrogram
-        tree._cache_ntips()
+
+        tree.update_geometry(use_lengths)
         return tree
 
     def rescale(self, width, height):
@@ -159,7 +211,7 @@ class UnrootedDendrogram(Dendrogram):
         Notes
         -----
         """
-        angle = (2 * numpy.pi) / self._n_tips
+        angle = (2 * numpy.pi) / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
         # the best rotation of the tree to fit the display.
@@ -224,7 +276,7 @@ class UnrootedDendrogram(Dendrogram):
         y2 = y1 + self.length * s * numpy.cos(a)
         (self.x1, self.y1, self.x2, self.y2, self.angle) = (x1, y1, x2, y2, a)
         # TODO: Add functionality that allows for collapsing of nodes
-        a = a - self._n_tips * da / 2
+        a = a - self.leafcount * da / 2
         if self.is_tip():
             points = [(x2, y2)]
         else:
@@ -234,7 +286,7 @@ class UnrootedDendrogram(Dendrogram):
             # need to be refactored to remove the recursion.
             for child in self.children:
                 # calculate the arc that covers the subtree.
-                ca = child._n_tips * da
+                ca = child.leafcount * da
                 points += child.update_coordinates(s, x2, y2, a+ca/2, da)
                 a += ca
         return points
