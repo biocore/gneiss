@@ -9,7 +9,8 @@ import unittest
 import numpy as np
 import pandas as pd
 from skbio import DistanceMatrix, TreeNode
-from gneiss.plot._dendrogram import Dendrogram, UnrootedDendrogram
+from gneiss.plot._dendrogram import (Dendrogram, UnrootedDendrogram,
+                                     SquareDendrogram)
 from scipy.cluster.hierarchy import ward
 import pandas.util.testing as pdt
 
@@ -108,6 +109,46 @@ class TestUnrootedDendrogram(unittest.TestCase):
 
         res = pd.DataFrame(t.update_coordinates(1, 0, 0, 2, 1))
         pdt.assert_frame_equal(res, exp, check_less_precise=True)
+
+
+class TestSquareDendrogram(unittest.TestCase):
+
+    def setUp(self):
+        np.random.seed(0)
+        self.table = pd.DataFrame(np.random.random((5, 5)))
+        num_otus = 5  # otus
+        x = np.random.rand(num_otus)
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        lm = ward(dm.condensed_form())
+        t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
+        self.tree = SquareDendrogram.from_tree(t)
+
+        for i, n in enumerate(t.postorder()):
+            if not n.is_tip():
+                n.name = "y%d" % i
+            n.length = np.random.rand()*3
+
+    def test_from_tree(self):
+        t = SquareDendrogram.from_tree(self.tree)
+        self.assertEqual(t.__class__, SquareDendrogram)
+
+    def test_coords(self):
+        # just test to make sure that the coordinates are calculated properly.
+        t = SquareDendrogram.from_tree(self.tree)
+
+        exp = pd.DataFrame({'0': [20, 2.5, np.nan, np.nan, True],
+                            '1': [20, 3.5, np.nan, np.nan, True],
+                            '2': [20, 4.5, np.nan, np.nan, True],
+                            '3': [20, 1.5, np.nan, np.nan, True],
+                            '4': [20, 0.5, np.nan, np.nan, True],
+                            'y5': [14.25, 1, '3', '4', False],
+                            'y6': [9.5, 1.75, '0', 'y5', False],
+                            'y7': [4.75, 2.625, '1', 'y6', False],
+                            'y8': [0, 3.5625, '2', 'y7', False]},
+                           index=['x', 'y', 'child0', 'child1', 'is_tip']).T
+
+        res = t.coords(width=20, height=self.table.shape[0])
+        pdt.assert_frame_equal(exp, res)
 
 
 if __name__ == "__main__":
