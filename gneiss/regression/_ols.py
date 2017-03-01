@@ -10,8 +10,8 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
-from ._regression import (_intersect_of_table_metadata_tree,
-                          _to_balances)
+from gneiss.util import (_intersect_of_table_metadata_tree,
+                         _to_balances)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
@@ -25,7 +25,6 @@ def _fit_ols(y, x, **kwargs):
     return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
 
 
-# TODO: Register as qiime 2 method
 def ols(formula, table, metadata, tree, **kwargs):
     """ Ordinary Least Squares applied to balances.
 

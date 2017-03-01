@@ -9,8 +9,8 @@ from collections import OrderedDict
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
-from ._regression import (_intersect_of_table_metadata_tree,
-                          _to_balances)
+from gneiss.util import (_intersect_of_table_metadata_tree,
+                         _to_balances)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 

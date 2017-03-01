@@ -57,6 +57,9 @@ class TestMixedLM(unittest.TestCase):
         self.table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
         self.metadata = df[['x1', 'x2', 'groups']]
 
+
+class TestMixedLMFunctions(TestMixedLM):
+
     # test case borrowed from statsmodels
     def test_mixedlm_univariate(self):
 
@@ -248,6 +251,13 @@ class TestMixedLM(unittest.TestCase):
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
+
+    def test_write(self):
+        res = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                      groups="groups")
+
+        res.fit()
+        res.write_pickle('lme.pickle')
 
 
 if __name__ == '__main__':

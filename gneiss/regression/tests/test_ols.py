@@ -16,7 +16,6 @@ from gneiss.regression import ols
 
 
 class TestOLS(unittest.TestCase):
-
     def setUp(self):
         A = np.array  # aliasing for the sake of pep8
         self.table = pd.DataFrame({
@@ -46,6 +45,9 @@ class TestOLS(unittest.TestCase):
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
         self.t2 = TreeNode.read([r"((a,b)n,c);"])
+
+
+class TestOLSFunctions(TestOLS):
 
     def test_ols(self):
         res = ols('real', self.table, self.metadata, self.tree)
@@ -292,6 +294,12 @@ class TestOLS(unittest.TestCase):
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
+
+    def test_write(self):
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=self.y, metadata=self.x, tree=self.t2)
+        res.fit()
+        res.write_pickle('ols.pickle')
 
 
 if __name__ == "__main__":

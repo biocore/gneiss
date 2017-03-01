@@ -88,7 +88,13 @@ setup(name='gneiss',
           'statsmodels>=0.8.0',
           'ete3',
       ],
+      extra_require={
+          'q2': ['qiime2 >= 2017.2.0', 'biom-format', 'seaborn']
+      },
       classifiers=classifiers,
       package_data={
-          }
-      )
+          },
+      entry_points={
+          'qiime2.plugins':
+          ['gneiss=gneiss.plugin_setup:plugin']
+      })
