@@ -164,7 +164,7 @@ def _plot_highlights_dendrogram(ax_highlights, table, t, highlights):
     ax_highlights.set_ylim([-offset, table.shape[0]-offset])
     ax_highlights.set_yticks([])
     ax_highlights.set_xticks(hcoords)
-    ax_highlights.set_xticklabels(highlights, rotation=90)
+    ax_highlights.set_xticklabels(highlights.index, rotation=90)
 
 
 def _plot_dendrogram(ax_dendrogram, table, edges):
