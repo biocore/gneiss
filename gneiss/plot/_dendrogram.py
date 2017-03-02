@@ -35,19 +35,16 @@ class Dendrogram(TreeNode):
 
     Notes
     -----
-    `length` refers to the branch length connect to the specified subtree.
+    `length` refers to the branch length of a node to its parent.
     `leafcount` is the number of tips within a subtree. `height` refers
     to the longest path from root to the deepst leaf in that subtree.
     `depth` is the number of nodes found in the longest path.
 
     """
-    aspect_distorts_lengths = True
-
     def __init__(self, use_lengths=True, **kwargs):
         """ Constructs a Dendrogram object for visualization.
         """
         super().__init__(**kwargs)
-        self.use_lengths_default = use_lengths
 
     def _cache_ntips(self):
         """ Counts the number of leaves under each subtree."""
@@ -75,8 +72,6 @@ class Dendrogram(TreeNode):
                 self.length = 0
             else:
                 self.length = 1
-        else:
-            self.length = self.length
 
         self.depth = (depth or 0) + self.length
 
@@ -154,8 +149,6 @@ class UnrootedDendrogram(Dendrogram):
     height
     depth
     """
-    aspect_distorts_lengths = True
-
     def __init__(self, **kwargs):
         """ Constructs a UnrootedDendrogram object for visualization.
 
@@ -378,7 +371,6 @@ class RootedDendrogram(Dendrogram):
 
 
 class SquareDendrogram(RootedDendrogram):
-    aspect_distorts_lengths = False
 
     def ycoords(self, scale, y1):
         cys = [c.y1 for c in self.children]
