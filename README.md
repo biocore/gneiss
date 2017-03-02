@@ -17,7 +17,7 @@ gneiss is currently in alpha.  We are actively developing it, and __backward-inc
 To install this package, it is recommended to use conda.  An environment can installed as follows
 
 ```
-conda create -n gneiss_env python=3
+conda create -n gneiss_env python=3.5
 ```
 
 gneiss then can be installed as follows
