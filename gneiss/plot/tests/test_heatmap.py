@@ -97,10 +97,10 @@ class HeatmapTest(unittest.TestCase):
 
         # Make sure that the highlight labels are set properly
         res = str(fig.get_axes()[2].get_xticklabels()[0])
-        self.assertEqual(res, "Text(0,0,'0')")
+        self.assertEqual(res, "Text(0,0,'y6')")
 
-        res = str(fig.get_axes()[2].get_xticklabels()[0])
-        self.assertEqual(res, "Text(0,0,'0')")
+        res = str(fig.get_axes()[2].get_xticklabels()[1])
+        self.assertEqual(res, "Text(0,0,'y8')")
 
 
 if __name__ == "__main__":
