@@ -10,8 +10,8 @@ import skbio
 
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
-from q2_types.tree import Phylogeny, Rooted, Unrooted
-from qiime2.plugin import Str, MetadataCategory
+from q2_types.tree import Phylogeny, Rooted
+from qiime2.plugin import MetadataCategory
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import proportional_linkage, gradient_linkage
 

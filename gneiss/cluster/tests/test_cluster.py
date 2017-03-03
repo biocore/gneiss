@@ -10,8 +10,6 @@ import qiime2
 import pandas as pd
 from skbio.util import get_data_path
 from skbio import TreeNode
-from gneiss.cluster._cluster import (proportional_clustering,
-                                     gradient_clustering)
 
 
 class TestClusteringPlugin(unittest.TestCase):
