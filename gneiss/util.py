@@ -270,4 +270,3 @@ def _to_balances(table, tree):
                              columns=non_tips,
                              index=table.index)
     return ilr_table, basis
-
