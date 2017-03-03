@@ -6,28 +6,20 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import os
-import unittest
-import qiime2
 import pandas as pd
-from skbio.util import get_data_path
-from skbio import TreeNode
 
-from q2_composition.plugin_setup import Composition
-from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
-from q2_types.tree import Phylogeny, Rooted, Unrooted
-from qiime2.plugin import Str, MetadataCategory, Int
+from qiime2.plugin import Int
 from gneiss.plugin_setup import plugin
-from gneiss.plot._heatmap import heatmap
 from gneiss.plot._radial import radialplot
 
 from gneiss.regression._ols import OLSModel
-from gneiss.regression._type import LinearRegression_g, LinearMixedEffects_g
+from gneiss.regression._type import LinearRegression_g
 
 try:
     from bokeh.embed import file_html
     from bokeh.resources import CDN
     from bokeh.plotting import figure, ColumnDataSource
-    from bokeh.io import output_notebook, show, output_file, save, hplot
+    from bokeh.io import hplot
     from bokeh.models import HoverTool, BoxZoomTool, ResetTool
 
 except ImportError:
@@ -100,8 +92,6 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     cv = model.loo()
     # Relative importance of explanatory variables
     relimp = model.lovo()
-    # Percent explained
-    var_exp = model.percent_explained().iloc[:ndim]
     # Explained sum of squares
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
     # Summary object
@@ -193,7 +183,7 @@ plugin.visualizers.register_function(
     name='Simplicial Linear Regression Summary plots.',
     description=("Visualize the summary statistics of simplicial "
                  "linear regression plot. This includes the "
-                 "explained sum of squares, coefficients, coefficient pvalues, "
-                 "coefficient of determination, predicted fit, "
-                 "and residuals")
+                 "explained sum of squares, coefficients, "
+                 "coefficient pvalues, coefficient of determination, "
+                 "predicted fit, and residuals")
 )

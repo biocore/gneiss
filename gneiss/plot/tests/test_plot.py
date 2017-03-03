@@ -6,8 +6,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 
 import numpy as np
-from scipy.cluster.hierarchy import ward
-from skbio import TreeNode, DistanceMatrix
+from skbio import TreeNode
 from skbio.stats.composition import ilr_inv
 
 from gneiss.plot._plot import ols_summary
@@ -50,7 +49,7 @@ class TestOLS_Summary(unittest.TestCase):
         os.mkdir(self.results)
 
     def tearDown(self):
-         shutil.rmtree(self.results)
+        shutil.rmtree(self.results)
 
     def test_visualization(self):
         res = ols(formula="x1 + x2 + x3 + x4",
@@ -63,7 +62,7 @@ class TestOLS_Summary(unittest.TestCase):
         coefs = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
                             index_col=0)
         pred = pd.read_csv(os.path.join(self.results, 'predicted.csv'),
-                            index_col=0)
+                           index_col=0)
         resid = pd.read_csv(os.path.join(self.results, 'residuals.csv'),
                             index_col=0)
 
@@ -100,18 +99,17 @@ class TestOLS_Summary(unittest.TestCase):
                    14: -4.942667506421965}})
         pdt.assert_frame_equal(exp_pred, pred, check_less_precise=True)
 
-
-        exp_coefs = pd.DataFrame(
-            {'Intercept': {'y0': 6880999561.7020159,
-                           'y1': 68809995617.020004},
-             'x1': {'y0': 676465286.62179089,
-                    'y1': 6764652866.2178936},
-             'x2': {'y0': 610204064.32702351,
-                    'y1': 6102040643.2702208},
-             'x3': {'y0': -7497970910.8040514,
-                    'y1': -74979709108.040298},
-             'x4': {'y0': 26313750.43187603,
-                    'y1': 263137504.31875956}})
+        exp_coefs = pd.DataFrame({
+            'Intercept': {'y0': 6880999561.7020159,
+                          'y1': 68809995617.020004},
+            'x1': {'y0': 676465286.62179089,
+                   'y1': 6764652866.2178936},
+            'x2': {'y0': 610204064.32702351,
+                   'y1': 6102040643.2702208},
+            'x3': {'y0': -7497970910.8040514,
+                   'y1': -74979709108.040298},
+            'x4': {'y0': 26313750.43187603,
+                   'y1': 263137504.31875956}})
         pdt.assert_frame_equal(exp_coefs, coefs, check_less_precise=True)
 
         exp_resid = pd.DataFrame({
