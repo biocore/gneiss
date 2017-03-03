@@ -1,8 +1,8 @@
 """
-Clustering functions (:mod:`gneiss.tree`)
+Clustering functions (:mod:`gneiss.cluster`)
 ============================================
 
-.. currentmodule:: gneiss.tree
+.. currentmodule:: gneiss.cluster
 
 This module contains functions to build hierarchical clusterings.
 
