@@ -71,7 +71,7 @@ plugin.methods.register_function(
     description=('Build a bifurcating tree that represents a hierarchical '
                  'clustering of features.  The hiearchical clustering '
                  'uses Ward hierarchical clustering based on the mean '
-                 'difference of gradients for each feature.  This method is '
-                 'primarily used to sort the table to reveal the underlying '
-                 'band pattern.')
+                 'difference of gradients that each feature is observed in. '
+                 'This method is primarily used to sort the table to reveal '
+                 'the underlying block-like structures.')
 )
