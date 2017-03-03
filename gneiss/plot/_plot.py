@@ -13,7 +13,9 @@ from gneiss.plugin_setup import plugin
 from gneiss.plot._radial import radialplot
 
 from gneiss.regression._ols import OLSModel
-from gneiss.regression._type import LinearRegression_g
+from gneiss.regression._mixedlm import LMEModel
+from gneiss.regression._type import (LinearRegression_g,
+                                     LinearMixedEffects_g)
 
 try:
     from bokeh.embed import file_html
@@ -85,7 +87,47 @@ def _projected_residuals(model):
     p.yaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[1], pcvar.iloc[1])
     return p
 
+def _deposit_results(model, output_dir):
+    # Deposit all regression results
+    pred = model.predict()
+    pred.to_csv(os.path.join(output_dir, 'predicted.csv'),
+                header=True, index=True)
+    coefficients = model.coefficients()
+    coefficients.to_csv(os.path.join(output_dir, 'coefficients.csv'),
+                        header=True, index=True)
+    residuals = model.residuals()
+    residuals.to_csv(os.path.join(output_dir, 'residuals.csv'),
+                     header=True, index=True)
+    predicted = model.predict()
+    predicted.to_csv(os.path.join(output_dir, 'predicted.csv'),
+                     header=True, index=True)
+    pvalues = model.pvalues
+    pvalues.to_csv(os.path.join(output_dir, 'pvalues.csv'),
+                   header=True, index=True)
+    balances = model.balances
+    balances.to_csv(os.path.join(output_dir, 'balances.csv'),
+                    header=True, index=True)
 
+
+def _deposit_results_html(index_f):
+    index_f.write(('<th>Coefficients</th>\n'))
+    index_f.write(('<a href="coefficients.csv">'
+                   'Download as CSV</a><br>\n'))
+    index_f.write(('<th>Coefficient pvalues</th>\n'))
+    index_f.write(('<a href="pvalues.csv">'
+                   'Download as CSV</a><br>\n'))
+    index_f.write(('<th>Raw Balances</th>\n'))
+    index_f.write(('<a href="balances.csv.csv">'
+                   'Download as CSV</a><br>\n'))
+    index_f.write(('<th>Predicted Proportions</th>\n'))
+    index_f.write(('<a href="predicted.csv">'
+                   'Download as CSV</a><br>\n'))
+    index_f.write(('<th>Residuals</th>\n'))
+    index_f.write(('<a href="residuals.csv">'
+                   'Download as CSV</a><br>\n'))
+
+
+# OLS summary
 def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
 
     # Cross validation
@@ -120,25 +162,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
 
     p23 = hplot(p2, p3)
 
-    # Deposit all regression results
-    pred = model.predict()
-    pred.to_csv(os.path.join(output_dir, 'predicted.csv'),
-                header=True, index=True)
-    coefficients = model.coefficients()
-    coefficients.to_csv(os.path.join(output_dir, 'coefficients.csv'),
-                        header=True, index=True)
-    residuals = model.residuals()
-    residuals.to_csv(os.path.join(output_dir, 'residuals.csv'),
-                     header=True, index=True)
-    predicted = model.predict()
-    predicted.to_csv(os.path.join(output_dir, 'predicted.csv'),
-                     header=True, index=True)
-    pvalues = model.pvalues
-    pvalues.to_csv(os.path.join(output_dir, 'pvalues.csv'),
-                   header=True, index=True)
-    balances = model.balances
-    balances.to_csv(os.path.join(output_dir, 'balances.csv'),
-                    header=True, index=True)
+    _deposit_results(model, output_dir)
 
     index_fp = os.path.join(output_dir, 'index.html')
     with open(index_fp, 'w') as index_f:
@@ -149,21 +173,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
         index_f.write(relimp.to_html())
         index_f.write('<th>Cross Validation</th>')
         index_f.write(cv.to_html())
-        index_f.write(('<th>Coefficients</th>\n'))
-        index_f.write(('<a href="coefficients.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<th>Coefficient pvalues</th>\n'))
-        index_f.write(('<a href="pvalues.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<th>Raw Balances</th>\n'))
-        index_f.write(('<a href="balances.csv.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<th>Predicted Proportions</th>\n'))
-        index_f.write(('<a href="predicted.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<th>Residuals</th>\n'))
-        index_f.write(('<a href="residuals.csv">'
-                       'Download as CSV</a><br>\n'))
+        _deposit_results_html(index_f)
         ess_tree_html = file_html(p1, CDN, 'Explained Sum of Squares')
         index_f.write(ess_tree_html)
         reg_smry_html = file_html(p23, CDN, 'Prediction and Residual plot')
@@ -186,4 +196,73 @@ plugin.visualizers.register_function(
                  "explained sum of squares, coefficients, "
                  "coefficient pvalues, coefficient of determination, "
                  "predicted fit, and residuals")
+)
+
+
+# LME summary
+def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
+
+    # log likelihood
+    loglike = pd.Series({r.model.endog_names: r.model.loglike(r.params)
+                         for r in model.results})
+
+    # Summary object
+    smry = model.summary(ndim=10)
+
+    t = model.tree
+    for i, n in enumerate(t.postorder()):
+        n.size=10
+        if n.is_root():
+            n.size = 20
+        elif n.name == n.parent.children[0].name:
+            n.color = '#00FF00'  # left child is green
+        else:
+            n.color = '#FF0000'  # right child is red
+
+        if not n.is_tip():
+            t.length = -loglike.loc[n.name]
+
+    p1 = radialplot(t, node_color='color', figsize=(800, 800))
+    p1.title.text = 'Loglikelihood of submodels'
+    p1.title_location = 'above'
+    p1.title.align = 'center'
+    p1.title.text_font_size = '18pt'
+
+    # 2D scatter plot for prediction on PB
+    p2 = _projected_prediction(model)
+    p3 = _projected_residuals(model)
+
+    p23 = hplot(p2, p3)
+
+    # Deposit all regression results
+    _deposit_results(model, output_dir)
+
+    index_fp = os.path.join(output_dir, 'index.html')
+    with open(index_fp, 'w') as index_f:
+        index_f.write('<html><body>\n')
+        index_f.write('<h1>Simplicial Linear Mixed Effects Summary</h1>\n')
+        index_f.write(smry.as_html())
+        _deposit_results_html(index_f)
+        ess_tree_html = file_html(p1, CDN, 'Loglikelihood')
+        index_f.write(ess_tree_html)
+        reg_smry_html = file_html(p23, CDN, 'Prediction and Residual plot')
+        index_f.write(reg_smry_html)
+        index_f.write('</body></html>\n')
+
+
+plugin.visualizers.register_function(
+    function=lme_summary,
+    inputs={'model': LinearMixedEffects_g},
+    parameters={'ndim': Int},
+    input_descriptions={
+        'model': 'The fitted simplicial ordinary least squares model.'
+    },
+    parameter_descriptions={
+        'ndim': 'Number of dimensions to summarize.'},
+    name='Simplicial Linear Mixed Effects Summary plots.',
+    description=("Visualize the summary statistics of a simplicial "
+                 "linear mixed effectsmodel. This includes the "
+                 "loglikhood estimates, coefficients, "
+                 "coefficient pvalues, coefficient of determination, "
+                 "predicted fit and residuals")
 )

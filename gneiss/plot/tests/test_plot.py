@@ -9,6 +9,7 @@ import unittest
 import os
 import shutil
 
+import numpy as np
 import pandas as pd
 
 import numpy as np
@@ -16,9 +17,10 @@ import numpy.testing as npt
 
 from skbio import TreeNode
 from skbio.stats.composition import ilr_inv
+from skbio.util import get_data_path
 
-from gneiss.plot._plot import ols_summary
-from gneiss.regression import ols
+from gneiss.plot._plot import ols_summary, lme_summary
+from gneiss.regression import ols, mixedlm
 
 
 class TestOLS_Summary(unittest.TestCase):
@@ -179,6 +181,95 @@ class TestOLS_Summary(unittest.TestCase):
             self.assertIn('<th>Raw Balances</th>\n', html)
             self.assertIn('<th>Predicted Proportions</th>\n', html)
             self.assertIn('<th>Residuals</th>\n', html)
+
+
+class TestLME_Summary(unittest.TestCase):
+
+    def setUp(self):
+        np.random.seed(6241)
+        n = 1600
+        exog = np.random.normal(size=(n, 2))
+        groups = np.kron(np.arange(n // 16), np.ones(16))
+
+        # Build up the random error vector
+        errors = 0
+
+        # The random effects
+        exog_re = np.random.normal(size=(n, 2))
+        slopes = np.random.normal(size=(n // 16, 2))
+        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
+        errors += slopes.sum(1)
+
+        # First variance component
+        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
+
+        # Second variance component
+        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
+
+        # iid errors
+        errors += np.random.normal(size=n)
+
+        endog = exog.sum(1) + errors
+
+        df = pd.DataFrame(index=range(n))
+        df["y1"] = endog
+        df["y2"] = endog + 2 * 2
+        df["groups"] = groups
+        df["x1"] = exog[:, 0]
+        df["x2"] = exog[:, 1]
+
+        self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        iv = ilr_inv(df[["y1", "y2"]].values)
+        self.table = pd.DataFrame(iv, columns=['a', 'b', 'c'])
+        self.metadata = df[['x1', 'x2', 'groups']]
+
+        self.results = "results"
+        os.mkdir(self.results)
+
+    def tearDown(self):
+        shutil.rmtree(self.results)
+
+    def test_visualization(self):
+        model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                      groups="groups")
+        model.fit()
+        lme_summary(self.results, model)
+        pvals = pd.read_csv(os.path.join(self.results, 'pvalues.csv'),
+                            index_col=0)
+        coefs = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
+                            index_col=0)
+        pred = pd.read_csv(os.path.join(self.results, 'predicted.csv'),
+                           index_col=0)
+        resid = pd.read_csv(os.path.join(self.results, 'residuals.csv'),
+                            index_col=0)
+
+        exp_pvals = pd.DataFrame({
+            'Intercept': {'Y1': 4.8268860492262526e-236,
+                          'Y2': 0.099411090631406948},
+            'groups RE': {'Y1': 4.4193804668281966e-05,
+                          'Y2': 4.4193804668280984e-05},
+            'x1': {'Y1': 3.9704936434633392e-35,
+                   'Y2': 3.9704936434628853e-35},
+            'x2': {'Y1': 3.56912071867573e-30,
+                   'Y2': 3.56912071867573e-30}})
+        npt.assert_allclose(pvals, exp_pvals, rtol=1e-5)
+
+        exp_coefs = pd.DataFrame({
+            'Intercept': {'Y1': 4.2115280233151946,
+                          'Y2': 0.211528023315187},
+            'groups RE': {'Y1': 0.093578639287859755,
+                          'Y2': 0.093578639287860019},
+            'x1': {'Y1': 1.0220072967452645,
+                   'Y2': 1.0220072967452651},
+            'x2': {'Y1': 0.92487193877761575,
+                   'Y2': 0.92487193877761564}}
+        )
+
+        exp_resid = pd.read_csv(get_data_path('exp_resid.csv'), index_col=0)
+        npt.assert_allclose(resid, exp_resid, rtol=1e-5)
+
+        exp_pred = pd.read_csv(get_data_path('exp_pred.csv'), index_col=0)
+        npt.assert_allclose(pred, exp_pred, rtol=1e-5)
 
 
 if __name__ == "__main__":

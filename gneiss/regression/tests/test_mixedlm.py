@@ -259,6 +259,9 @@ class TestMixedLMFunctions(TestMixedLM):
         res.fit()
         res.write_pickle('lme.pickle')
 
+    def test_percent_explained(self):
+        self.assertTrue(False)
+
 
 if __name__ == '__main__':
     unittest.main()
