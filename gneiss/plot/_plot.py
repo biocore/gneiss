@@ -87,6 +87,7 @@ def _projected_residuals(model):
     p.yaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[1], pcvar.iloc[1])
     return p
 
+
 def _deposit_results(model, output_dir):
     # Deposit all regression results
     pred = model.predict()
@@ -211,7 +212,7 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
 
     t = model.tree
     for i, n in enumerate(t.postorder()):
-        n.size=10
+        n.size = 10
         if n.is_root():
             n.size = 20
         elif n.name == n.parent.children[0].name:

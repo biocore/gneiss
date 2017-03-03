@@ -231,7 +231,7 @@ class TestLME_Summary(unittest.TestCase):
 
     def test_visualization(self):
         model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
-                      groups="groups")
+                        groups="groups")
         model.fit()
         lme_summary(self.results, model)
         pvals = pd.read_csv(os.path.join(self.results, 'pvalues.csv'),
