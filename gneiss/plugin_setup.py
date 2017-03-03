@@ -19,3 +19,4 @@ plugin = qiime2.plugin.Plugin(
     package='gneiss')
 
 importlib.import_module('gneiss.regression')
+importlib.import_module('gneiss.plot')
