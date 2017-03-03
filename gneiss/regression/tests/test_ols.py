@@ -74,6 +74,9 @@ class TestOLSFunctions(TestOLS):
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
+        # make sure that it is a dataframe
+        self.assertEqual(pd.DataFrame, type(res.basis))
+
     def test_ols_rename(self):
         res = ols('real', self.table, self.metadata,
                   self.unannotated_tree)

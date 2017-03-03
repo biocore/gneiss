@@ -140,7 +140,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     residuals = model.residuals()
     residuals.to_csv(os.path.join(output_dir, 'residuals.csv'),
                      header=True, index=True)
-    predicted = model.predict(project=True)
+    predicted = model.predict()
     predicted.to_csv(os.path.join(output_dir, 'predicted.csv'),
                      header=True, index=True)
     pvalues = model.pvalues
@@ -150,37 +150,34 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     balances.to_csv(os.path.join(output_dir, 'balances.csv'),
                     header=True, index=True)
 
+    index_fp = os.path.join(output_dir, 'index.html')
     with open(index_fp, 'w') as index_f:
         index_f.write('<html><body>\n')
         index_f.write('<h1>Simplicial Linear Regression Summary</h1>\n')
         index_f.write(smry.as_html())
-        index_f.write(('<h1>Coefficient pvalues</h1>\n'))
-        index_f.write(('<a href="pvalues.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<h1>Raw Balances</h1>\n'))
-        index_f.write(('<a href="balances.csv.csv">'
-                       'Download as CSV</a><br>\n'))
-        index_f.write(('<h1>Coefficients</h1>\n'))
+        index_f.write('<th>Relative importance</th>\n')
+        index_f.write(relimp.to_html())
+        index_f.write('<th>Cross Validation</th>')
+        index_f.write(cv.to_html())
+        index_f.write(('<th>Coefficients</th>\n'))
         index_f.write(('<a href="coefficients.csv">'
                        'Download as CSV</a><br>\n'))
-        index_f.write(('<h1>Predicted Proportions</h1>\n'))
+        index_f.write(('<th>Coefficient pvalues</th>\n'))
+        index_f.write(('<a href="pvalues.csv">'
+                       'Download as CSV</a><br>\n'))
+        index_f.write(('<th>Raw Balances</th>\n'))
+        index_f.write(('<a href="balances.csv.csv">'
+                       'Download as CSV</a><br>\n'))
+        index_f.write(('<th>Predicted Proportions</th>\n'))
         index_f.write(('<a href="predicted.csv">'
                        'Download as CSV</a><br>\n'))
-        index_f.write(('<h1>Residuals</h1>\n'))
+        index_f.write(('<th>Residuals</th>\n'))
         index_f.write(('<a href="residuals.csv">'
                        'Download as CSV</a><br>\n'))
-
-        index_f.write('Relative importance (change in R^2)')
-        index_f.write(relimp.to_html())
-
-        ess_tree_html = file_html(p, CDN, 'Explained Sum of Squares')
+        ess_tree_html = file_html(p1, CDN, 'Explained Sum of Squares')
         index_f.write(ess_tree_html)
         reg_smry_html = file_html(p23, CDN, 'Prediction and Residual plot')
         index_f.write(reg_smry_html)
-
-        index_f.write('Cross Validation')
-        index_f.write(cv.to_html())
-
         index_f.write('</body></html>\n')
 
 
