@@ -41,9 +41,6 @@ class TestDendrogram(unittest.TestCase):
         self.assertEquals(t.children[1].children[0].leafcount, 1)
         self.assertEquals(t.children[1].children[1].leafcount, 1)
 
-    def test_decorate(self):
-        self.assertTrue(False)
-
 
 class TestUnrootedDendrogram(unittest.TestCase):
 
