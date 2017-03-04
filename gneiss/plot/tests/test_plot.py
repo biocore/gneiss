@@ -266,13 +266,13 @@ class TestLME_Summary(unittest.TestCase):
             'x2': {'Y1': 0.92487193877761575,
                    'Y2': 0.92487193877761564}}
         )
-        npt.assert_allclose(coefs, exp_coefs, rtol=1e-5)
+        npt.assert_allclose(coefs, exp_coefs, rtol=1e-2, atol=1e-2)
 
         exp_resid = pd.read_csv(get_data_path('exp_resid.csv'), index_col=0)
-        npt.assert_allclose(resid, exp_resid, rtol=1e-5)
+        npt.assert_allclose(resid, exp_resid, rtol=1e-2, atol=1e-2)
 
         exp_pred = pd.read_csv(get_data_path('exp_pred.csv'), index_col=0)
-        npt.assert_allclose(pred, exp_pred, rtol=1e-5)
+        npt.assert_allclose(pred, exp_pred, rtol=1e-2, atol=1e-2)
 
 
 if __name__ == "__main__":
