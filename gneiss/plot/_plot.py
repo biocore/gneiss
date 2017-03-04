@@ -30,8 +30,6 @@ try:
     from bokeh.plotting import figure, ColumnDataSource
     from bokeh.layouts import row
     from bokeh.models import HoverTool, BoxZoomTool, ResetTool
-    from bokeh.models import Span, Label
-
 except ImportError:
     raise ImportWarning('Bokeh not installed. '
                         'Interactive visualizations will not be available')
@@ -205,8 +203,8 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
                    plot_width=w, plot_height=h)
     mse_hist, edges = np.histogram(cv.mse, density=True, bins=20)
     mse_p.quad(top=mse_hist, bottom=0, left=edges[:-1], right=edges[1:],
-             fill_color="#FFFF00", line_color="#033649", fill_alpha=0.5,
-             legend='CV Mean Squared Error')
+               fill_color="#FFFF00", line_color="#033649", fill_alpha=0.5,
+               legend='CV Mean Squared Error')
     mse_p.ray(x=model.mse, y=0, length=h,
               angle=1.57079633, color='red',
               legend='Model Error', line_width=0.5)
@@ -314,7 +312,7 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     p2 = _projected_prediction(model)
     p3 = _projected_residuals(model)
 
-    p23 = hplot(p2, p3)
+    p23 = row(p2, p3)
 
     # Deposit all regression results
     _deposit_results(model, output_dir)
