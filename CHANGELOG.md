@@ -1,8 +1,12 @@
 # gneiss changelog
 
 ## Version 0.3.0
-* Added q2 plugin.  This includes modules for performing hierarchical clustering, performing linear regression and linear mixed effects models, and visualizing regression results.
-* Added tree visualizations for unrooted trees and heatmaps
+* Added q2 support for linear regression and linear mixed effects models [#98](https://github.com/biocore/gneiss/pull/98)
+* Added q2 support hierarchical clustering [#116](https://github.com/biocore/gneiss/pull/116)
+* Added interactive heatmaps with highlights with matplotlib [#114](https://github.com/biocore/gneiss/pull/114)
+* Added tree visualizations for unrooted trees with bokeh [#112](https://github.com/biocore/gneiss/pull/112)
+* Added support of cross validation for ordinary least squares [#101](https://github.com/biocore/gneiss/pull/101)
+
 
 ## Version 0.2.1
 * Added heatmap dendrogram plotting functionality [#87](https://github.com/biocore/gneiss/issues/87)

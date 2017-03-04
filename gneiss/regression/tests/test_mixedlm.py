@@ -259,6 +259,15 @@ class TestMixedLMFunctions(TestMixedLM):
         res.fit()
         res.write_pickle('lme.pickle')
 
+    def test_percent_explained(self):
+        model = mixedlm("x1 + x2", self.table, self.metadata, self.tree,
+                        groups="groups")
+
+        model.fit()
+        res = model.percent_explained()
+        exp = pd.Series([0.5, 0.5], index=['Y1', 'Y2'])
+        pdt.assert_series_equal(res, exp, check_less_precise=True)
+
 
 if __name__ == '__main__':
     unittest.main()
