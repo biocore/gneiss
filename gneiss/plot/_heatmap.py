@@ -185,11 +185,23 @@ def _plot_dendrogram(ax_dendrogram, table, edges):
     ax_dendrogram.set_xticks([])
 
 
+def _sort_table(table, mdvar):
+    mdvar = mdvar.sort_values()
+    table = table.reindex(columns=mdvar.index)
+    return table, mdvar
+
+
 def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
-    # TODO: Add test to make sure that the heatmap is sorted properly.
+
+    table, mdvar = _sort_table(table, mdvar)
+
     ax_heatmap.imshow(table, aspect='auto', interpolation='nearest')
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
+
+    # ensure that the ordering is the same
+    vcounts = vcounts.sort_index()
+
     ticks = vcounts.sort_index().cumsum()
     midpoints = ticks - (ticks - np.array([0] + list(ticks.values[:-1]))) / 2.0
     ax_heatmap.set_xticks(ticks.values-0.5, minor=False)

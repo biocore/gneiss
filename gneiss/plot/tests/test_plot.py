@@ -289,7 +289,7 @@ class TestHeatmap(unittest.TestCase):
 
     def test_visualization(self):
         np.random.seed(0)
-        num_otus = 50  #otus
+        num_otus = 500  # otus
         table = pd.DataFrame(np.random.random((num_otus, 5)))
 
         x = np.random.rand(num_otus)

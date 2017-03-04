@@ -276,8 +276,8 @@ plugin.visualizers.register_function(
 
 
 # Heatmap
-def dendrogram_heatmap(output_dir: str, table : pd.DataFrame,
-                       tree : TreeNode, metadata : MetadataCategory,
+def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
+                       tree: TreeNode, metadata: MetadataCategory,
                        ndim=10):
     nodes = [n.name for n in tree.levelorder()]
     nlen = min(ndim, len(nodes))

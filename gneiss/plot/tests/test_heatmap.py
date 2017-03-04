@@ -1,5 +1,8 @@
 from gneiss.plot import heatmap
+from gneiss.plot._heatmap import _sort_table
+
 import pandas as pd
+import pandas.util.testing as pdt
 from skbio import TreeNode, DistanceMatrix
 from scipy.cluster.hierarchy import ward
 from gneiss.plot._dendrogram import SquareDendrogram
@@ -26,6 +29,22 @@ class HeatmapTest(unittest.TestCase):
 
         self.highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                         'y6': ['#0000FF', '#F0000F']}).T
+
+    def test_sort_table(self):
+        table = pd.DataFrame(
+            [[1, 1, 0, 0, 0],
+             [0, 1, 1, 0, 0],
+             [0, 0, 1, 1, 0],
+             [0, 0, 0, 1, 1]],
+            columns=['s1', 's2', 's3', 's4', 's5'],
+            index=['o1', 'o2', 'o3', 'o4'])
+        mdvar = pd.Series(['a', 'b', 'a', 'b', 'a'],
+                          index=['s1', 's2', 's3', 's4', 's5'])
+        res_table, res_mdvar = _sort_table(table, mdvar)
+        pdt.assert_index_equal(pd.Index(['s1', 's3', 's5', 's2', 's4']),
+                               res_mdvar.index)
+        pdt.assert_index_equal(pd.Index(['s1', 's3', 's5', 's2', 's4']),
+                               res_table.columns)
 
     def test_basic(self):
         fig = heatmap(self.table, self.t, self.md)
