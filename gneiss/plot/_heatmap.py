@@ -186,6 +186,7 @@ def _plot_dendrogram(ax_dendrogram, table, edges):
 
 
 def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
+    # TODO: Add test to make sure that the heatmap is sorted properly.
     ax_heatmap.imshow(table, aspect='auto', interpolation='nearest')
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
