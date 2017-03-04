@@ -107,7 +107,8 @@ class TestOLS_Summary(unittest.TestCase):
                    12: -5.3731686226401827,
                    13: -5.3276265175104554,
                    14: -4.942667506421965}})
-        npt.assert_allclose(exp_pred.values, pred.values, rtol=1e-5)
+        npt.assert_allclose(exp_pred.values, pred.values,
+                            rtol=1e-5, atol=1e-5)
 
         exp_coefs = pd.DataFrame({
             'Intercept': {'y0': 6880999561.7020159,
@@ -120,7 +121,8 @@ class TestOLS_Summary(unittest.TestCase):
                    'y1': -74979709108.040298},
             'x4': {'y0': 26313750.43187603,
                    'y1': 263137504.31875956}})
-        npt.assert_allclose(exp_coefs.values, coefs.values, rtol=1e-5)
+        npt.assert_allclose(exp_coefs.values, coefs.values,
+                            rtol=1e-5, atol=1e-5)
 
         exp_resid = pd.DataFrame({
             'y0': {0: -0.05693401912370244,
@@ -153,7 +155,8 @@ class TestOLS_Summary(unittest.TestCase):
                    12: -0.0013241554031324654,
                    13: 0.54889009790560728,
                    14: -0.20253821782628822}})
-        npt.assert_allclose(exp_resid.values, resid.values, rtol=1e-5)
+        npt.assert_allclose(exp_resid.values, resid.values,
+                            rtol=1e-5, atol=1e-5)
 
         exp_pvals = pd.DataFrame({
             'Intercept': {'y0': 0.3193097383026624,
@@ -167,7 +170,8 @@ class TestOLS_Summary(unittest.TestCase):
             'x4': {'y0': 0.31931786743864193,
                    'y1': 0.31931842264061172}})
 
-        npt.assert_allclose(exp_pvals.values, pvals.values, rtol=1e-5)
+        npt.assert_allclose(exp_pvals.values, pvals.values,
+                            rtol=1e-5, atol=1e-5)
         index_fp = os.path.join(self.results, 'index.html')
         self.assertTrue(os.path.exists(index_fp))
 
