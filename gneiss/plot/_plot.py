@@ -132,11 +132,11 @@ def _deposit_results_html(index_f):
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     """ Summarizes the ordinary least squares fit.
-    
+
     Parameters
     ----------
     output_dir : str
-        Directory where all of the regression results and 
+        Directory where all of the regression results and
         summaries will be stored.
     model : OLSModel
         Ordinary Least Squares model that contains the model fit and the
@@ -216,11 +216,11 @@ plugin.visualizers.register_function(
 # LME summary
 def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     """ Summarizes the ordinary linear mixed effects model.
-    
+
     Parameters
     ----------
     output_dir : str
-        Directory where all of the regression results and 
+        Directory where all of the regression results and
         summaries will be stored.
     model : LMEModel
         Linear Mixed Effects model that contains the model fit and the
