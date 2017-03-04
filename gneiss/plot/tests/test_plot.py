@@ -284,8 +284,8 @@ class TestHeatmap(unittest.TestCase):
         self.results = "results"
         os.mkdir(self.results)
 
-    # def tearDown(self):
-    #     shutil.rmtree(self.results)
+    def tearDown(self):
+        shutil.rmtree(self.results)
 
     def test_visualization(self):
         np.random.seed(0)
