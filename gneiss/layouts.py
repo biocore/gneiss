@@ -11,6 +11,7 @@ except ImportError:
     raise ImportWarning('ete3 is not installed.  '
                         'ETE3 style visualizations will not be available.')
 
+
 def default_layout(node):
     """
     Specifies the layout for the ete.TreeStyle object.
