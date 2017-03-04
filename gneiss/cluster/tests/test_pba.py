@@ -8,7 +8,7 @@
 
 import pandas as pd
 import unittest
-from gneiss.tree._pba import proportional_linkage, gradient_linkage
+from gneiss.cluster._pba import proportional_linkage, gradient_linkage
 
 
 class TestPBA(unittest.TestCase):
