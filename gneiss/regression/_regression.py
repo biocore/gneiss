@@ -43,7 +43,9 @@ plugin.methods.register_function(
                  'present in this tree.')
     },
     parameter_descriptions={
-        'formula': 'Statistical formula specifying the statistical model.'
+        'formula': 'Statistical formula specifying the statistical model.',
+        'metadata': ('Metadata information that contains the '
+                     'covariates of interest.')
     },
     output_descriptions={'linear_model': ('The resulting '
                                           'fit.')},
@@ -79,7 +81,9 @@ plugin.methods.register_function(
                  'present in this tree.')
     },
     parameter_descriptions={
-        'formula': 'Statistical formula specifying the statistical model.'
+        'formula': 'Statistical formula specifying the statistical model.',
+        'metadata': ('Metadata information that contains the '
+                     'covariates of interest.')
     },
     output_descriptions={'linear_mixed_effects_model': ('The resulting '
                                                         'fit.')},

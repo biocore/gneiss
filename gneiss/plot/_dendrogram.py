@@ -5,15 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import abc
+from collections import namedtuple
 from skbio import TreeNode
 import pandas as pd
 import numpy
-import abc
-
-
-def _sign(x):
-    """Returns True if x is positive, False otherwise."""
-    return x and x/abs(x)
 
 
 class Dendrogram(TreeNode):
@@ -39,20 +35,16 @@ class Dendrogram(TreeNode):
 
     Notes
     -----
-    `length` refers to the branch length connect to the specified subtree.
+    `length` refers to the branch length of a node to its parent.
     `leafcount` is the number of tips within a subtree. `height` refers
     to the longest path from root to the deepst leaf in that subtree.
     `depth` is the number of nodes found in the longest path.
 
     """
-    aspect_distorts_lengths = True
-
     def __init__(self, use_lengths=True, **kwargs):
         """ Constructs a Dendrogram object for visualization.
-
         """
         super().__init__(**kwargs)
-        self.use_lengths_default = use_lengths
 
     def _cache_ntips(self):
         """ Counts the number of leaves under each subtree."""
@@ -80,8 +72,6 @@ class Dendrogram(TreeNode):
                 self.length = 0
             else:
                 self.length = 1
-        else:
-            self.length = self.length
 
         self.depth = (depth or 0) + self.length
 
@@ -105,7 +95,6 @@ class Dendrogram(TreeNode):
             The height of the canvas.
         width : int
             The width of the canvas.
-
         Returns
         -------
         pd.DataFrame
@@ -156,9 +145,10 @@ class UnrootedDendrogram(Dendrogram):
     Attributes
     ----------
     length
+    leafcount
+    height
+    depth
     """
-    aspect_distorts_lengths = True
-
     def __init__(self, **kwargs):
         """ Constructs a UnrootedDendrogram object for visualization.
 
@@ -190,8 +180,7 @@ class UnrootedDendrogram(Dendrogram):
         return tree
 
     def rescale(self, width, height):
-        """ Find best scaling factor for fitting the tree in the dimensions
-        specified by width and height.
+        """ Find best scaling factor for fitting the tree in the figure.
 
         This method will find the best orientation and scaling possible
         to fit the tree within the dimensions specified by width and height.
@@ -290,3 +279,129 @@ class UnrootedDendrogram(Dendrogram):
                 points += child.update_coordinates(s, x2, y2, a+ca/2, da)
                 a += ca
         return points
+
+
+Dimensions = namedtuple('Dimensions', ['x', 'y', 'height'])
+
+
+class RootedDendrogram(Dendrogram):
+    """ Stores data to be plotted as an rooted dendrogram.
+
+    A `RootedDendrogram` object is represents a tree in addition to the
+    key information required to create a radial tree layout prior to
+    visualization.
+
+    Parameters
+    ----------
+    use_lengths: bool
+        Specifies if the branch lengths should be included in the
+        resulting visualization (default True).
+
+    Attributes
+    ----------
+    length
+    leafcount
+    height
+    depth
+    """
+
+    def width_required(self):
+        return self.leafcount
+
+    @abc.abstractmethod
+    def xcoords(self, scale, x1):
+        pass
+
+    @abc.abstractmethod
+    def ycoords(self, scale, y1):
+        pass
+
+    def rescale(self, width, height):
+        """ Update x, y coordinates of tree nodes in canvas.
+
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        xscale = width / self.height
+        yscale = height / self.width_required()
+        scale = Dimensions(xscale, yscale, self.height)
+
+        # y coords done postorder, x preorder, y first.
+        # so it has to be done in 2 passes.
+        self.update_y_coordinates(scale)
+        self.update_x_coordinates(scale)
+        return xscale
+
+    def update_y_coordinates(self, scale, y1=None):
+        """The second pass through the tree.  Y coordinates only
+        depend on the shape of the tree and yscale.
+
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        if y1 is None:
+            y1 = self.width_required() * scale.y
+        child_y = y1
+        for child in self.children:
+            child.update_y_coordinates(scale, child_y)
+            child_y -= child.width_required() * scale.y
+        (self.y1, self.y2) = self.ycoords(scale, y1)
+
+    def update_x_coordinates(self, scale, x1=0):
+        """For non 'square' styles the x coordinates will depend
+        (a bit) on the y coodinates, so they should be done first.
+        Parameters
+        ----------
+        scale : Dimensions
+            Scaled dimensions of the tree
+        x1 : int
+            X-coordinate of parent
+        """
+        (self.x1, self.x2) = self.xcoords(scale, x1)
+        for child in self.children:
+            child.update_x_coordinates(scale, self.x2)
+
+
+class SquareDendrogram(RootedDendrogram):
+
+    def ycoords(self, scale, y1):
+        cys = [c.y1 for c in self.children]
+        if cys:
+            y2 = (cys[0]+cys[-1]) / 2.0
+        else:
+            y2 = y1 - 0.5 * scale.y
+        return (y2, y2)
+
+    def xcoords(self, scale, x1):
+        if self.is_tip():
+            return (x1, (scale.height-(self.height-self.length))*scale.x)
+        else:
+            # give some margins for internal nodes
+            dx = scale.x * self.length * 0.95
+            x2 = x1 + dx
+            return (x1, x2)
+
+    @classmethod
+    def from_tree(cls, tree):
+        """ Creates an SquareDendrogram object from a skbio tree.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            Input skbio tree
+        Returns
+        -------
+        SquareDendrogram
+        """
+        for n in tree.postorder(include_self=True):
+            n.__class__ = SquareDendrogram
+        tree.update_geometry(use_lengths=False)
+        return tree

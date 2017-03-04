@@ -20,3 +20,4 @@ plugin = qiime2.plugin.Plugin(
 
 importlib.import_module('gneiss.regression')
 importlib.import_module('gneiss.plot')
+importlib.import_module('gneiss.cluster')
