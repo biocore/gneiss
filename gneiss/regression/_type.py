@@ -11,7 +11,7 @@ from ._format import (LinearRegressionDirectoryFormat_g,
                       LinearMixedEffectsDirectoryFormat_g)
 
 
-LinearRegression_g = SemanticType('Linear_g')
+LinearRegression_g = SemanticType('LinearRegression_g')
 LinearMixedEffects_g = SemanticType('LinearMixedEffects_g')
 
 

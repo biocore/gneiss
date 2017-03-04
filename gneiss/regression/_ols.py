@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances)
+                         _to_balances, _type_cast_to_float)
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
@@ -166,7 +166,9 @@ def ols(formula, table, metadata, tree, **kwargs):
 
     ilr_table, metadata = ilr_table.align(metadata, join='inner', axis=0)
     # one-time creation of exogenous data matrix allows for faster run-time
+    metadata = _type_cast_to_float(metadata)
     x = dmatrix(formula, metadata, return_type='dataframe')
+
     submodels = _fit_ols(ilr_table, x)
 
     basis = pd.DataFrame(basis, index=ilr_table.columns,
