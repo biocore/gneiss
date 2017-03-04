@@ -287,8 +287,11 @@ def dendrogram_heatmap(output_dir: str, table : pd.DataFrame,
     mat = pd.DataFrame(clr(centralize(table)),
                        index=table.index,
                        columns=table.columns)
-
-    fig = heatmap(mat, tree, metadata.to_series(), highlights)
+    # TODO: There is a bit of hard-coded constants here
+    # will need to have some adaptive defaults set in the future
+    fig = heatmap(mat, tree, metadata.to_series(), highlights,
+                  highlight_width=0.01, dendrogram_width=50,
+                  figsize=(12, 8))
     fig.savefig(os.path.join(output_dir, 'heatmap.svg'))
 
     index_fp = os.path.join(output_dir, 'index.html')

@@ -284,13 +284,14 @@ class TestHeatmap(unittest.TestCase):
         self.results = "results"
         os.mkdir(self.results)
 
-    def tearDown(self):
-        shutil.rmtree(self.results)
+    # def tearDown(self):
+    #     shutil.rmtree(self.results)
 
     def test_visualization(self):
         np.random.seed(0)
-        table = pd.DataFrame(np.random.random((5, 5)))
         num_otus = 50  #otus
+        table = pd.DataFrame(np.random.random((num_otus, 5)))
+
         x = np.random.rand(num_otus)
         dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
         lm = ward(dm.condensed_form())

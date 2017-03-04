@@ -21,7 +21,7 @@ def heatmap(table, tree, mdvar, highlights=None,
     ----------
     table : pd.DataFrame
         Contain sample/feature labels along with table of values.
-        Rows correspond to samples, and columns correspond to features.
+        Rows correspond to features, and columns correspond to samples.
     tree: skbio.TreeNode
         Tree representing the feature hierarchy.
     highlights: pd.DataFrame or dict of tuple of str
