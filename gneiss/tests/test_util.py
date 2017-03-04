@@ -10,7 +10,8 @@ import unittest
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
-from gneiss.util import match, match_tips, rename_internal_nodes
+from gneiss.util import (match, match_tips, rename_internal_nodes,
+                         _type_cast_to_float)
 
 
 class TestUtil(unittest.TestCase):
@@ -324,6 +325,19 @@ class TestUtil(unittest.TestCase):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
         rename_internal_nodes(tree, inplace=True)
         self.assertEqual(str(tree), "(((a,b)y2,c)y1,d)y0;\n")
+
+    def test_type_cast_to_float(self):
+        x = pd.DataFrame({'a': [1, 2, 3, 4, 5],
+                          'b': ['1', '2', '3', '4', '5'],
+                          'c': ['a', 'b', 'c', 'd', 'e'],
+                          'd': [1., 2., 3., 4., 5.]})
+        res = _type_cast_to_float(x)
+        exp = pd.DataFrame({'a': [1., 2., 3., 4., 5.],
+                            'b': [1., 2., 3., 4., 5.],
+                            'c': ['a', 'b', 'c', 'd', 'e'],
+                            'd': [1., 2., 3., 4., 5.]})
+
+        pdt.assert_frame_equal(res, exp)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+import numpy as np
 import skbio
 
 from q2_composition.plugin_setup import Composition
@@ -44,7 +45,9 @@ plugin.methods.register_function(
 
 def gradient_clustering(table: pd.DataFrame,
                         gradient: MetadataCategory) -> skbio.TreeNode:
-    return gradient_linkage(table, gradient.to_series())
+    c = gradient.to_series()
+    c = c.astype(np.float)
+    return gradient_linkage(table, c)
 
 
 plugin.methods.register_function(
