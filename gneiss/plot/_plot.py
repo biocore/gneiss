@@ -95,7 +95,7 @@ def _projected_residuals(model):
 
 
 def _deposit_results(model, output_dir):
-    # Deposit all regression results
+    """ Store all of the core regression results into a folder. """
     pred = model.predict()
     pred.to_csv(os.path.join(output_dir, 'predicted.csv'),
                 header=True, index=True)
@@ -117,6 +117,7 @@ def _deposit_results(model, output_dir):
 
 
 def _deposit_results_html(index_f):
+    """ Create links to all of the regression results. """
     index_f.write(('<th>Coefficients</th>\n'))
     index_f.write(('<a href="coefficients.csv">'
                    'Download as CSV</a><br>\n'))
@@ -136,7 +137,19 @@ def _deposit_results_html(index_f):
 
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
+    """ Summarizes the ordinary least squares fit.
 
+    Parameters
+    ----------
+    output_dir : str
+        Directory where all of the regression results and
+        summaries will be stored.
+    model : OLSModel
+        Ordinary Least Squares model that contains the model fit and the
+        regression results.
+    ndim : int
+        The number of dimensions to summarize.
+    """
     # Cross validation
     cv = model.loo()
     # Relative importance of explanatory variables
@@ -208,7 +221,19 @@ plugin.visualizers.register_function(
 
 # LME summary
 def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
+    """ Summarizes the ordinary linear mixed effects model.
 
+    Parameters
+    ----------
+    output_dir : str
+        Directory where all of the regression results and
+        summaries will be stored.
+    model : LMEModel
+        Linear Mixed Effects model that contains the model fit and the
+        regression results.
+    ndim : int
+        The number of dimensions to summarize.
+    """
     # log likelihood
     loglike = pd.Series({r.model.endog_names: r.model.loglike(r.params)
                          for r in model.results})
