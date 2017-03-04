@@ -5,14 +5,18 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import ete3
-from ete3 import TreeStyle, AttrFace, NodeStyle
-from ete3.treeview import faces
-from PyQt4.QtGui import (QGraphicsPolygonItem,
-                         QPen, QColor, QBrush, QPolygonF)
-from PyQt4.QtCore import QPointF
-from ete3.treeview.faces import StaticItemFace, Face
 import pandas as pd
+try:
+    import ete3
+    from ete3 import TreeStyle, AttrFace, NodeStyle
+    from ete3.treeview import faces
+    from PyQt4.QtGui import (QGraphicsPolygonItem,
+                             QPen, QColor, QBrush, QPolygonF)
+    from PyQt4.QtCore import QPointF
+    from ete3.treeview.faces import StaticItemFace, Face
+except ImportError:
+    raise ImportWarning('ete3 is not installed.  '
+                        'ETE3 style visualizations will not be available.')
 
 
 class _DiamondItem(QGraphicsPolygonItem):
