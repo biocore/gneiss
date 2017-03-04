@@ -7,15 +7,21 @@
 # ----------------------------------------------------------------------------
 import os
 import pandas as pd
+from skbio import TreeNode
+from skbio.stats.composition import clr, centralize
 
-from qiime2.plugin import Int
 from gneiss.plugin_setup import plugin
 from gneiss.plot._radial import radialplot
+from gneiss.plot._heatmap import heatmap
 
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
 from gneiss.regression._type import (LinearRegression_g,
                                      LinearMixedEffects_g)
+from q2_types.tree import Phylogeny, Rooted
+from q2_composition.plugin_setup import Composition
+from q2_types.feature_table import FeatureTable
+from qiime2.plugin import Int, MetadataCategory
 
 try:
     from bokeh.embed import file_html
@@ -291,4 +297,55 @@ plugin.visualizers.register_function(
                  "loglikhood estimates, coefficients, "
                  "coefficient pvalues, coefficient of determination, "
                  "predicted fit and residuals")
+)
+
+
+# Heatmap
+def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
+                       tree: TreeNode, metadata: MetadataCategory,
+                       ndim=10):
+    nodes = [n.name for n in tree.levelorder()]
+    nlen = min(ndim, len(nodes))
+    highlights = pd.DataFrame([['#00FF00', '#FF0000']] * nlen,
+                              index=nodes[:nlen])
+
+    mat = pd.DataFrame(clr(centralize(table)),
+                       index=table.index,
+                       columns=table.columns)
+    # TODO: There is a bit of hard-coded constants here
+    # will need to have some adaptive defaults set in the future
+    fig = heatmap(mat, tree, metadata.to_series(), highlights,
+                  highlight_width=0.01, dendrogram_width=50,
+                  figsize=(12, 8))
+    fig.savefig(os.path.join(output_dir, 'heatmap.svg'))
+
+    index_fp = os.path.join(output_dir, 'index.html')
+    with open(index_fp, 'w') as index_f:
+        index_f.write('<html><body>\n')
+        index_f.write('<h1>Dendrogram heatmap</h1>\n')
+        index_f.write('<img src="heatmap.svg" alt="heatmap">')
+        index_f.write('</body></html>\n')
+
+
+plugin.visualizers.register_function(
+    function=dendrogram_heatmap,
+    inputs={'table': FeatureTable[Composition],
+            'tree': Phylogeny[Rooted]},
+    parameters={'metadata': MetadataCategory, 'ndim': Int},
+    input_descriptions={
+        'table': ('The feature table that will be plotted as a heatmap. '
+                  'This table is assumed to have strictly positive values.'),
+        'tree': ('A hierarchy of feature identifiers where each tip'
+                 'corresponds to the feature identifiers in the table. '
+                 'This tree can contain tip ids that are not present in '
+                 'the table, but all feature ids in the table must be '
+                 'present in this tree.')},
+    parameter_descriptions={
+        'metadata': ('Metadata to group the samples. '),
+        'ndim': 'Number of dimensions to highlight.'},
+    name='Dendrogram heatmap.',
+    description=("Visualize the feature tables as a heatmap. "
+                 "with samples sorted along a specified metadata category "
+                 "and features clustered together specified by the tree."
+                 "In addition, the heatmap values are clr transformed.")
 )

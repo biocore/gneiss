@@ -12,13 +12,16 @@ import shutil
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
+from scipy.cluster.hierarchy import ward
 
-from skbio import TreeNode
+from skbio import TreeNode, DistanceMatrix
 from skbio.stats.composition import ilr_inv
 from skbio.util import get_data_path
 
-from gneiss.plot._plot import ols_summary, lme_summary
+from gneiss.plot._plot import ols_summary, lme_summary, dendrogram_heatmap
 from gneiss.regression import ols, mixedlm
+
+from qiime2 import MetadataCategory
 
 
 class TestOLS_Summary(unittest.TestCase):
@@ -273,6 +276,44 @@ class TestLME_Summary(unittest.TestCase):
 
         exp_pred = pd.read_csv(get_data_path('exp_pred.csv'), index_col=0)
         npt.assert_allclose(pred, exp_pred, rtol=1e-2, atol=1e-2)
+
+
+class TestHeatmap(unittest.TestCase):
+
+    def setUp(self):
+        self.results = "results"
+        os.mkdir(self.results)
+
+    def tearDown(self):
+        shutil.rmtree(self.results)
+
+    def test_visualization(self):
+        np.random.seed(0)
+        num_otus = 500  # otus
+        table = pd.DataFrame(np.random.random((num_otus, 5)))
+
+        x = np.random.rand(num_otus)
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        lm = ward(dm.condensed_form())
+        t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
+
+        for i, n in enumerate(t.postorder()):
+            if not n.is_tip():
+                n.name = "y%d" % i
+            n.length = np.random.rand()*3
+
+        md = MetadataCategory(
+            pd.Series(['a', 'a', 'a', 'b', 'b']))
+
+        dendrogram_heatmap(self.results, table, t, md)
+
+        index_fp = os.path.join(self.results, 'index.html')
+        self.assertTrue(os.path.exists(index_fp))
+
+        with open(index_fp, 'r') as fh:
+            html = fh.read()
+            self.assertIn('<h1>Dendrogram heatmap</h1>',
+                          html)
 
 
 if __name__ == "__main__":
