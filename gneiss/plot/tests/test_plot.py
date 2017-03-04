@@ -11,8 +11,6 @@ import shutil
 
 import numpy as np
 import pandas as pd
-
-import numpy as np
 import numpy.testing as npt
 
 from skbio import TreeNode
@@ -268,6 +266,7 @@ class TestLME_Summary(unittest.TestCase):
             'x2': {'Y1': 0.92487193877761575,
                    'Y2': 0.92487193877761564}}
         )
+        npt.assert_allclose(coefs, exp_coefs, rtol=1e-5)
 
         exp_resid = pd.read_csv(get_data_path('exp_resid.csv'), index_col=0)
         npt.assert_allclose(resid, exp_resid, rtol=1e-5)

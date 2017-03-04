@@ -268,4 +268,3 @@ class LMEModel(RegressionModel):
         # instead of population variance (df=0).
         axis_vars = np.var(self.balances, ddof=1, axis=0)
         return axis_vars / axis_vars.sum()
-
