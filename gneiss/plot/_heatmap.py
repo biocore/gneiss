@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
 from gneiss.plot._dendrogram import SquareDendrogram
+from gneiss.util import match_tips
 
 
 def heatmap(table, tree, mdvar, highlights=None,
@@ -21,7 +22,7 @@ def heatmap(table, tree, mdvar, highlights=None,
     ----------
     table : pd.DataFrame
         Contain sample/feature labels along with table of values.
-        Rows correspond to features, and columns correspond to samples.
+        Rows correspond to samples, and columns correspond to features.
     tree: skbio.TreeNode
         Tree representing the feature hierarchy.
     highlights: pd.DataFrame or dict of tuple of str
@@ -56,7 +57,9 @@ def heatmap(table, tree, mdvar, highlights=None,
     ----
     The highlights parameter assumes that the tree is bifurcating.
     """
-
+    # match the tips
+    table, tree = match_tips(table, tree)
+    table = table.T
     # get edges from tree
     t = SquareDendrogram.from_tree(tree)
     t = _tree_coordinates(t)
@@ -72,8 +75,8 @@ def heatmap(table, tree, mdvar, highlights=None,
     edges['y1'] = [pts.loc[n].y for n in edges.dest_node]
 
     # now plot the stuff
-    fig = plt.figure(figsize=figsize)
-
+    fig = plt.figure(figsize=figsize, facecolor='white')
+    plt.rcParams['axes.facecolor']='white'
     xwidth = 0.2
     top_buffer = 0.1
     height = 0.8
@@ -107,6 +110,7 @@ def heatmap(table, tree, mdvar, highlights=None,
         ax_highlights = fig.add_axes([axs_x, axs_y, axs_w, axs_h],
                                      frame_on=True, sharey=ax_heatmap)
         _plot_highlights_dendrogram(ax_highlights, table, t, highlights)
+
     return fig
 
 
@@ -192,10 +196,12 @@ def _sort_table(table, mdvar):
 
 
 def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
-
+    # TODO add explicit test for this, since matplotlib orientation
+    # is from top to down (i.e. is backwards)
     table, mdvar = _sort_table(table, mdvar)
-
-    ax_heatmap.imshow(table, aspect='auto', interpolation='nearest')
+    table = table.iloc[::-1, :]
+    ax_heatmap.imshow(table, aspect='auto', interpolation='nearest',
+                      cmap='viridis')
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
 
@@ -212,3 +218,4 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
 
     ax_heatmap.set_xticks(midpoints-0.5, minor=True)
     ax_heatmap.set_xticklabels(vcounts.index, minor=True)
+    ax_heatmap.set_xlabel(mdvar.name)

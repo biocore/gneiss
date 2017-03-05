@@ -12,13 +12,30 @@ import skbio
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.tree import Phylogeny, Rooted
-from qiime2.plugin import MetadataCategory
+from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import proportional_linkage, gradient_linkage
+from gneiss.util import rename_internal_nodes, match
+from gneiss.sort import gradient_sort, mean_niche_estimator
 
 
 def proportional_clustering(table: pd.DataFrame) -> skbio.TreeNode:
-    return proportional_linkage(table)
+    """ Builds a tree for features based on a proportionality.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+       Contingency table where rows are samples and columns are features.
+       In addition, the table must have strictly nonzero values.
+
+    Returns
+    -------
+    skbio.TreeNode
+       Represents the partitioning of features with respect to proportionality.
+    """
+    t = proportional_linkage(table)
+    t = rename_internal_nodes(t)
+    return t
 
 
 plugin.methods.register_function(
@@ -44,10 +61,34 @@ plugin.methods.register_function(
 
 
 def gradient_clustering(table: pd.DataFrame,
-                        gradient: MetadataCategory) -> skbio.TreeNode:
+                        gradient: MetadataCategory,
+                        weighted=True) -> skbio.TreeNode:
+    """ Builds a tree for features based on a gradient.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+       Contingency table where rows are samples and columns are features.
+    gradient : qiime2.MetadataCategory
+       Continuous vector of measurements corresponding to samples.
+
+    Returns
+    -------
+    skbio.TreeNode
+       Represents the partitioning of features with respect to the gradient.
+    """
     c = gradient.to_series()
     c = c.astype(np.float)
-    return gradient_linkage(table, c)
+    if not weighted:
+        table = table > 0
+
+    t = gradient_linkage(table, c, method='average')
+    mean_g = mean_niche_estimator(table, c)
+    mean_g = pd.Series(mean_g, index=table.columns)
+    mean_g = mean_g.sort_values()
+    t = gradient_sort(t, mean_g)
+    t = rename_internal_nodes(t)
+    return t
 
 
 plugin.methods.register_function(
@@ -60,10 +101,12 @@ plugin.methods.register_function(
         'table': ('The feature table containing the samples in which '
                   'the columns will be clustered.'),
     },
-    parameters={'gradient': MetadataCategory},
+    parameters={'gradient': MetadataCategory, 'weighted': Bool},
     parameter_descriptions={
         'gradient': ('Contains gradient values to sort the '
-                     'features and samples.')
+                     'features and samples.'),
+        'weighted': ('Specifies if abundance or presence/absence '
+                     'information should be used to perform the clustering.'),
     },
     output_descriptions={
         'clustering': ('A hierarchy of feature identifiers where each tip'

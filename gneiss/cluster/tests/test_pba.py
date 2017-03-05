@@ -50,7 +50,7 @@ class TestUPGMA(unittest.TestCase):
     def test_gradient_linkage(self):
         table = pd.DataFrame(
             [[1, 1, 0, 0, 0],
-             [0, 1, 1, 0, 0],
+             [0, 1, 10, 0, 0],
              [0, 0, 1, 1, 0],
              [0, 0, 0, 1, 1]],
             columns=['s1', 's2', 's3', 's4', 's5'],

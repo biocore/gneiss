@@ -352,6 +352,7 @@ plugin.visualizers.register_function(
 def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
                        tree: TreeNode, metadata: MetadataCategory,
                        ndim=10):
+
     nodes = [n.name for n in tree.levelorder()]
     nlen = min(ndim, len(nodes))
     highlights = pd.DataFrame([['#00FF00', '#FF0000']] * nlen,
@@ -360,7 +361,8 @@ def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
     mat = pd.DataFrame(clr(centralize(table)),
                        index=table.index,
                        columns=table.columns)
-    # TODO: There is a bit of hard-coded constants here
+
+    # TODO: There are a few hard-coded constants here
     # will need to have some adaptive defaults set in the future
     fig = heatmap(mat, tree, metadata.to_series(), highlights,
                   highlight_width=0.01, dendrogram_width=50,

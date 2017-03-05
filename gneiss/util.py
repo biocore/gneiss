@@ -288,7 +288,6 @@ def _type_cast_to_float(df):
     pd.DataFrame
     """
     # TODO: Will need to improve this, as this is a very hacky solution.
-
     for c in df.columns:
         s = df[c]
         try:
