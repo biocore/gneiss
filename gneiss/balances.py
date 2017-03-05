@@ -20,7 +20,7 @@ Functions
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the GPLv3 License.
+# Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
@@ -31,8 +31,12 @@ import numpy as np
 import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
-from ete3 import Tree, TreeStyle
-from gneiss.layouts import default_layout
+try:
+    from ete3 import Tree, TreeStyle
+    from gneiss.layouts import default_layout
+except ImportError:
+    raise ImportWarning('ete3 is not installed.  '
+                        'ETE3 style visualizations will not be available.')
 
 
 def _balance_basis(tree_node):

@@ -1,12 +1,15 @@
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the GPLv3 License.
+# Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-
-from ete3 import faces, AttrFace, CircleFace, BarChartFace
+try:
+    from ete3 import faces, AttrFace, CircleFace, BarChartFace
+except ImportError:
+    raise ImportWarning('ete3 is not installed.  '
+                        'ETE3 style visualizations will not be available.')
 
 
 def default_layout(node):
