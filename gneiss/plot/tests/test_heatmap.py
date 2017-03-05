@@ -14,7 +14,10 @@ import unittest
 class HeatmapTest(unittest.TestCase):
     def setUp(self):
         np.random.seed(0)
-        self.table = pd.DataFrame(np.random.random((5, 5)))
+        self.table = pd.DataFrame(np.random.random((5, 5)),
+                                  index=['1', '2', '3', '4', '5'],
+                                  columns=['1', '2', '3', '4', '5'])
+
         num_otus = 5  # otus
         x = np.random.rand(num_otus)
         dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
@@ -29,6 +32,7 @@ class HeatmapTest(unittest.TestCase):
 
         self.highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                         'y6': ['#0000FF', '#F0000F']}).T
+
 
     def test_sort_table(self):
         table = pd.DataFrame(
@@ -55,7 +59,6 @@ class HeatmapTest(unittest.TestCase):
         pts['y'] = pts['y'] - 0.5  # account for offset
         pts['x'] = pts['x'].astype(np.float)
         pts['y'] = pts['y'].astype(np.float)
-
         npt.assert_allclose(lines[0]._xy,
                             pts.loc[['y5', '3'], ['x', 'y']])
         npt.assert_allclose(lines[1]._xy,

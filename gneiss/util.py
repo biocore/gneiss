@@ -122,7 +122,6 @@ def match_tips(table, tree):
     """
     tips = [x.name for x in tree.tips()]
     common_tips = list(set(tips) & set(table.columns))
-
     _table = table.loc[:, common_tips]
     _tree = tree.shear(names=common_tips)
 
