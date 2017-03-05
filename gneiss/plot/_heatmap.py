@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
 from gneiss.plot._dendrogram import SquareDendrogram
+from gneiss.util import match_tips
 
 
 def heatmap(table, tree, mdvar, highlights=None,
-            grid_col='w', grid_width=2, dendrogram_width=20,
+            grid_col='w', grid_width=2,
             highlight_width=0.02, figsize=(5, 5)):
     """ Creates heatmap plotting object
 
@@ -21,7 +22,7 @@ def heatmap(table, tree, mdvar, highlights=None,
     ----------
     table : pd.DataFrame
         Contain sample/feature labels along with table of values.
-        Rows correspond to features, and columns correspond to samples.
+        Rows correspond to samples, and columns correspond to features.
     tree: skbio.TreeNode
         Tree representing the feature hierarchy.
     highlights: pd.DataFrame or dict of tuple of str
@@ -35,8 +36,6 @@ def heatmap(table, tree, mdvar, highlights=None,
         index of `table`.
     highlight_width : int
         Width of highlights. (default=0.02)
-    dendrogram_width : int
-        Width of axes for dendrogram plot. (default=20)
     grid_col: str
         Color of vertical lines for highlighting sample metadata.
         (default='w')
@@ -56,7 +55,11 @@ def heatmap(table, tree, mdvar, highlights=None,
     ----
     The highlights parameter assumes that the tree is bifurcating.
     """
+    # match the tips
+    dendrogram_width = 20
 
+    table, tree = match_tips(table, tree)
+    table = table.T
     # get edges from tree
     t = SquareDendrogram.from_tree(tree)
     t = _tree_coordinates(t)
@@ -72,8 +75,8 @@ def heatmap(table, tree, mdvar, highlights=None,
     edges['y1'] = [pts.loc[n].y for n in edges.dest_node]
 
     # now plot the stuff
-    fig = plt.figure(figsize=figsize)
-
+    fig = plt.figure(figsize=figsize, facecolor='white')
+    plt.rcParams['axes.facecolor'] = 'white'
     xwidth = 0.2
     top_buffer = 0.1
     height = 0.8
@@ -107,6 +110,7 @@ def heatmap(table, tree, mdvar, highlights=None,
         ax_highlights = fig.add_axes([axs_x, axs_y, axs_w, axs_h],
                                      frame_on=True, sharey=ax_heatmap)
         _plot_highlights_dendrogram(ax_highlights, table, t, highlights)
+
     return fig
 
 
@@ -173,9 +177,19 @@ def _plot_highlights_dendrogram(ax_highlights, table, t, highlights):
 
 
 def _plot_dendrogram(ax_dendrogram, table, edges):
-    """ Plots the actual dendrogram."""
+    """ Plots the actual dendrogram.
+
+    Parameters
+    ----------
+    ax_dendrogram : matplotlib axes object
+        Contains the matplotlib axes in which the dendrogram will be plotted.
+    table : pd.DataFrame
+        Contain sample/feature labels along with table of values.
+        Rows correspond to samples, and columns correspond to features.
+    edges : pd.DataFrame
+        (x,y) coordinates for edges in the heatmap.
+    """
     offset = 0.5
-    # offset = 0
     for i in range(len(edges.index)):
         row = edges.iloc[i]
         ax_dendrogram.plot([row.x0, row.x1],
@@ -186,16 +200,55 @@ def _plot_dendrogram(ax_dendrogram, table, edges):
 
 
 def _sort_table(table, mdvar):
+    """ Sorts metadata category and aligns with table.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+        Contain sample/feature labels along with table of values.
+        Rows correspond to samples, and columns correspond to features.
+    mdvar : pd.Series
+        Metadata values for samples.  The index must correspond to the
+        index of `table`.
+
+    Returns
+    -------
+    pd.DataFrame
+        Aligned feature table.
+    pd.Series
+        Aligned metadata.
+    """
     mdvar = mdvar.sort_values()
     table = table.reindex(columns=mdvar.index)
     return table, mdvar
 
 
 def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
+    """ Sorts metadata category and aligns with table.
 
+    Parameters
+    ----------
+    ax_heatmap : matplotlib axes object
+        Contains the matplotlib axes in which the heatmap will be plotted.
+    table : pd.DataFrame
+        Contain sample/feature labels along with table of values.
+        Rows correspond to samples, and columns correspond to features.
+    mdvar : pd.Series
+        Metadata values for samples.  The index must correspond to the
+        index of `table`.
+    grid_col: str
+        Color of vertical lines for highlighting sample metadata.
+        (default='w')
+    grid_width: int
+        Width of vertical lines for highlighting sample metadata.
+        (default=2)
+    """
+    # TODO add explicit test for this, since matplotlib orientation
+    # is from top to down (i.e. is backwards)
     table, mdvar = _sort_table(table, mdvar)
-
-    ax_heatmap.imshow(table, aspect='auto', interpolation='nearest')
+    table = table.iloc[::-1, :]
+    ax_heatmap.imshow(table, aspect='auto', interpolation='nearest',
+                      cmap='viridis')
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
 
@@ -212,3 +265,4 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
 
     ax_heatmap.set_xticks(midpoints-0.5, minor=True)
     ax_heatmap.set_xticklabels(vcounts.index, minor=True)
+    ax_heatmap.set_xlabel(mdvar.name)

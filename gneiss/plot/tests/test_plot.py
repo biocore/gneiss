@@ -290,7 +290,8 @@ class TestHeatmap(unittest.TestCase):
     def test_visualization(self):
         np.random.seed(0)
         num_otus = 500  # otus
-        table = pd.DataFrame(np.random.random((num_otus, 5)))
+        table = pd.DataFrame(np.random.random((num_otus, 5)),
+                             index=np.arange(num_otus).astype(np.str)).T
 
         x = np.random.rand(num_otus)
         dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))

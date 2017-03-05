@@ -122,7 +122,6 @@ def match_tips(table, tree):
     """
     tips = [x.name for x in tree.tips()]
     common_tips = list(set(tips) & set(table.columns))
-
     _table = table.loc[:, common_tips]
     _tree = tree.shear(names=common_tips)
 
@@ -130,7 +129,6 @@ def match_tips(table, tree):
     _tree.prune()
     sorted_features = [n.name for n in _tree.tips()]
     _table = _table.reindex_axis(sorted_features, axis=1)
-
     return _table, _tree
 
 
@@ -288,7 +286,6 @@ def _type_cast_to_float(df):
     pd.DataFrame
     """
     # TODO: Will need to improve this, as this is a very hacky solution.
-
     for c in df.columns:
         s = df[c]
         try:
