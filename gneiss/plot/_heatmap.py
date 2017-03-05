@@ -14,7 +14,7 @@ from gneiss.util import match_tips
 
 
 def heatmap(table, tree, mdvar, highlights=None,
-            grid_col='w', grid_width=2, dendrogram_width=20,
+            grid_col='w', grid_width=2,
             highlight_width=0.02, figsize=(5, 5)):
     """ Creates heatmap plotting object
 
@@ -36,8 +36,6 @@ def heatmap(table, tree, mdvar, highlights=None,
         index of `table`.
     highlight_width : int
         Width of highlights. (default=0.02)
-    dendrogram_width : int
-        Width of axes for dendrogram plot. (default=20)
     grid_col: str
         Color of vertical lines for highlighting sample metadata.
         (default='w')
@@ -58,8 +56,8 @@ def heatmap(table, tree, mdvar, highlights=None,
     The highlights parameter assumes that the tree is bifurcating.
     """
     # match the tips
-    print(table)
-    print(tree.ascii_art())
+    dendrogram_width = 20
+
     table, tree = match_tips(table, tree)
     table = table.T
     # get edges from tree
@@ -192,7 +190,6 @@ def _plot_dendrogram(ax_dendrogram, table, edges):
         (x,y) coordinates for edges in the heatmap.
     """
     offset = 0.5
-    # offset = 0
     for i in range(len(edges.index)):
         row = edges.iloc[i]
         ax_dendrogram.plot([row.x0, row.x1],

@@ -129,7 +129,6 @@ def match_tips(table, tree):
     _tree.prune()
     sorted_features = [n.name for n in _tree.tips()]
     _table = _table.reindex_axis(sorted_features, axis=1)
-
     return _table, _tree
 
 
