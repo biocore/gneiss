@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import os
+import numpy as np
 import pandas as pd
 from skbio import TreeNode
 from skbio.stats.composition import clr, centralize
@@ -27,16 +28,24 @@ try:
     from bokeh.embed import file_html
     from bokeh.resources import CDN
     from bokeh.plotting import figure, ColumnDataSource
-    from bokeh.io import hplot
+    from bokeh.layouts import row
     from bokeh.models import HoverTool, BoxZoomTool, ResetTool
-
 except ImportError:
     raise ImportWarning('Bokeh not installed. '
                         'Interactive visualizations will not be available')
 
 
 def _projected_prediction(model):
-    """ Create projected prediction plot """
+    """ Create projected prediction plot
+
+    Parameters
+    ----------
+    model : RegressionModel
+
+    Returns
+    -------
+    bokeh plot
+    """
     hover = HoverTool(
             tooltips=[
                 ("#SampleID", "@index"),
@@ -70,7 +79,16 @@ def _projected_prediction(model):
 
 
 def _projected_residuals(model):
-    """ Create projected residual plot"""
+    """ Create projected residual plot
+
+    Parameters
+    ----------
+    model : RegressionModel
+
+    Returns
+    -------
+    bokeh plot
+    """
     hover = HoverTool(
             tooltips=[
                 ("#SampleID", "@index"),
@@ -92,6 +110,31 @@ def _projected_residuals(model):
     p.xaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[0], pcvar.iloc[0])
     p.yaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[1], pcvar.iloc[1])
     return p
+
+
+def _decorate_tree(t, series):
+    """ Attaches some default values on the tree for plotting.
+
+    Parameters
+    ----------
+    t: skbio.TreeNode
+        Input tree
+    series: pd.Series
+        Input pandas series
+
+    """
+    for i, n in enumerate(t.postorder()):
+        n.size = 30
+        if n.is_root():
+            n.size = 50
+        elif n.name == n.parent.children[0].name:
+            n.color = '#00FF00'  # left child is green
+        else:
+            n.color = '#FF0000'  # right child is red
+
+        if not n.is_tip():
+            t.length = series.loc[n.name]
+    return t
 
 
 def _deposit_results(model, output_dir):
@@ -154,23 +197,39 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     cv = model.loo()
     # Relative importance of explanatory variables
     relimp = model.lovo()
+    w, h = 400, 400  # plot width and height
+    # Histogram of model mean squared error from cross validation
+    mse_p = figure(title="Cross Validation Mean Squared Error",
+                   plot_width=w, plot_height=h)
+    mse_hist, edges = np.histogram(cv.mse, density=True, bins=20)
+    mse_p.quad(top=mse_hist, bottom=0, left=edges[:-1], right=edges[1:],
+               fill_color="#FFFF00", line_color="#033649", fill_alpha=0.5,
+               legend='CV Mean Squared Error')
+    mse_p.ray(x=model.mse, y=0, length=h,
+              angle=1.57079633, color='red',
+              legend='Model Error', line_width=0.5)
+
+    # Histogram of prediction error from cross validation
+    pred_p = figure(title="Prediction Error",
+                    plot_width=w, plot_height=h)
+    pred_hist, edges = np.histogram(cv.pred_err, density=True, bins=20)
+    pred_p.quad(top=pred_hist, bottom=0, left=edges[:-1], right=edges[1:],
+                fill_color="#00FFFF", line_color="#033649", fill_alpha=0.5,
+                legend='Prediction Error')
+    pred_p.ray(x=model.mse, y=0, length=h,
+               angle=1.57079633, color='red',
+               legend='Model Error', line_width=0.5)
+
+    cvp = row(mse_p, pred_p)
+
     # Explained sum of squares
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
     # Summary object
     smry = model.summary(ndim=10)
 
-    t = model.tree
-    for i, n in enumerate(t.postorder()):
-        if n.is_root():
-            n.size = 10  # TODO: need to make the root a little more obvious
-        elif n.name == n.parent.children[0].name:
-            n.color = '#00FF00'  # left child is green
-        else:
-            n.color = '#FF0000'  # right child is red
-        if not n.is_tip():
-            t.length = ess.loc[n.name]
+    t = _decorate_tree(model.tree, ess)
 
-    p1 = radialplot(t, node_color='color', figsize=(800, 800))
+    p1 = radialplot(t, edge_color='color', figsize=(800, 800))
     p1.title.text = 'Explained Sum of Squares'
     p1.title_location = 'above'
     p1.title.align = 'center'
@@ -180,7 +239,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     p2 = _projected_prediction(model)
     p3 = _projected_residuals(model)
 
-    p23 = hplot(p2, p3)
+    p23 = row(p2, p3)
 
     _deposit_results(model, output_dir)
 
@@ -191,9 +250,10 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
         index_f.write(smry.as_html())
         index_f.write('<th>Relative importance</th>\n')
         index_f.write(relimp.to_html())
-        index_f.write('<th>Cross Validation</th>')
-        index_f.write(cv.to_html())
         _deposit_results_html(index_f)
+        index_f.write('<th>Cross Validation</th>')
+        cv_html = file_html(cvp, CDN, 'Cross Validation')
+        index_f.write(cv_html)
         ess_tree_html = file_html(p1, CDN, 'Explained Sum of Squares')
         index_f.write(ess_tree_html)
         reg_smry_html = file_html(p23, CDN, 'Prediction and Residual plot')
@@ -241,20 +301,8 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     # Summary object
     smry = model.summary(ndim=10)
 
-    t = model.tree
-    for i, n in enumerate(t.postorder()):
-        n.size = 10
-        if n.is_root():
-            n.size = 20
-        elif n.name == n.parent.children[0].name:
-            n.color = '#00FF00'  # left child is green
-        else:
-            n.color = '#FF0000'  # right child is red
-
-        if not n.is_tip():
-            t.length = -loglike.loc[n.name]
-
-    p1 = radialplot(t, node_color='color', figsize=(800, 800))
+    t = _decorate_tree(model.tree, -loglike)
+    p1 = radialplot(t, edge_color='color', figsize=(800, 800))
     p1.title.text = 'Loglikelihood of submodels'
     p1.title_location = 'above'
     p1.title.align = 'center'
@@ -264,7 +312,7 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     p2 = _projected_prediction(model)
     p3 = _projected_residuals(model)
 
-    p23 = hplot(p2, p3)
+    p23 = row(p2, p3)
 
     # Deposit all regression results
     _deposit_results(model, output_dir)
