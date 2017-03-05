@@ -71,6 +71,9 @@ def gradient_clustering(table: pd.DataFrame,
        Contingency table where rows are samples and columns are features.
     gradient : qiime2.MetadataCategory
        Continuous vector of measurements corresponding to samples.
+    weighted : bool
+       Specifies if abundance or presence/absence information
+       should be used to perform the clustering.
 
     Returns
     -------
