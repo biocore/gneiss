@@ -314,7 +314,7 @@ class TestUtil(unittest.TestCase):
 
     def test_rename_internal_nodes_warning(self):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
-        with self.assertWarns(Warning):
+        with self.assertWarns(UserWarning):
             rename_internal_nodes(tree)
 
     def test_rename_internal_nodes_immutable(self):
@@ -348,7 +348,7 @@ class TestUtil(unittest.TestCase):
                '3:0.00196516046521)y6:0.0815110118351,(1:0.0524584044569,'
                '(2:0.0215653684975,5:0.0215653684975)y8:0.0308930359593)'
                'y7:0.0310177678435)y4:0.106894706976)y2:0.15840160938)y0;\n')
-        self.assertEquals(str(t), exp)
+        self.assertEqual(str(t), exp)
 
 
 if __name__ == '__main__':

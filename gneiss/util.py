@@ -183,7 +183,7 @@ def rename_internal_nodes(tree, names=None, inplace=False):
                 label = names[i]
             if n.name is not None and label == n.name:
                 warnings.warn("Warning. Internal node (%s) has been replaced "
-                              "with (%s)" % (n.name, label))
+                              "with (%s)" % (n.name, label), UserWarning)
 
             n.name = label
             i += 1
