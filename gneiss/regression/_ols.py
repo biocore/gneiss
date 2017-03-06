@@ -179,34 +179,33 @@ def ols(formula, table, metadata, tree, **kwargs):
 
 
 class OLSModel(RegressionModel):
+    """ Summary object for storing ordinary least squares results.
+
+    A `OLSModel` object stores information about the
+    individual balances used in the regression, the coefficients,
+    residuals. This object can be used to perform predictions.
+    In addition, summary statistics such as the coefficient
+    of determination for the overall fit can be calculated.
+
+
+    Attributes
+    ----------
+    submodels : list of statsmodels objects
+        List of statsmodels result objects.
+    basis : pd.DataFrame
+        Orthonormal basis in the Aitchison simplex.
+        Row names correspond to the leaves of the tree
+        and the column names correspond to the internal nodes
+        in the tree. If this is not specified, then `project` cannot
+        be enabled in `coefficients` or `predict`.
+    tree : skbio.TreeNode
+        Bifurcating tree that defines `basis`.
+    balances : pd.DataFrame
+        A table of balances where samples are rows and
+        balances are columns.  These balances were calculated
+        using `tree`.
+    """
     def __init__(self, *args, **kwargs):
-        """
-        Summary object for storing ordinary least squares results.
-
-        A `OLSModel` object stores information about the
-        individual balances used in the regression, the coefficients,
-        residuals. This object can be used to perform predictions.
-        In addition, summary statistics such as the coefficient
-        of determination for the overall fit can be calculated.
-
-
-        Parameters
-        ----------
-        submodels : list of statsmodels objects
-            List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leaves of the tree
-            and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
-        balances : pd.DataFrame
-            A table of balances where samples are rows and
-            balances are columns.  These balances were calculated
-            using `tree`.
-        """
         super().__init__(*args, **kwargs)
 
     def fit(self, regularized=False, **kwargs):

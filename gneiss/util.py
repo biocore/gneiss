@@ -29,6 +29,8 @@ import numpy as np
 import pandas as pd
 from .balances import balance_basis
 from skbio.stats.composition import ilr
+from scipy.cluster.hierarchy import ward
+from skbio import TreeNode, DistanceMatrix
 
 
 def match(table, metadata):
@@ -181,7 +183,7 @@ def rename_internal_nodes(tree, names=None, inplace=False):
                 label = names[i]
             if n.name is not None and label == n.name:
                 warnings.warn("Warning. Internal node (%s) has been replaced "
-                              "with (%s)" % (n.name, label))
+                              "with (%s)" % (n.name, label), UserWarning)
 
             n.name = label
             i += 1
@@ -293,3 +295,25 @@ def _type_cast_to_float(df):
         except:
             continue
     return df
+
+
+def random_tree(n):
+    """ Generates a tree with random topology.
+
+    Parameters
+    ----------
+    n : int
+        Number of nodes in the tree
+
+    Returns
+    -------
+    skbio.TreeNode
+        Random tree
+    """
+    x = np.random.rand(n)
+    dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+    lm = ward(dm.condensed_form())
+    ids = np.arange(len(x)).astype(np.str)
+    t = TreeNode.from_linkage_matrix(lm, ids)
+    t = rename_internal_nodes(t)
+    return t
