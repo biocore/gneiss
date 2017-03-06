@@ -43,6 +43,16 @@ def proportional_linkage(X, method='ward'):
     skbio.TreeNode
         Tree generated from principal balance analysis.
 
+    Examples
+    --------
+    >>> table = pd.DataFrame([[1, 1, 0, 0, 0],
+    ...                       [0, 1, 1, 0, 0],
+    ...                       [0, 0, 1, 1, 0],
+    ...                       [0, 0, 0, 1, 1]],
+    ...                      columns=['s1', 's2', 's3', 's4', 's5'],
+    ...                      index=['o1', 'o2', 'o3', 'o4']).T
+    >>> tree = proportional_linkage(table+0.1)
+
     Refererences
     ------------
     .. [1] Pawlowsky-Glahn V, Egozcue JJ, and Tolosana-Delgado R.
@@ -94,6 +104,19 @@ def gradient_linkage(X, y, method='average'):
     -------
     skbio.TreeNode
         Tree generated from principal balance analysis.
+
+    Examples
+    --------
+    >>> table = pd.DataFrame([[1, 1, 0, 0, 0],
+    ...                       [0, 1, 1, 0, 0],
+    ...                       [0, 0, 1, 1, 0],
+    ...                       [0, 0, 0, 1, 1]],
+    ...                      columns=['s1', 's2', 's3', 's4', 's5'],
+    ...                      index=['o1', 'o2', 'o3', 'o4']).T
+    >>> gradient = pd.Series([1, 2, 3, 4, 5],
+    ...                      index=['s1', 's2', 's3', 's4', 's5'])
+    >>> tree = gradient_linkage(table, gradient)
+
 
     See Also
     --------
