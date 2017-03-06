@@ -1,0 +1,6 @@
+gneiss.cluster.proportional_linkage
+===================================
+
+.. currentmodule:: gneiss.cluster
+
+.. autofunction:: proportional_linkage

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="343px" height="263px" viewBox="0 0 343 263" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 40 (33762) - http://www.bohemiancoding.com/sketch -->
+    <title>Group</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <filter x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+        <rect id="path-2" x="49" y="9" width="236" height="1"></rect>
+        <mask id="mask-3" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="236" height="1" fill="white">
+            <use xlink:href="#path-2"></use>
+        </mask>
+        <rect id="path-4" x="163" y="10" width="7" height="47"></rect>
+        <mask id="mask-5" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="7" height="47" fill="white">
+            <use xlink:href="#path-4"></use>
+        </mask>
+        <rect id="path-6" x="82.0654793" y="51.015202" width="180.210007" height="5"></rect>
+        <mask id="mask-7" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="180.210007" height="5" fill="white">
+            <use xlink:href="#path-6"></use>
+        </mask>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard2" transform="translate(-158.000000, -133.000000)">
+            <g id="Group" filter="url(#filter-1)" style="mix-blend-mode: hard-light;" transform="translate(164.000000, 135.000000)">
+                <use id="Rectangle" stroke="#FFA325" mask="url(#mask-3)" stroke-width="2" fill="#FFA325" transform="translate(167.000000, 9.500000) scale(1, -1) translate(-167.000000, -9.500000) " xlink:href="#path-2"></use>
+                <use id="Rectangle" stroke="#FFA325" mask="url(#mask-5)" stroke-width="2" fill="#FFA325" xlink:href="#path-4"></use>
+                <use id="Rectangle-2" stroke="#FFA325" mask="url(#mask-7)" stroke-width="4" fill="#FFA325" transform="translate(172.170483, 53.515202) rotate(-17.000000) translate(-172.170483, -53.515202) " xlink:href="#path-6"></use>
+                <polygon id="Triangle" stroke="#FFA324" stroke-width="3" fill-opacity="0" fill="#D8D8D8" points="85 81 170 245 0 245"></polygon>
+                <polygon id="Triangle" stroke="#FFA324" stroke-width="3" fill-opacity="0" fill="#D8D8D8" points="257 30 328 203 186 203"></polygon>
+                <path d="M3,251 L168,251" id="Line" stroke="#FFA325" stroke-width="10" stroke-linecap="square"></path>
+                <path d="M189,209 L325,209" id="Line" stroke="#FFA325" stroke-width="10" stroke-linecap="square"></path>
+                <text id="G" font-family="Average-Regular, Average" font-size="189" font-weight="normal" fill="#101AFF">
+                    <tspan x="18" y="242">G</tspan>
+                </text>
+                <text id="neiss" transform="translate(255.378269, 172.344794) rotate(-1.000000) translate(-255.378269, -172.344794) " font-family="Average-Regular, Average" font-size="84" font-weight="normal" letter-spacing="-3.60620761" fill="#0D0FF9">
+                    <tspan x="177.957788" y="201.344794">neiss</tspan>
+                </text>
+                <polygon id="Triangle-2" stroke="#FFA325" fill="#FFA325" points="167 0 285 10 49 10"></polygon>
+            </g>
+        </g>
+    </g>
+</svg>

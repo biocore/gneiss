@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.cluster._pba &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.cluster._pba</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">from</span> <span class="nn">gneiss.sort</span> <span class="k">import</span> <span class="n">mean_niche_estimator</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="n">match</span>
+<span class="kn">from</span> <span class="nn">gneiss.stats.composition</span> <span class="k">import</span> <span class="n">variation_matrix</span>
+
+<span class="kn">from</span> <span class="nn">skbio</span> <span class="k">import</span> <span class="n">TreeNode</span><span class="p">,</span> <span class="n">DistanceMatrix</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">euclidean</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span>
+
+
+<div class="viewcode-block" id="proportional_linkage"><a class="viewcode-back" href="../../../generated/gneiss.cluster.proportional_linkage.html#gneiss.cluster.proportional_linkage">[docs]</a><span class="k">def</span> <span class="nf">proportional_linkage</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;ward&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Principal Balance Analysis using Hierarchical Clustering</span>
+<span class="sd">    based on proportionality.</span>
+
+<span class="sd">    The hierarchy is built based on the proportionality between</span>
+<span class="sd">    any two pairs of features.  Specifically the proportionality between</span>
+<span class="sd">    two features :math:`x` and :math:`y` is measured by</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        p(x, y) = var (\ln \frac{x}{y})</span>
+
+<span class="sd">    If :math:`p(x, y)` is very small, then :math:`x` and :math:`y`</span>
+<span class="sd">    are said to be highly proportional. A hierarchical clustering is</span>
+<span class="sd">    then performed using this proportionality as a distance metric.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        Contingency table where the samples are rows and the features</span>
+<span class="sd">        are columns.</span>
+<span class="sd">    method : str</span>
+<span class="sd">        Clustering method.  (default=&#39;ward&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    skbio.TreeNode</span>
+<span class="sd">        Tree generated from principal balance analysis.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    .. [1] Pawlowsky-Glahn V, Egozcue JJ, and Tolosana-Delgado R.</span>
+<span class="sd">       Principal Balances (2011).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.cluster import proportional_linkage</span>
+<span class="sd">    &gt;&gt;&gt; table = pd.DataFrame([[1, 1, 0, 0, 0],</span>
+<span class="sd">    ...                       [0, 1, 1, 0, 0],</span>
+<span class="sd">    ...                       [0, 0, 1, 1, 0],</span>
+<span class="sd">    ...                       [0, 0, 0, 1, 1]],</span>
+<span class="sd">    ...                      columns=[&#39;s1&#39;, &#39;s2&#39;, &#39;s3&#39;, &#39;s4&#39;, &#39;s5&#39;],</span>
+<span class="sd">    ...                      index=[&#39;o1&#39;, &#39;o2&#39;, &#39;o3&#39;, &#39;o4&#39;]).T</span>
+<span class="sd">    &gt;&gt;&gt; tree = proportional_linkage(table+0.1)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">variation_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">lm</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">dm</span><span class="o">.</span><span class="n">condensed_form</span><span class="p">(),</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TreeNode</span><span class="o">.</span><span class="n">from_linkage_matrix</span><span class="p">(</span><span class="n">lm</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gradient_linkage"><a class="viewcode-back" href="../../../generated/gneiss.cluster.gradient_linkage.html#gneiss.cluster.gradient_linkage">[docs]</a><span class="k">def</span> <span class="nf">gradient_linkage</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Principal Balance Analysis using Hierarchical Clustering</span>
+<span class="sd">    on known gradient.</span>
+
+<span class="sd">    The hierarchy is built based on the values of the samples</span>
+<span class="sd">    located along a gradient.  Given a feature :math:`x`, the mean gradient</span>
+<span class="sd">    values that :math:`x` was observed in is calculated by</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        f(g , x) =</span>
+<span class="sd">         \sum\limits_{i=1}^N g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}</span>
+
+<span class="sd">    Where :math:`N` is the number of samples, :math:`x_i` is the proportion of</span>
+<span class="sd">    feature :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value</span>
+<span class="sd">    at sample `i`.</span>
+
+<span class="sd">    The distance between two features :math:`x` and :math:`y` can be defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        d(x, y) = (f(g, x) - f(g, y))^2</span>
+
+<span class="sd">    If :math:`d(x, y)` is very small, then :math:`x` and :math:`y`</span>
+<span class="sd">    are expected to live in very similar positions across the gradient.</span>
+<span class="sd">    A hierarchical clustering is  then performed using :math:`d(x, y)` as</span>
+<span class="sd">    the distance metric.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        Contingency table where the samples are rows and the features</span>
+<span class="sd">        are columns.</span>
+<span class="sd">    y : pd.Series</span>
+<span class="sd">        Continuous vector representing some ordering of the features in X.</span>
+<span class="sd">    method : str</span>
+<span class="sd">        Clustering method.  (default=&#39;average&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    skbio.TreeNode</span>
+<span class="sd">        Tree generated from principal balance analysis.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    mean_niche_estimator</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.cluster import gradient_linkage</span>
+<span class="sd">    &gt;&gt;&gt; table = pd.DataFrame([[1, 1, 0, 0, 0],</span>
+<span class="sd">    ...                       [0, 1, 1, 0, 0],</span>
+<span class="sd">    ...                       [0, 0, 1, 1, 0],</span>
+<span class="sd">    ...                       [0, 0, 0, 1, 1]],</span>
+<span class="sd">    ...                      columns=[&#39;s1&#39;, &#39;s2&#39;, &#39;s3&#39;, &#39;s4&#39;, &#39;s5&#39;],</span>
+<span class="sd">    ...                      index=[&#39;o1&#39;, &#39;o2&#39;, &#39;o3&#39;, &#39;o4&#39;]).T</span>
+<span class="sd">    &gt;&gt;&gt; gradient = pd.Series([1, 2, 3, 4, 5],</span>
+<span class="sd">    ...                      index=[&#39;s1&#39;, &#39;s2&#39;, &#39;s3&#39;, &#39;s4&#39;, &#39;s5&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; tree = gradient_linkage(table, gradient)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_X</span><span class="p">,</span> <span class="n">_y</span> <span class="o">=</span> <span class="n">match</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">mean_X</span> <span class="o">=</span> <span class="n">mean_niche_estimator</span><span class="p">(</span><span class="n">_X</span><span class="p">,</span> <span class="n">gradient</span><span class="o">=</span><span class="n">_y</span><span class="p">)</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">DistanceMatrix</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">mean_X</span><span class="p">,</span> <span class="n">euclidean</span><span class="p">)</span>
+    <span class="n">lm</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">dm</span><span class="o">.</span><span class="n">condensed_form</span><span class="p">(),</span> <span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TreeNode</span><span class="o">.</span><span class="n">from_linkage_matrix</span><span class="p">(</span><span class="n">lm</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

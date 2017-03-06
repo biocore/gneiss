@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.regression._summary &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.regression._summary</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the GPLv3 License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">skbio.stats.composition</span> <span class="k">import</span> <span class="n">ilr_inv</span><span class="p">,</span> <span class="n">clr_inv</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">skbio</span> <span class="k">import</span> <span class="n">TreeNode</span>
+
+
+<div class="viewcode-block" id="RegressionResults"><a class="viewcode-back" href="../../../generated/gneiss.regression.RegressionResults.html#gneiss.regression.RegressionResults">[docs]</a><span class="k">class</span> <span class="nc">RegressionResults</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summary object for storing regression results.</span>
+
+<span class="sd">    A `RegressionResults` object stores information about the</span>
+<span class="sd">    individual balances used in the regression, the coefficients,</span>
+<span class="sd">    residuals. This object can be used to perform predictions.</span>
+<span class="sd">    In addition, summary statistics such as the coefficient</span>
+<span class="sd">    of determination for the overall fit can be calculated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stat_results : list, sm.RegressionResults</span>
+<span class="sd">        List of RegressionResults objects.</span>
+<span class="sd">    feature_names : array_like, str, optional</span>
+<span class="sd">        List of original names for features that are found in `tree`.</span>
+<span class="sd">    basis : np.array, optional</span>
+<span class="sd">        Orthonormal basis in the Aitchison simplex.</span>
+<span class="sd">        If this is not specified, then `project` cannot</span>
+<span class="sd">        be enabled in `coefficients` or `predict`.</span>
+<span class="sd">    balances : np.array, optional</span>
+<span class="sd">        A table of balances where samples are rows and</span>
+<span class="sd">        balances are columns.  These balances were calculated</span>
+<span class="sd">        using `tree`.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Bifurcating tree that defines `basis`</span>
+
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="RegressionResults.__init__"><a class="viewcode-back" href="../../../generated/gneiss.regression.RegressionResults.html#gneiss.regression.RegressionResults.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">stat_results</span><span class="p">,</span>
+                 <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">balances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">tree</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="n">feature_names</span>
+        <span class="c1"># basis is now handled differently</span>
+        <span class="c1"># https://github.com/biocore/scikit-bio/pull/1396</span>
+        <span class="k">if</span> <span class="n">basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">clr_inv</span><span class="p">(</span><span class="n">basis</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">stat_results</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">balances</span> <span class="o">=</span> <span class="n">balances</span>
+
+        <span class="c1"># obtain pvalues</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pvalues</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">pvalues</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">endog_names</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pvalues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvalues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">r2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Coefficient of determination for overall fit&quot;&quot;&quot;</span>
+        <span class="c1"># Reason why we wanted to move this out was because not</span>
+        <span class="c1"># all types of statsmodels regressions have this property.</span>
+
+        <span class="c1"># See `statsmodels.regression.linear_model.RegressionResults`</span>
+        <span class="c1"># for more explanation on `ess` and `ssr`.</span>
+        <span class="c1"># sum of squares regression. Also referred to as</span>
+        <span class="c1"># explained sum of squares.</span>
+        <span class="n">ssr</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">ess</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">])</span>
+        <span class="c1"># sum of squares error.  Also referred to as sum of squares residuals</span>
+        <span class="n">sse</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">ssr</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">])</span>
+        <span class="c1"># calculate the overall coefficient of determination (i.e. R2)</span>
+        <span class="n">sst</span> <span class="o">=</span> <span class="n">sse</span> <span class="o">+</span> <span class="n">ssr</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">sse</span> <span class="o">/</span> <span class="n">sst</span>
+
+    <span class="k">def</span> <span class="nf">_check_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Checks to make sure that the `ilr_inv` can be performed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project : bool</span>
+<span class="sd">           Specifies if a projection into the Aitchison simplex can be</span>
+<span class="sd">           performed.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            Cannot perform projection into Aitchison simplex if `basis`</span>
+<span class="sd">            is not specified.</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            Cannot perform projection into Aitchison simplex</span>
+<span class="sd">            if `feature_names` is not specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot perform projection into Aitchison simplex&quot;</span>
+                             <span class="s2">&quot; if `basis` is not specified.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot perform projection into Aitchison simplex&quot;</span>
+                             <span class="s2">&quot; if `feature_names` is not specified.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns coefficients from fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project : bool, optional</span>
+<span class="sd">            Specifies if coefficients should be projected back into</span>
+<span class="sd">            the Aitchison simplex [1]_.  If false, the coefficients will be</span>
+<span class="sd">            represented as balances  (default: False).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A table of values where columns are coefficients, and the index</span>
+<span class="sd">            is either balances or proportions, depending on the value of</span>
+<span class="sd">            `project`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            Cannot perform projection into Aitchison simplex if `basis`</span>
+<span class="sd">            is not specified.</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            Cannot perform projection into Aitchison simplex</span>
+<span class="sd">            if `feature_names` is not specified.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [1] Aitchison, J. &quot;A concise guide to compositional data analysis,</span>
+<span class="sd">           CDA work.&quot; Girona 24 (2003): 73-81.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_projection</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">params</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">endog_names</span>
+            <span class="n">coef</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">project</span><span class="p">:</span>
+            <span class="c1"># `check=False`, due to a problem with error handling</span>
+            <span class="c1"># addressed here https://github.com/biocore/scikit-bio/pull/1396</span>
+            <span class="c1"># This will need to be fixed here:</span>
+            <span class="c1"># https://github.com/biocore/gneiss/issues/34</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">ilr_inv</span><span class="p">(</span><span class="n">coef</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="n">coef</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">coef</span>
+
+    <span class="k">def</span> <span class="nf">residuals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns calculated residuals.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame, optional</span>
+<span class="sd">            Input table of covariates.  If not specified, then the</span>
+<span class="sd">            fitted values calculated from training the model will be</span>
+<span class="sd">            returned.</span>
+<span class="sd">        project : bool, optional</span>
+<span class="sd">            Specifies if coefficients should be projected back into</span>
+<span class="sd">            the Aitchison simplex [1]_.  If false, the coefficients will be</span>
+<span class="sd">            represented as balances  (default: False).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A table of values where rows are samples, and the columns</span>
+<span class="sd">            are either balances or proportions, depending on the value of</span>
+<span class="sd">            `project`.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [1] Aitchison, J. &quot;A concise guide to compositional data analysis,</span>
+<span class="sd">           CDA work.&quot; Girona 24 (2003): 73-81.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_projection</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+
+        <span class="n">resid</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">resid</span>
+            <span class="n">err</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">endog_names</span>
+            <span class="n">resid</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">project</span><span class="p">:</span>
+            <span class="c1"># `check=False`, due to a problem with error handling</span>
+            <span class="c1"># addressed here https://github.com/biocore/scikit-bio/pull/1396</span>
+            <span class="c1"># This will need to be fixed here:</span>
+            <span class="c1"># https://github.com/biocore/gneiss/issues/34</span>
+            <span class="n">proj_resid</span> <span class="o">=</span> <span class="n">ilr_inv</span><span class="p">(</span><span class="n">resid</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                 <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">proj_resid</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="n">resid</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">resid</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Performs a prediction based on model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame, optional</span>
+<span class="sd">            Input table of covariates, where columns are covariates, and</span>
+<span class="sd">            rows are samples.  If not specified, then the fitted values</span>
+<span class="sd">            calculated from training the model will be returned.</span>
+<span class="sd">        project : bool, optional</span>
+<span class="sd">            Specifies if coefficients should be projected back into</span>
+<span class="sd">            the Aitchison simplex [1]_.  If false, the coefficients will be</span>
+<span class="sd">            represented as balances  (default: False).</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Other arguments to be passed into the model prediction.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A table of values where rows are coefficients, and the columns</span>
+<span class="sd">            are either balances or proportions, depending on the value of</span>
+<span class="sd">            `project`.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [1] Aitchison, J. &quot;A concise guide to compositional data analysis,</span>
+<span class="sd">           CDA work.&quot; Girona 24 (2003): 73-81.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_projection</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+
+        <span class="n">prediction</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="c1"># check if X is none.</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">endog_names</span>
+            <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">index</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">fittedvalues</span><span class="o">.</span><span class="n">index</span>
+            <span class="n">prediction</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">project</span><span class="p">:</span>
+            <span class="c1"># `check=False`, due to a problem with error handling</span>
+            <span class="c1"># addressed here https://github.com/biocore/scikit-bio/pull/1396</span>
+            <span class="c1"># This will need to be fixed here:</span>
+            <span class="c1"># https://github.com/biocore/gneiss/issues/34</span>
+            <span class="n">proj_prediction</span> <span class="o">=</span> <span class="n">ilr_inv</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                      <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">proj_prediction</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span>
+                                <span class="n">index</span><span class="o">=</span><span class="n">prediction</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prediction</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Bifurcating tree used to calculate ilr transform.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">TreeNode</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="p">])</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">read_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Reads RegressionResults object from pickle file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Input file to unpickle.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        RegressionResults</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Warning: Loading pickled data received from untrusted</span>
+<span class="sd">        sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="k">def</span> <span class="nf">write_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes RegressionResults object to pickle file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Output file to store pickled object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

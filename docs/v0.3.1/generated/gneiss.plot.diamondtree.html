@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot.diamondtree &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../index.html" />
+    <link rel="up" title="Plotting functions (gneiss.plot)" href="../plot.html" />
+    <link rel="next" title="Sort functions (gneiss.sort)" href="../sort.html" />
+    <link rel="prev" title="gneiss.plot.radialplot" href="gneiss.plot.radialplot.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-plot-diamondtree">
+<h1>gneiss.plot.diamondtree<a class="headerlink" href="#gneiss-plot-diamondtree" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.plot.diamondtree">
+<code class="descclassname">gneiss.plot.</code><code class="descname">diamondtree</code><span class="sig-paren">(</span><em>tree</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/plot/_blobtree.html#diamondtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.plot.diamondtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots collapsed tree with background coloring and clade coloring.</p>
+<p>This creates collapsed trees similar to the tree plots in the tree of
+life paper [1]. Rather than plotting all of the leaves, specified
+subtrees will be replaced by diamonds that are scaled to approximate
+the depth and the width of the subtree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tree</strong> (<em>skbio.TreeNode</em>) &#8211; A strictly bifurcating tree defining a hierarchical relationship
+between all of the features within <cite>table</cite>.</li>
+<li><strong>collapsed_nodes</strong> (<em>list of str</em>) &#8211; Names of internal nodes to collapse within the tree.
+(default : [])</li>
+<li><strong>layout</strong> (<em>function, optional</em>) &#8211; A layout for formatting the tree visualization. Must take a
+<cite>ete.tree</cite> as a parameter. (default : None)</li>
+<li><strong>labelcolor</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Color of the node labels. (default : &#8216;black&#8217;)</li>
+<li><strong>bgcolors</strong> (<em>dict of str or matplotlib colormap</em>) &#8211; String or function encoding matplotlib colormap for the backgrounds
+outside of the clades. (default : None)</li>
+<li><strong>cladecolors</strong> (<em>dict of str or str</em>) &#8211; String or function encoding matplotlib colormap for the colors
+within the clade faces. (default &#8216;#0000FF&#8217;)</li>
+<li><strong>depth_scaling</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Scaling factor for height of the subtrees represented by diamonds.
+(default : 30)</li>
+<li><strong>breadth_scaling</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Scaling factor for width of the subtrees represented by diamonds.
+(default : 6)</li>
+<li><strong>label_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Size of nodes labels. (default : 10)</li>
+<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Type of display to show the tree. (&#8216;c&#8217;: circular, &#8216;r&#8217;: rectangular).
+(default : &#8216;c&#8217;)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>ete.Tree</em> &#8211; ETE tree object that will be plotted.</li>
+<li><em>ete.TreeStyle</em> &#8211; ETE TreeStyle that decorates the tree and heatmap visualization.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td>Hug, Laura A., et al. &#8220;A new view of the tree of life.&#8221;
+Nature Microbiology 1 (2016): 16048.</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../plot.html">Plotting functions (<code class="docutils literal"><span class="pre">gneiss.plot</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.plot.radialplot.html" title="previous chapter">gneiss.plot.radialplot</a></li>
+      <li>Next: <a href="../sort.html" title="next chapter">Sort functions (<code class="docutils literal"><span class="pre">gneiss.sort</span></code>)</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.plot.diamondtree.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.plot.diamondtree.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

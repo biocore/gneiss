@@ -1,0 +1,6 @@
+gneiss.balances.balance_basis
+=============================
+
+.. currentmodule:: gneiss.balances
+
+.. autofunction:: balance_basis

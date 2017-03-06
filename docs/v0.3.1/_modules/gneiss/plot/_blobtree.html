@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot._blobtree &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.plot._blobtree</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ete3</span>
+    <span class="kn">from</span> <span class="nn">ete3</span> <span class="k">import</span> <span class="n">TreeStyle</span><span class="p">,</span> <span class="n">AttrFace</span><span class="p">,</span> <span class="n">NodeStyle</span>
+    <span class="kn">from</span> <span class="nn">ete3.treeview</span> <span class="k">import</span> <span class="n">faces</span>
+    <span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="k">import</span> <span class="p">(</span><span class="n">QGraphicsPolygonItem</span><span class="p">,</span>
+                             <span class="n">QPen</span><span class="p">,</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QBrush</span><span class="p">,</span> <span class="n">QPolygonF</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="k">import</span> <span class="n">QPointF</span>
+    <span class="kn">from</span> <span class="nn">ete3.treeview.faces</span> <span class="k">import</span> <span class="n">StaticItemFace</span><span class="p">,</span> <span class="n">Face</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportWarning</span><span class="p">(</span><span class="s1">&#39;ete3 is not installed.  &#39;</span>
+                        <span class="s1">&#39;ETE3 style visualizations will not be available.&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_DiamondItem</span><span class="p">(</span><span class="n">QGraphicsPolygonItem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#0000FF&#39;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span> <span class="o">=</span> <span class="n">QPolygonF</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span> <span class="o">=</span> <span class="n">QPolygonF</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">QPointF</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="n">QGraphicsPolygonItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">QBrush</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="n">color</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">QPen</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="n">color</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_DiamondItem</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">paint</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+        <span class="n">ete3</span><span class="o">.</span><span class="n">treeview</span><span class="o">.</span><span class="n">faces</span><span class="o">.</span><span class="n">_label_painter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">CollapsedDiamondFace</span><span class="p">(</span><span class="n">StaticItemFace</span><span class="p">,</span> <span class="n">Face</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a collapsed node face object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#0000FF&#39;</span><span class="p">):</span>
+        <span class="n">Face</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;item&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+
+    <span class="k">def</span> <span class="nf">update_items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span> <span class="o">=</span> <span class="n">_DiamondItem</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                                 <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
+
+    <span class="k">def</span> <span class="nf">_height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span>
+
+
+<div class="viewcode-block" id="diamondtree"><a class="viewcode-back" href="../../../generated/gneiss.plot.diamondtree.html#gneiss.plot.diamondtree">[docs]</a><span class="k">def</span> <span class="nf">diamondtree</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots collapsed tree with background coloring and clade coloring.</span>
+
+<span class="sd">    This creates collapsed trees similar to the tree plots in the tree of</span>
+<span class="sd">    life paper [1]. Rather than plotting all of the leaves, specified</span>
+<span class="sd">    subtrees will be replaced by diamonds that are scaled to approximate</span>
+<span class="sd">    the depth and the width of the subtree.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        A strictly bifurcating tree defining a hierarchical relationship</span>
+<span class="sd">        between all of the features within `table`.</span>
+<span class="sd">    collapsed_nodes : list of str</span>
+<span class="sd">        Names of internal nodes to collapse within the tree.</span>
+<span class="sd">        (default : [])</span>
+<span class="sd">    layout : function, optional</span>
+<span class="sd">        A layout for formatting the tree visualization. Must take a</span>
+<span class="sd">        `ete.tree` as a parameter. (default : None)</span>
+<span class="sd">    labelcolor: str</span>
+<span class="sd">        Color of the node labels. (default : &#39;black&#39;)</span>
+<span class="sd">    bgcolors: dict of str or matplotlib colormap</span>
+<span class="sd">        String or function encoding matplotlib colormap for the backgrounds</span>
+<span class="sd">        outside of the clades. (default : None)</span>
+<span class="sd">    cladecolors: dict of str or str</span>
+<span class="sd">        String or function encoding matplotlib colormap for the colors</span>
+<span class="sd">        within the clade faces. (default &#39;#0000FF&#39;)</span>
+<span class="sd">    depth_scaling : int</span>
+<span class="sd">        Scaling factor for height of the subtrees represented by diamonds.</span>
+<span class="sd">        (default : 30)</span>
+<span class="sd">    breadth_scaling : int</span>
+<span class="sd">        Scaling factor for width of the subtrees represented by diamonds.</span>
+<span class="sd">        (default : 6)</span>
+<span class="sd">    label_size : int</span>
+<span class="sd">        Size of nodes labels. (default : 10)</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        Type of display to show the tree. (&#39;c&#39;: circular, &#39;r&#39;: rectangular).</span>
+<span class="sd">        (default : &#39;c&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ete.Tree</span>
+<span class="sd">        ETE tree object that will be plotted.</span>
+<span class="sd">    ete.TreeStyle</span>
+<span class="sd">        ETE TreeStyle that decorates the tree and heatmap visualization.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Hug, Laura A., et al. &quot;A new view of the tree of life.&quot;</span>
+<span class="sd">       Nature Microbiology 1 (2016): 16048.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: Allow for the option to encode labels in different colors</span>
+    <span class="c1"># (i.e. pass in a pandas series)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;collapsed_nodes&#39;</span><span class="p">:</span> <span class="p">[],</span>
+              <span class="s1">&#39;bgcolors&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;cladecolors&#39;</span><span class="p">:</span> <span class="s1">&#39;#0000FF&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;labelcolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;label_size&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+              <span class="s1">&#39;depth_scaling&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;breadth_scaling&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+              <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span>
+              <span class="c1"># TODO: Enable layout</span>
+              <span class="c1"># layout : function, optional</span>
+              <span class="c1">#    A layout for formatting the tree visualization. Must take a</span>
+              <span class="c1">#    `ete.tree` as a parameter.</span>
+              <span class="c1"># For now just define a null function if no layout is defined</span>
+              <span class="c1"># TODO: Learning scaling factors for depth and breadth</span>
+              <span class="s1">&#39;layout&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="n">collapsed_nodes</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;collapsed_nodes&#39;</span><span class="p">]</span>
+    <span class="n">bgcolors</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bgcolors&#39;</span><span class="p">]</span>
+    <span class="n">cladecolors</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;cladecolors&#39;</span><span class="p">]</span>
+    <span class="n">labelcolor</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;labelcolor&#39;</span><span class="p">]</span>
+    <span class="n">label_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;label_size&#39;</span><span class="p">]</span>
+    <span class="n">depth_scaling</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;depth_scaling&#39;</span><span class="p">]</span>
+    <span class="n">breadth_scaling</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;breadth_scaling&#39;</span><span class="p">]</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">]</span>
+
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">ete3</span><span class="o">.</span><span class="n">Tree</span><span class="o">.</span><span class="n">from_skbio</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">diamond_layout</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="c1"># Run the layout passed in first before</span>
+        <span class="c1"># filling in the heatmap</span>
+        <span class="n">layout</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="n">AttrFace</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">fsize</span><span class="o">=</span><span class="n">label_size</span><span class="p">,</span> <span class="n">fgcolor</span><span class="o">=</span><span class="n">labelcolor</span><span class="p">)</span>
+
+        <span class="c1"># background colors</span>
+        <span class="n">c</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">_get_node_color</span><span class="p">(</span><span class="n">bgcolors</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">nst</span> <span class="o">=</span> <span class="n">NodeStyle</span><span class="p">()</span>
+            <span class="n">nst</span><span class="p">[</span><span class="s2">&quot;bgcolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">nst</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">collapsed_nodes</span><span class="p">:</span>
+            <span class="c1"># scaling factor for approximating subtree depth</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_farthest_leaf</span><span class="p">(</span><span class="n">topology_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">depth</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">depth_scaling</span>
+            <span class="c1"># scaling factor for approximating for subtree width</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="o">*</span><span class="n">breadth_scaling</span>
+            <span class="n">c</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_get_node_color</span><span class="p">(</span><span class="n">cladecolors</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="s2">&quot;#0000FF&quot;</span><span class="p">)</span>
+
+            <span class="n">C</span> <span class="o">=</span> <span class="n">CollapsedDiamondFace</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">img_style</span><span class="p">[</span><span class="s1">&#39;draw_descendants&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># And place as a float face over the tree</span>
+            <span class="n">faces</span><span class="o">.</span><span class="n">add_face_to_node</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+            <span class="n">faces</span><span class="o">.</span><span class="n">add_face_to_node</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">faces</span><span class="o">.</span><span class="n">add_face_to_node</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">TreeStyle</span><span class="p">()</span>
+
+    <span class="c1"># Draw a tree</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+    <span class="c1"># We will add node names manually</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_leaf_name</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># Show branch data</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_branch_length</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">show_branch_support</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">ts</span><span class="o">.</span><span class="n">layout_fn</span> <span class="o">=</span> <span class="n">diamond_layout</span>
+    <span class="k">return</span> <span class="n">tr</span><span class="p">,</span> <span class="n">ts</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_node_color</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">default_color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Retrieves color from dict, Series, str.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : dict or pd.Series or str</span>
+<span class="sd">        Input color(s).</span>
+<span class="sd">    node : ete.TreeNode</span>
+<span class="sd">        Input tree.</span>
+<span class="sd">    default_color: str</span>
+<span class="sd">        The default color to set to if the color is not present in `x`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str :</span>
+<span class="sd">       The color for `node`</span>
+<span class="sd">    bool :</span>
+<span class="sd">       Indicates if the node color was found in `x`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;color type </span><span class="si">%s</span><span class="s2"> not supported.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="c1"># Use default if the color isn&#39;t specified</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">default_color</span>
+        <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="kc">False</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot.heatmap &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../index.html" />
+    <link rel="up" title="Plotting functions (gneiss.plot)" href="../plot.html" />
+    <link rel="next" title="gneiss.plot.radialplot" href="gneiss.plot.radialplot.html" />
+    <link rel="prev" title="Plotting functions (gneiss.plot)" href="../plot.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-plot-heatmap">
+<h1>gneiss.plot.heatmap<a class="headerlink" href="#gneiss-plot-heatmap" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.plot.heatmap">
+<code class="descclassname">gneiss.plot.</code><code class="descname">heatmap</code><span class="sig-paren">(</span><em>table</em>, <em>tree</em>, <em>mdvar</em>, <em>highlights=None</em>, <em>grid_col='w'</em>, <em>grid_width=2</em>, <em>highlight_width=0.02</em>, <em>figsize=(5</em>, <em>5)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/plot/_heatmap.html#heatmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.plot.heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heatmap plotting object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>table</strong> (<em>pd.DataFrame</em>) &#8211; Contain sample/feature labels along with table of values.
+Rows correspond to samples, and columns correspond to features.</li>
+<li><strong>tree</strong> (<em>skbio.TreeNode</em>) &#8211; Tree representing the feature hierarchy.</li>
+<li><strong>highlights</strong> (<em>pd.DataFrame or dict of tuple of str</em>) &#8211; List of internal nodes in the tree to highlight.
+Each internal node must contain two colors, one for the left
+subtree and the other for the right subtree highlight.
+The first color will always correspond to the left subtree,
+and the second color will always correspond to the right subtree.</li>
+<li><strong>mdvar</strong> (<em>pd.Series</em>) &#8211; Metadata values for samples.  The index must correspond to the
+index of <cite>table</cite>.</li>
+<li><strong>highlight_width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Width of highlights. (default=0.02)</li>
+<li><strong>grid_col</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Color of vertical lines for highlighting sample metadata.
+(default=&#8217;w&#8217;)</li>
+<li><strong>grid_width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Width of vertical lines for highlighting sample metadata.
+(default=2)</li>
+<li><strong>figsize</strong> (<em>tuple of int</em>) &#8211; Species (width, height) for figure. (default=(5, 5))</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Matplotlib figure object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib.pyplot.figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The highlights parameter assumes that the tree is bifurcating.</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../plot.html">Plotting functions (<code class="docutils literal"><span class="pre">gneiss.plot</span></code>)</a><ul>
+      <li>Previous: <a href="../plot.html" title="previous chapter">Plotting functions (<code class="docutils literal"><span class="pre">gneiss.plot</span></code>)</a></li>
+      <li>Next: <a href="gneiss.plot.radialplot.html" title="next chapter">gneiss.plot.radialplot</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.plot.heatmap.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.plot.heatmap.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+gneiss.sort.mean_niche_estimator
+================================
+
+.. currentmodule:: gneiss.sort
+
+.. autofunction:: mean_niche_estimator

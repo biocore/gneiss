@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.regression._mixedlm &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.regression._mixedlm</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">statsmodels.formula.api</span> <span class="k">as</span> <span class="nn">smf</span>
+<span class="kn">from</span> <span class="nn">._model</span> <span class="k">import</span> <span class="n">RegressionModel</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="p">(</span><span class="n">_intersect_of_table_metadata_tree</span><span class="p">,</span>
+                         <span class="n">_to_balances</span><span class="p">,</span> <span class="n">_type_cast_to_float</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">decimal</span> <span class="k">import</span> <span class="n">Decimal</span>
+<span class="kn">from</span> <span class="nn">statsmodels.iolib.summary2</span> <span class="k">import</span> <span class="n">Summary</span>
+
+
+<div class="viewcode-block" id="mixedlm"><a class="viewcode-back" href="../../../generated/gneiss.regression.mixedlm.html#gneiss.regression.mixedlm">[docs]</a><span class="k">def</span> <span class="nf">mixedlm</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Linear Mixed Effects Models applied to balances.</span>
+
+<span class="sd">    A linear mixed effects model is performed on nonzero relative abundance</span>
+<span class="sd">    data given a list of covariates, or explanatory variables such as pH,</span>
+<span class="sd">    treatment, etc to test for specific effects. The relative abundance data</span>
+<span class="sd">    is transformed into balances using the ILR transformation, using a tree to</span>
+<span class="sd">    specify the groupings of the features. The linear mixed effects model is</span>
+<span class="sd">    applied to each balance separately. Only positive data will be accepted,</span>
+<span class="sd">    so if there are zeros present, consider using a zero imputation method</span>
+<span class="sd">    such as ``skbio.stats.composition.multiplicative_replacement`` or</span>
+<span class="sd">    add a pseudocount.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    formula : str</span>
+<span class="sd">        Formula representing the statistical equation to be evaluated.</span>
+<span class="sd">        These strings are similar to how equations are handled in R.</span>
+<span class="sd">        Note that the dependent variable in this string should not be</span>
+<span class="sd">        specified, since this method will be run on each of the individual</span>
+<span class="sd">        balances. See `patsy` [1]_ for more details.</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contingency table where samples correspond to rows and</span>
+<span class="sd">        features correspond to columns.</span>
+<span class="sd">    metadata: pd.DataFrame</span>
+<span class="sd">        Metadata table that contains information about the samples contained</span>
+<span class="sd">        in the `table` object.  Samples correspond to rows and covariates</span>
+<span class="sd">        correspond to columns.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Tree object that defines the partitions of the features. Each of the</span>
+<span class="sd">        leaves correspond to the columns contained in the table.</span>
+<span class="sd">    groups : str</span>
+<span class="sd">        Column names in `metadata` that specifies the groups.  These groups are</span>
+<span class="sd">        often associated with individuals repeatedly sampled, typically</span>
+<span class="sd">        longitudinally.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Other arguments accepted into</span>
+<span class="sd">        `statsmodels.regression.linear_model.MixedLM`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LMEModel</span>
+<span class="sd">        Container object that holds information about the overall fit.</span>
+<span class="sd">        This includes information about coefficients, pvalues and</span>
+<span class="sd">        residuals from the resulting regression.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] https://patsy.readthedocs.io/en/latest/</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from skbio.stats.composition import ilr_inv</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.regression import mixedlm</span>
+
+<span class="sd">    Here, we will define a table of proportions with 3 features</span>
+<span class="sd">    `a`, `b`, and `c` across 12 samples.</span>
+
+<span class="sd">    &gt;&gt;&gt; table = pd.DataFrame({</span>
+<span class="sd">    ...         &#39;u1&#39;:  [0.804248, 0.195526, 0.000226],</span>
+<span class="sd">    ...         &#39;u2&#39;:  [0.804369, 0.195556, 0.000075],</span>
+<span class="sd">    ...         &#39;u3&#39;:  [0.825711, 0.174271, 0.000019],</span>
+<span class="sd">    ...         &#39;x1&#39;:  [0.751606, 0.158631, 0.089763],</span>
+<span class="sd">    ...         &#39;x2&#39;:  [0.777794, 0.189095, 0.033111],</span>
+<span class="sd">    ...         &#39;x3&#39;:  [0.817855, 0.172613, 0.009532],</span>
+<span class="sd">    ...         &#39;y1&#39;:  [0.780774, 0.189819, 0.029406],</span>
+<span class="sd">    ...         &#39;y2&#39;:  [0.797332, 0.193845, 0.008824],</span>
+<span class="sd">    ...         &#39;y3&#39;:  [0.802058, 0.194994, 0.002948],</span>
+<span class="sd">    ...         &#39;z1&#39;:  [0.825041, 0.174129, 0.000830],</span>
+<span class="sd">    ...         &#39;z2&#39;:  [0.804248, 0.195526, 0.000226],</span>
+<span class="sd">    ...         &#39;z3&#39;:  [0.825667, 0.174261, 0.000072]}</span>
+<span class="sd">    ...         index=[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]).T</span>
+
+<span class="sd">    Now we are going to define some of the external variables to</span>
+<span class="sd">    test for in the model.  Here we will be testing a hypothetical</span>
+<span class="sd">    longitudinal study across 3 time points, with 4 patients</span>
+<span class="sd">    `x`, `y`, `z` and `u`, where `x` and `y` were given treatment `1`</span>
+<span class="sd">    and `z` and `u` were given treatment `2`.</span>
+
+<span class="sd">    &gt;&gt;&gt; metadata = pd.DataFrame({</span>
+<span class="sd">    ...         &#39;patient&#39;: [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],</span>
+<span class="sd">    ...         &#39;treatment&#39;: [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],</span>
+<span class="sd">    ...         &#39;time&#39;: [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]</span>
+<span class="sd">    ...     }, index=[&#39;x1&#39;, &#39;x2&#39;, &#39;x3&#39;, &#39;y1&#39;, &#39;y2&#39;, &#39;y3&#39;,</span>
+<span class="sd">    ...               &#39;z1&#39;, &#39;z2&#39;, &#39;z3&#39;, &#39;u1&#39;, &#39;u2&#39;, &#39;u3&#39;])</span>
+
+<span class="sd">    Finally, we need to define a bifurcating tree used to convert the</span>
+<span class="sd">    proportions to balances.  If the internal nodes aren&#39;t labels,</span>
+<span class="sd">    a default labeling will be applied (i.e. `y1`, `y2`, ...)</span>
+
+<span class="sd">    &gt;&gt;&gt; tree = TreeNode.read([&#39;(c, (b,a)Y2)Y1;&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; print(tree.ascii_art())</span>
+<span class="sd">              /-c</span>
+<span class="sd">    -Y1------|</span>
+<span class="sd">             |          /-b</span>
+<span class="sd">              \Y2------|</span>
+<span class="sd">                        \-a</span>
+
+<span class="sd">    Now we can run the linear mixed effects model on the proportions.</span>
+<span class="sd">    Underneath the hood, the proportions will be transformed into balances,</span>
+<span class="sd">    so that the linear mixed effects models can be run directly on balances.</span>
+<span class="sd">    Since each patient was sampled repeatedly, we&#39;ll specify them separately</span>
+<span class="sd">    in the groups.  In the linear mixed effects model `time` and `treatment`</span>
+<span class="sd">    will be simultaneously tested for with respect to the balances.</span>
+
+<span class="sd">    &gt;&gt;&gt; res = mixedlm(&#39;time + treatment&#39;, table, metadata, tree,</span>
+<span class="sd">    ...               groups=&#39;patient&#39;)</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    statsmodels.regression.linear_model.MixedLM</span>
+<span class="sd">    skbio.stats.composition.multiplicative_replacement</span>
+<span class="sd">    ols</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">_intersect_of_table_metadata_tree</span><span class="p">(</span><span class="n">table</span><span class="p">,</span>
+                                                              <span class="n">metadata</span><span class="p">,</span>
+                                                              <span class="n">tree</span><span class="p">)</span>
+    <span class="n">ilr_table</span><span class="p">,</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">_to_balances</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">_type_cast_to_float</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ilr_table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;No more samples left.  Check to make sure that &quot;</span>
+                          <span class="s2">&quot;the sample names between `metadata` and `table` &quot;</span>
+                          <span class="s2">&quot;are consistent&quot;</span><span class="p">))</span>
+    <span class="n">submodels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ilr_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="c1"># mixed effects code is obtained here:</span>
+        <span class="c1"># http://stackoverflow.com/a/22439820/1167475</span>
+        <span class="n">stats_formula</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> ~ </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
+        <span class="n">mdf</span> <span class="o">=</span> <span class="n">smf</span><span class="o">.</span><span class="n">mixedlm</span><span class="p">(</span><span class="n">stats_formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                          <span class="n">groups</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">groups</span><span class="p">],</span>
+                          <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">submodels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LMEModel</span><span class="p">(</span><span class="n">submodels</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span>
+                    <span class="n">balances</span><span class="o">=</span><span class="n">ilr_table</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LMEModel"><a class="viewcode-back" href="../../../generated/gneiss.regression.LMEModel.html#gneiss.regression.LMEModel">[docs]</a><span class="k">class</span> <span class="nc">LMEModel</span><span class="p">(</span><span class="n">RegressionModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Summary object for storing linear mixed effects results.</span>
+
+<span class="sd">    A `LMEModel` object stores information about the</span>
+<span class="sd">    individual balances used in the regression, the coefficients,</span>
+<span class="sd">    residuals. This object can be used to perform predictions.</span>
+<span class="sd">    In addition, summary statistics such as the coefficient</span>
+<span class="sd">    of determination for the overall fit can be calculated.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    submodels : list of statsmodels objects</span>
+<span class="sd">        List of statsmodels result objects.</span>
+<span class="sd">    basis : pd.DataFrame</span>
+<span class="sd">        Orthonormal basis in the Aitchison simplex.</span>
+<span class="sd">        Row names correspond to the leafs of the tree</span>
+<span class="sd">        and the column names correspond to the internal nodes</span>
+<span class="sd">        in the tree.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Bifurcating tree that defines `basis`.</span>
+<span class="sd">    balances : pd.DataFrame</span>
+<span class="sd">        A table of balances where samples are rows and</span>
+<span class="sd">        balances are columns. These balances were calculated</span>
+<span class="sd">        using `tree`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LMEModel.__init__"><a class="viewcode-back" href="../../../generated/gneiss.regression.LMEModel.html#gneiss.regression.LMEModel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Fit the model &quot;&quot;&quot;</span>
+        <span class="c1"># assumes that the underlying submodels have implemented `fit`.</span>
+        <span class="c1"># TODO: Add regularized fit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">submodels</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Summarize the Ordinary Least Squares Regression Results.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ndim : int</span>
+<span class="sd">            Number of dimensions to summarize for coefficients.</span>
+<span class="sd">            If `ndim` is None, then all of the dimensions of the covariates</span>
+<span class="sd">            will be printed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str :</span>
+<span class="sd">            This holds the summary of regression coefficients and fit</span>
+<span class="sd">            information.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate the aitchison norm for all of the coefficients</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ndim</span><span class="p">:</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="n">coefs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;     &#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;slope&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">coefs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># We need a hierarchical index.  The outer index for each balance</span>
+        <span class="c1"># and the inner index for each covariate</span>
+        <span class="k">if</span> <span class="n">ndim</span><span class="p">:</span>
+            <span class="n">pvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvalues</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="c1"># adding blank column just for the sake of display</span>
+        <span class="n">pvals</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;     &#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;pvalue&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">pvals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">coefs</span><span class="p">,</span> <span class="n">pvals</span><span class="p">))</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;     &#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;mergesort&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_format</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="c1"># format scores to be printable</span>
+            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%3.2E</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">x</span>
+
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_format</span><span class="p">)</span>
+        <span class="c1"># TODO: Will want to add results for Aitchison norm</span>
+        <span class="c1"># cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)</span>
+        <span class="c1">#                        for c in coefs.columns}, index=[&#39;A-Norm&#39;]).T</span>
+        <span class="c1"># cnorms = cnorms.apply(_format)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">coefs</span>
+        <span class="c1"># TODO: Will want results from Hotelling t-test</span>
+
+        <span class="c1"># number of observations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balances</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Start filling in summary information</span>
+        <span class="n">smry</span> <span class="o">=</span> <span class="n">Summary</span><span class="p">()</span>
+        <span class="c1"># Top results</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;No. Observations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balances</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Model:&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Simplicial MixedLM&quot;</span>
+
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_dict</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_title</span><span class="p">(</span><span class="s2">&quot;Simplicial Mixed Linear Model Results&quot;</span><span class="p">)</span>
+        <span class="c1"># TODO</span>
+        <span class="c1"># smry.add_df(cnorms, align=&#39;r&#39;)</span>
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_df</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">smry</span>
+
+    <span class="k">def</span> <span class="nf">percent_explained</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Proportion explained by each principal balance.&quot;&quot;&quot;</span>
+        <span class="c1"># Using sum of squares error calculation (df=1)</span>
+        <span class="c1"># instead of population variance (df=0).</span>
+        <span class="n">axis_vars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">balances</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">axis_vars</span> <span class="o">/</span> <span class="n">axis_vars</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

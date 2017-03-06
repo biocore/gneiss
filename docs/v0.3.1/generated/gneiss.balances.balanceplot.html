@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.balances.balanceplot &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="gneiss 0.2 documentation" href="../index.html" />
+    <link rel="up" title="Balances (gneiss.balances)" href="../balances.html" />
+    <link rel="next" title="Regression functions (gneiss.regression)" href="../regression.html" />
+    <link rel="prev" title="gneiss.balances.balance_basis" href="gneiss.balances.balance_basis.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-balances-balanceplot">
+<h1>gneiss.balances.balanceplot<a class="headerlink" href="#gneiss-balances-balanceplot" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.balances.balanceplot">
+<code class="descclassname">gneiss.balances.</code><code class="descname">balanceplot</code><span class="sig-paren">(</span><em>balances</em>, <em>tree</em>, <em>layout=None</em>, <em>mode='c'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/balances.html#balanceplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.balances.balanceplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots balances on tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>balances</strong> (<em>np.array</em>) &#8211; A vector of internal nodes and their associated real-valued balances.
+The order of the balances will be assumed to be in level order.</li>
+<li><strong>tree</strong> (<em>skbio.TreeNode</em>) &#8211; A strictly bifurcating tree defining a hierarchical relationship
+between all of the features within <cite>table</cite>.</li>
+<li><strong>layout</strong> (<em>function, optional</em>) &#8211; A layout for formatting the tree visualization. Must take a
+<cite>ete.tree</cite> as a parameter.</li>
+<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Type of display to show the tree. (&#8216;c&#8217;: circular, &#8216;r&#8217;: rectangular).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-notes admonition">
+<p class="first admonition-title">Notes</p>
+<p class="last">The <cite>tree</cite> is assumed to strictly bifurcating and whose tips match
+<cite>balances</cite>.  It is not recommended to attempt to plot trees with a
+ton of leaves (i.e. more than 4000 leaves).</p>
+</div>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gneiss.balances</span> <span class="k">import</span> <span class="n">balanceplot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skbio</span> <span class="k">import</span> <span class="n">TreeNode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">&quot;((b,c)a, d)root;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">TreeNode</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="n">tree</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">balances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">balanceplot</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">get_ascii</span><span class="p">())</span>
+
+<span class="go">       /-b</span>
+<span class="go">    /a|</span>
+<span class="go">-root  \-c</span>
+<span class="go">   |</span>
+<span class="go">    \-d</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-func docutils literal"><span class="pre">skbio.TreeNode.levelorder()</span></code></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../balances.html">Balances (<code class="docutils literal"><span class="pre">gneiss.balances</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.balances.balance_basis.html" title="previous chapter">gneiss.balances.balance_basis</a></li>
+      <li>Next: <a href="../regression.html" title="next chapter">Regression functions (<code class="docutils literal"><span class="pre">gneiss.regression</span></code>)</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.balances.balanceplot.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.balances.balanceplot.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+gneiss.sort.niche_sort
+======================
+
+.. currentmodule:: gneiss.sort
+
+.. autofunction:: niche_sort

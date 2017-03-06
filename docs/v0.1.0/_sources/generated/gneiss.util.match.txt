@@ -1,0 +1,6 @@
+gneiss.util.match
+=================
+
+.. currentmodule:: gneiss.util
+
+.. autofunction:: match

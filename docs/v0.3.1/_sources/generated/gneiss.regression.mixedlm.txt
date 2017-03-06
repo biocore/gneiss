@@ -1,0 +1,6 @@
+gneiss.regression.mixedlm
+=========================
+
+.. currentmodule:: gneiss.regression
+
+.. autofunction:: mixedlm
