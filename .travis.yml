@@ -17,10 +17,10 @@ before_install:
   - conda info -a
 install:
   - conda create --yes -n test_env python=$PYVERSION --file ci/conda_requirements.txt -c biocore
-  - conda install --file https://data.qiime2.org/distro/core/qiime2-2017.2-conda-linux-64.txt
   - conda install --yes -n test_env cython
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
+  - pip install -r ci/qiime_requirements.txt
   - pip install -e .
 script:
   - WITH_COVERAGE=TRUE make all
