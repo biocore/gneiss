@@ -13,6 +13,7 @@ Functions
    :toctree: generated/
 
    heatmap
+   radialplot
    diamondtree
 """
 # ----------------------------------------------------------------------------

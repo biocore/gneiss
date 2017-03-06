@@ -15,7 +15,7 @@ from scipy.cluster.hierarchy import linkage
 
 
 def proportional_linkage(X, method='ward'):
-    """
+    r"""
     Principal Balance Analysis using Hierarchical Clustering
     based on proportionality.
 
@@ -24,7 +24,7 @@ def proportional_linkage(X, method='ward'):
     two features :math:`x` and :math:`y` is measured by
 
     .. math::
-        p(x, y) = var \ln \frac{x}{y}
+        p(x, y) = var (\ln \frac{x}{y})
 
     If :math:`p(x, y)` is very small, then :math:`x` and :math:`y`
     are said to be highly proportional. A hierarchical clustering is
@@ -43,8 +43,16 @@ def proportional_linkage(X, method='ward'):
     skbio.TreeNode
         Tree generated from principal balance analysis.
 
+    References
+    ----------
+
+    .. [1] Pawlowsky-Glahn V, Egozcue JJ, and Tolosana-Delgado R.
+       Principal Balances (2011).
+
     Examples
     --------
+    >>> import pandas as pd
+    >>> from gneiss.cluster import proportional_linkage
     >>> table = pd.DataFrame([[1, 1, 0, 0, 0],
     ...                       [0, 1, 1, 0, 0],
     ...                       [0, 0, 1, 1, 0],
@@ -53,10 +61,6 @@ def proportional_linkage(X, method='ward'):
     ...                      index=['o1', 'o2', 'o3', 'o4']).T
     >>> tree = proportional_linkage(table+0.1)
 
-    Refererences
-    ------------
-    .. [1] Pawlowsky-Glahn V, Egozcue JJ, and Tolosana-Delgado R.
-       Principal Balances (2011).
     """
     dm = variation_matrix(X)
     lm = linkage(dm.condensed_form(), method=method)
@@ -64,7 +68,7 @@ def proportional_linkage(X, method='ward'):
 
 
 def gradient_linkage(X, y, method='average'):
-    """
+    r"""
     Principal Balance Analysis using Hierarchical Clustering
     on known gradient.
 
@@ -105,8 +109,14 @@ def gradient_linkage(X, y, method='average'):
     skbio.TreeNode
         Tree generated from principal balance analysis.
 
+    See Also
+    --------
+    mean_niche_estimator
+
     Examples
     --------
+    >>> import pandas as pd
+    >>> from gneiss.cluster import gradient_linkage
     >>> table = pd.DataFrame([[1, 1, 0, 0, 0],
     ...                       [0, 1, 1, 0, 0],
     ...                       [0, 0, 1, 1, 0],
@@ -117,10 +127,6 @@ def gradient_linkage(X, y, method='average'):
     ...                      index=['s1', 's2', 's3', 's4', 's5'])
     >>> tree = gradient_linkage(table, gradient)
 
-
-    See Also
-    --------
-    mean_niche_estimator
     """
     _X, _y = match(X, y)
     mean_X = mean_niche_estimator(_X, gradient=_y)

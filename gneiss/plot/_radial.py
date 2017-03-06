@@ -49,6 +49,7 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
     bokeh.models.Plot
        Interactive plotting instance.
 
+
     Notes
     -----
     This assumes that the tree is strictly bifurcating.

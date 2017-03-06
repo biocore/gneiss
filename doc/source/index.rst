@@ -13,6 +13,8 @@ Contents:
 
    balances
    regression
+   cluster
+   plot
    sort
    util
 
