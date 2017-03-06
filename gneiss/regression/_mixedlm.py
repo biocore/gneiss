@@ -11,7 +11,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
 from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances)
+                         _to_balances, _type_cast_to_float)
 from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 
@@ -138,6 +138,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                                                               metadata,
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
+    metadata = _type_cast_to_float(metadata)
     data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
     if len(data) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "

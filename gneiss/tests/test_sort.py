@@ -38,6 +38,19 @@ class TestSort(unittest.TestCase):
         m = mean_niche_estimator(values, gradient)
         self.assertEqual(m, 1.75)
 
+    def test_mean_niche_estimator_frame(self):
+        gradient = pd.Series(
+            [1, 2, 3, 4, 5],
+            index=['s1', 's2', 's3', 's4', 's5'])
+        values = pd.DataFrame(
+            np.array([[1, 3, 0, 0, 0],
+                      [1, 3, 0, 0, 0]]).T,
+            index=['s1', 's2', 's3', 's4', 's5'],
+            columns=['o1', 'o2'])
+        m = mean_niche_estimator(values, gradient)
+        exp = pd.Series([1.75, 1.75], index=['o1', 'o2'])
+        pdt.assert_series_equal(m, exp)
+
     def test_mean_niche_estimator_bad_length(self):
         gradient = pd.Series(
             [1, 2, 3, 4, 5],
