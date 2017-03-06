@@ -46,7 +46,8 @@ IPython notebooks demonstrating some of the modules in gneiss can be found as fo
 * [What are balances](https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb)
 * [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils/88soils.ipynb)
 * [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy/cfstudy.ipynb)
-\
+
+
 If you use this software package in your own publications, please cite it at
 ```
 Morton JT, Sanders J, Quinn RA, McDonald D, Gonzalez A, Vázquez-Baeza Y, 
