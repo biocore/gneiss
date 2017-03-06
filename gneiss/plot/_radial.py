@@ -20,7 +20,7 @@ except ImportError:
 def radialplot(tree, node_color='node_color', node_size='node_size',
                node_alpha='node_alpha', edge_color='edge_color',
                edge_alpha='edge_alpha', edge_width='edge_width',
-               figsize=(500, 500), **kwargs):
+               hover_var='hover_var', figsize=(500, 500), **kwargs):
     """ Plots unrooted radial tree.
 
     Parameters
@@ -39,6 +39,8 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
        Name of variable in `tree` to specify edge transparency.
     edge_width : str
        Name of variable in `tree` to specify edge width.
+    hover_var : str
+       Name of variable in `tree` to display in the hover menu.
     figsize : tuple, int
        Size of resulting figure.  default: (500, 500)
     **kwargs: dict
@@ -72,6 +74,7 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
     nodes[node_color] = _retreive(t, node_color, default='#D3D3D3')
     nodes[node_size] = _retreive(t, node_size, default=1)
     nodes[node_alpha] = _retreive(t, node_alpha, default=1)
+    nodes[hover_var] = _retreive(t, hover_var, default=None)
 
     edges = nodes[['child0', 'child1']]
     edges = edges.dropna(subset=['child0', 'child1'])
@@ -115,13 +118,12 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
     plot.add_glyph(df2ds(edges), edge_glyph)
     ns = plot.add_glyph(df2ds(nodes), node_glyph)
 
-    # TODO: Will need to make the hovertool options more configurable
-    tooltip = """
-        <div>
-            <span style="font-size: 17px; font-weight: bold;">name: </span>
-            <span style="font-size: 15px; color: #151515;">@index</span>
-        </div>
-    """
+    tooltip = [
+        ("Feature ID", "@index")
+    ]
+    if hover_var is not None:
+        tooltip += [(hover_var, "@" + hover_var)]
+
     hover = HoverTool(renderers=[ns], tooltips=tooltip)
     plot.add_tools(hover, BoxZoomTool(), ResetTool())
 

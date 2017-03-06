@@ -51,15 +51,17 @@ def mean_niche_estimator(abundances, gradient):
 
     Parameters
     ----------
-    abundances : pd.Series, np.float
+    abundances : pd.DataFrame or pd.Series, np.float
         Vector of fraction abundances of an organism over a list of samples.
     gradient : pd.Series, np.float
         Vector of numerical gradient values.
 
     Returns
     -------
-    np.float :
-        The mean gradient that the organism lives in.
+    pd.Series or np.float :
+        The mean gradient that the feature is observed in.
+        If `abundances` is a `pd.DataFrame` containing the mean gradient
+        values for each feature.  Otherwise a float is returned.
 
     Raises
     ------
@@ -81,6 +83,8 @@ def mean_niche_estimator(abundances, gradient):
     # samples to add to 1.
     v = abundances / abundances.sum()
     m = np.dot(gradient, v)
+    if isinstance(abundances, pd.DataFrame):
+        m = pd.Series(m, index=abundances.columns)
     return m
 
 

@@ -47,6 +47,7 @@ class TestRadial(unittest.TestCase):
                      'child1': [np.nan, np.nan, np.nan, '2', 'y3'],
                      'color': ['#1C9099', '#1C9099', '#1C9099',
                                '#FF999F', '#FF999F'],
+                     'hover_var': [None, None, None, None, None],
                      'index': ['0', '1', '2', 'y3', 'y4'],
                      'is_tip': [True, True, True, False, False],
                      'node_alpha': [1, 1, 1, 1, 1],
