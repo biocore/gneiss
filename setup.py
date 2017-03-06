@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
 #
-# Distributed under the terms of the GPLv3 License.
+# Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
@@ -38,7 +38,7 @@ if USE_CYTHON:
 
 classes = """
     Development Status :: 3 - Alpha
-    License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+    License :: OSI Approved :: BSD License
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
@@ -66,7 +66,7 @@ with open('gneiss/__init__.py', 'rb') as f:
 
 setup(name='gneiss',
       version=version,
-      license='GPLv3',
+      license='BSD',
       description=description,
       long_description=long_description,
       author="gneiss development team",
@@ -86,7 +86,6 @@ setup(name='gneiss',
           'nose >= 1.3.7',
           'scikit-bio==0.5.1',
           'statsmodels>=0.8.0',
-          'ete3',
       ],
       extra_require={
           'q2': ['qiime2 >= 2017.2.0', 'biom-format', 'seaborn']
