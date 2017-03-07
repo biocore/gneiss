@@ -3,7 +3,6 @@
 [![Build Status](https://travis-ci.org/biocore/gneiss.png?branch=master)](https://travis-ci.org/biocore/gneiss)
 [![Coverage Status](https://coveralls.io/repos/biocore/gneiss/badge.svg)](https://coveralls.io/r/biocore/gneiss)
 [![Gitter](https://badges.gitter.im/biocore/gneiss.svg)](https://gitter.im/biocore/gneiss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org:/repo/biocore/gneiss)
 
 Canonically pronouced *nice*
 
@@ -18,26 +17,7 @@ gneiss is currently in alpha.  We are actively developing it, and __backward-inc
 To install this package, it is recommended to use conda.  An environment can installed as follows
 
 ```
-conda create -n gneiss_env python=3.5
-```
-
-gneiss then can be installed as follows
-```
-source activate gneiss_env
-conda install pyqt=4.11.4
-pip install gneiss
-```
-
-gneiss can also be installed through conda
-```
-conda install -c biocore gneiss
-```
-
-To run through the tutorials, you'll need a few more packages, namely `seaborn`, `biom-format` and `h5py`.
-These packages can be installed with conda as follows
-```
-conda install seaborn h5py
-pip install biom-format
+conda create -n gneiss_env gneiss -c biocore -c qiime2
 ```
 
 # Examples
