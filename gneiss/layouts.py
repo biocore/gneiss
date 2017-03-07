@@ -5,11 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import warnings
 try:
-    from ete3 import faces, AttrFace, CircleFace, BarChartFace
+    import ete3
 except:
     pass
+
 
 def default_layout(node):
     """
@@ -23,19 +23,19 @@ def default_layout(node):
 
     if node.is_leaf():
         # Add node name to leaf nodes
-        N = AttrFace("name", fsize=14, fgcolor="black")
+        N = ete3.AttrFace("name", fsize=14, fgcolor="black")
 
-        faces.add_face_to_node(N, node, 0)
+        ete3.faces.add_face_to_node(N, node, 0)
     if "weight" in node.features:
         # Creates a sphere face whose size is proportional to node's
         # feature "weight"
-        C = CircleFace(radius=node.weight, color="Red", style="sphere")
+        C = ete3.CircleFace(radius=node.weight, color="Red", style="sphere")
         # Let's make the sphere transparent
         C.opacity = 0.5
         # Rotate the faces by 90*
         C.rotation = 90
         # And place as a float face over the tree
-        faces.add_face_to_node(C, node, 0, position="float")
+        ete3.faces.add_face_to_node(C, node, 0, position="float")
 
 
 def barchart_layout(node, name='name',
@@ -76,8 +76,8 @@ def barchart_layout(node, name='name',
         colors = ['#0000FF']
     if node.is_leaf():
         # Add node name to leaf nodes
-        N = AttrFace("name", fsize=fsize, fgcolor=fgcolor)
-        faces.add_face_to_node(N, node, 0)
+        N = ete3.AttrFace("name", fsize=fsize, fgcolor=fgcolor)
+        ete3.faces.add_face_to_node(N, node, 0)
     if "weight" in node.features:
         # Creates a sphere face whose size is proportional to node's
         # feature "weight"
@@ -85,7 +85,7 @@ def barchart_layout(node, name='name',
             weight = [node.weight]
         else:
             weight = node.weight
-        C = BarChartFace(values=weight, width=width, height=height,
+        C = ete3.BarChartFace(values=weight, width=width, height=height,
                          colors=colors, min_value=min_value,
                          max_value=max_value)
         # Let's make the sphere transparent
@@ -93,4 +93,4 @@ def barchart_layout(node, name='name',
         # Rotate the faces by 270*
         C.rotation = rotation
         # And place as a float face over the tree
-        faces.add_face_to_node(C, node, 0, position="float")
+        ete3.faces.add_face_to_node(C, node, 0, position="float")
