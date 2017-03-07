@@ -5,12 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import warnings
 try:
     from ete3 import faces, AttrFace, CircleFace, BarChartFace
-except ImportError:
-    raise ImportWarning('ete3 is not installed.  '
-                        'ETE3 style visualizations will not be available.')
-
+except:
+    pass
 
 def default_layout(node):
     """
@@ -21,6 +20,7 @@ def default_layout(node):
     node: ete.Tree
         Input node for specifying which attributes.
     """
+
     if node.is_leaf():
         # Add node name to leaf nodes
         N = AttrFace("name", fsize=14, fgcolor="black")
