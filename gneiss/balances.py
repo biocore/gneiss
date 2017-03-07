@@ -32,11 +32,10 @@ import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
 try:
-    from ete3 import Tree, TreeStyle
+    import ete3
     from gneiss.layouts import default_layout
-except ImportError:
-    raise ImportWarning('ete3 is not installed.  '
-                        'ETE3 style visualizations will not be available.')
+except:
+    pass
 
 
 def _balance_basis(tree_node):
@@ -197,7 +196,7 @@ def _attach_balances(balances, tree):
         raise IndexError('The number of balances (%d) is not '
                          'equal to the number of internal nodes '
                          'in the tree (%d)' % (len(balances), n_nontips))
-    ete_tree = Tree.from_skbio(tree)
+    ete_tree = ete3.Tree.from_skbio(tree)
     # Some random features in all nodes
     i = 0
     for n in ete_tree.traverse():
@@ -260,7 +259,7 @@ def balanceplot(balances, tree,
     ete_tree = _attach_balances(balances, tree)
 
     # Create an empty TreeStyle
-    ts = TreeStyle()
+    ts = ete3.TreeStyle()
 
     # Set our custom layout function
     if layout is None:

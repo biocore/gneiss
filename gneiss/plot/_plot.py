@@ -24,15 +24,11 @@ from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable
 from qiime2.plugin import Int, MetadataCategory
 
-try:
-    from bokeh.embed import file_html
-    from bokeh.resources import CDN
-    from bokeh.plotting import figure, ColumnDataSource
-    from bokeh.layouts import row
-    from bokeh.models import HoverTool, BoxZoomTool, ResetTool
-except ImportError:
-    raise ImportWarning('Bokeh not installed. '
-                        'Interactive visualizations will not be available')
+from bokeh.embed import file_html
+from bokeh.resources import CDN
+from bokeh.plotting import figure, ColumnDataSource
+from bokeh.layouts import row
+from bokeh.models import HoverTool, BoxZoomTool, ResetTool
 
 
 def _projected_prediction(model):

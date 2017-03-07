@@ -14,7 +14,6 @@ Functions
 
    heatmap
    radialplot
-   diamondtree
 """
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
@@ -25,10 +24,9 @@ Functions
 # ----------------------------------------------------------------------------
 
 from ._heatmap import heatmap
-from ._blobtree import diamondtree
 from ._radial import radialplot
 from ._plot import ols_summary, lme_summary, dendrogram_heatmap
 
 
-__all__ = ["heatmap", "diamondtree", "radialplot",
+__all__ = ["heatmap", "radialplot",
            "ols_summary", "lme_summary", "dendrogram_heatmap"]
