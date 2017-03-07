@@ -86,8 +86,8 @@ def barchart_layout(node, name='name',
         else:
             weight = node.weight
         C = ete3.BarChartFace(values=weight, width=width, height=height,
-                         colors=colors, min_value=min_value,
-                         max_value=max_value)
+                              colors=colors, min_value=min_value,
+                              max_value=max_value)
         # Let's make the sphere transparent
         C.opacity = alpha
         # Rotate the faces by 270*
