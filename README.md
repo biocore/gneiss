@@ -17,7 +17,7 @@ gneiss is currently in alpha.  We are actively developing it, and __backward-inc
 To install this package, it is recommended to use conda.  An environment can installed as follows
 
 ```
-conda create -n gneiss_env gneiss -c biocore -c qiime2
+conda create -n gneiss_env gneiss python=3.5 -c biocore -c qiime2
 ```
 
 # Examples
