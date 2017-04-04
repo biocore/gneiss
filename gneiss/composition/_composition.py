@@ -8,13 +8,12 @@
 import pandas as pd
 import skbio
 from skbio.stats.composition import ilr
-
-from q2_composition.plugin_setup import Composition, Balance
-from q2_types.feature_table import FeatureTable
+from q2_composition.plugin_setup import Composition
 from q2_types.tree import Phylogeny, Rooted, Unrooted
-from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
 from gneiss.balances import balance_basis
+from gneiss.composition._type import Balance
+from q2_types.feature_table import FeatureTable
 
 
 def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
@@ -27,10 +26,11 @@ def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
 
 
 plugin.methods.register_function(
-    function=ols_regression,
+    function=ilr_transform,
     inputs={'table': FeatureTable[Composition],
             'tree': Phylogeny[Rooted | Unrooted]},
     outputs=[('balances', FeatureTable[Balance])],
+    parameters={},
     name='Isometric Log-ratio Transform',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
