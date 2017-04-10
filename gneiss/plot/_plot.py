@@ -22,7 +22,7 @@ from gneiss.regression._type import (LinearRegression_g,
 from q2_types.tree import Phylogeny, Rooted
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable
-from qiime2.plugin import Int, MetadataCategory, Str
+from qiime2.plugin import Int, MetadataCategory, Str, Choices
 
 from bokeh.embed import file_html
 from bokeh.resources import CDN
@@ -343,6 +343,26 @@ plugin.visualizers.register_function(
                  "predicted fit and residuals")
 )
 
+_transform_methods = ['clr', 'log']
+_mpl_colormaps = ['viridis', 'inferno', 'plasma', 'magma',
+                  'Blues', 'BuGn', 'BuPu',
+                  'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                  'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
+                  'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd',
+                  'afmhot', 'autumn', 'bone', 'cool',
+                  'copper', 'gist_heat', 'gray', 'hot',
+                  'pink', 'spring', 'summer', 'winter',
+                  'BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
+                  'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
+                  'seismic', 'Accent', 'Dark2', 'Paired', 'Pastel1',
+                  'Pastel2', 'Set1', 'Set2', 'Set3', 'Vega10',
+                  'Vega20', 'Vega20b', 'Vega20c',
+                  'gist_earth', 'terrain', 'ocean', 'gist_stern',
+                  'brg', 'CMRmap', 'cubehelix',
+                  'gnuplot', 'gnuplot2', 'gist_ncar',
+                  'nipy_spectral', 'jet', 'rainbow',
+                  'gist_rainbow', 'hsv', 'flag', 'prism']
+
 
 # Heatmap
 def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
@@ -380,8 +400,9 @@ plugin.visualizers.register_function(
     function=dendrogram_heatmap,
     inputs={'table': FeatureTable[Composition],
             'tree': Phylogeny[Rooted]},
-    parameters={'metadata': MetadataCategory, 'ndim': Int, 'method': Str,
-                'color_map': Str},
+    parameters={'metadata': MetadataCategory, 'ndim': Int,
+                'method': Str % Choices(_transform_methods),
+                'color_map': Str % Choices(_mpl_colormaps)},
     input_descriptions={
         'table': ('The feature table that will be plotted as a heatmap. '
                   'This table is assumed to have strictly positive values.'),
@@ -393,9 +414,11 @@ plugin.visualizers.register_function(
     parameter_descriptions={
         'metadata': ('Metadata to group the samples. '),
         'ndim': 'Number of dimensions to highlight.',
-        'method':("Specifies how the data should be normalized for display."
+        'method': ("Specifies how the data should be normalized for display."
                    "Options include 'log' or 'clr' (default='clr')."),
-        'color_map': "Specifies the color map for plotting the heatmap."
+        'color_map': ("Specifies the color map for plotting the heatmap. "
+                      "See https://matplotlib.org/examples/color/"
+                      "colormaps_reference.html for more details.")
     },
     name='Dendrogram heatmap.',
     description=("Visualize the feature tables as a heatmap. "

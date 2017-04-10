@@ -117,6 +117,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
 
     return fig
 
+
 # TODO: Refactor and place in utils.  This can be also
 # be used for the balance_basis calculations
 def _tree_coordinates(t):
