@@ -22,7 +22,7 @@ from gneiss.regression._type import (LinearRegression_g,
 from q2_types.tree import Phylogeny, Rooted
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable
-from qiime2.plugin import Int, MetadataCategory
+from qiime2.plugin import Int, MetadataCategory, Str
 
 from bokeh.embed import file_html
 from bokeh.resources import CDN
@@ -347,20 +347,24 @@ plugin.visualizers.register_function(
 # Heatmap
 def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
                        tree: TreeNode, metadata: MetadataCategory,
-                       ndim=10):
+                       ndim=10, method='clr', color_map='viridis'):
 
     nodes = [n.name for n in tree.levelorder()]
     nlen = min(ndim, len(nodes))
     highlights = pd.DataFrame([['#00FF00', '#FF0000']] * nlen,
                               index=nodes[:nlen])
-
-    mat = pd.DataFrame(clr(centralize(table)),
-                       index=table.index,
-                       columns=table.columns)
+    if method == 'clr':
+        mat = pd.DataFrame(clr(centralize(table)),
+                           index=table.index,
+                           columns=table.columns)
+    elif method == 'log':
+        mat = pd.DataFrame(np.log(table),
+                           index=table.index,
+                           columns=table.columns)
 
     # TODO: There are a few hard-coded constants here
     # will need to have some adaptive defaults set in the future
-    fig = heatmap(mat, tree, metadata.to_series(), highlights,
+    fig = heatmap(mat, tree, metadata.to_series(), highlights, cmap=color_map,
                   highlight_width=0.01, figsize=(12, 8))
     fig.savefig(os.path.join(output_dir, 'heatmap.svg'))
 
@@ -376,7 +380,8 @@ plugin.visualizers.register_function(
     function=dendrogram_heatmap,
     inputs={'table': FeatureTable[Composition],
             'tree': Phylogeny[Rooted]},
-    parameters={'metadata': MetadataCategory, 'ndim': Int},
+    parameters={'metadata': MetadataCategory, 'ndim': Int, 'method': Str,
+                'color_map': Str},
     input_descriptions={
         'table': ('The feature table that will be plotted as a heatmap. '
                   'This table is assumed to have strictly positive values.'),
@@ -387,7 +392,11 @@ plugin.visualizers.register_function(
                  'present in this tree.')},
     parameter_descriptions={
         'metadata': ('Metadata to group the samples. '),
-        'ndim': 'Number of dimensions to highlight.'},
+        'ndim': 'Number of dimensions to highlight.',
+        'method':("Specifies how the data should be normalized for display."
+                   "Options include 'log' or 'clr' (default='clr')."),
+        'color_map': "Specifies the color map for plotting the heatmap."
+    },
     name='Dendrogram heatmap.',
     description=("Visualize the feature tables as a heatmap. "
                  "with samples sorted along a specified metadata category "
