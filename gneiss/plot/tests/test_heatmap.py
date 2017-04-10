@@ -87,11 +87,21 @@ class HeatmapTest(unittest.TestCase):
         res = str(fig.get_axes()[0].get_xlabel())
         self.assertEqual(res, "None")
 
+    def test_basic_line_width(self):
+        fig = heatmap(self.table, self.t, self.md,
+                      figsize=(5, self.table.shape[0]), linewidth=1)
+
+        # Test to see if the lineages of the tree are ok
+        lines = list(fig.get_axes()[1].get_lines())
+        widths = [l.get_lw() for l in lines]
+        np.allclose(widths, [1.0] * len(widths))
+
     def test_basic_highlights(self):
         fig = heatmap(self.table, self.t, self.md, self.highlights)
 
         # Test to see if the lineages of the tree are ok
         lines = list(fig.get_axes()[1].get_lines())
+
         pts = self.t.coords(width=20, height=self.table.shape[0])
         pts['y'] = pts['y'] - 0.5  # account for offset
         pts['x'] = pts['x'].astype(np.float)
