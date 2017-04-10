@@ -14,6 +14,7 @@ from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
                          _type_cast_to_float, random_tree,
                          block_diagonal, band_diagonal)
+import numpy.testing as npt
 
 
 class TestUtil(unittest.TestCase):
