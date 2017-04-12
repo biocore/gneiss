@@ -330,7 +330,13 @@ def block_diagonal(ncols, nrows, nblocks):
         Number of rows
     nblocks : int
         Number of blocks
+
+    Note
+    ----
+    The number of blocks specified by `nblocks` needs to be greater than 1.
     """
+    if nblocks <= 1:
+        raise ValueError('`nblocks` needs to be greater than 1.')
     mat = np.zeros((nrows, ncols))
     block_cols = ncols // nblocks
     block_rows = nrows // nblocks
@@ -350,22 +356,26 @@ def block_diagonal(ncols, nrows, nblocks):
 
 
 def _shift(l, n):
+    """ Creates the band table by iteratively shifting a single vector.
+
+    Parameters
+    ----------
+    l : array
+       Vector to be shifted
+    n : int
+       Max number of shifts
+    """
     sl = l
+
     table = [l]
+
     if n == 0:
         return table
     else:
         for k in range(n):
-            sl = _shift1(sl)
+            sl = np.roll(sl, 1)
             table.append(sl)
         return table
-
-
-def _shift1(l):
-    newlist = [0] * len(l)
-    for i in range(1, len(l)):
-        newlist[i] = l[i-1]
-    return newlist
 
 
 def band_diagonal(n, b):
@@ -385,6 +395,7 @@ def band_diagonal(n, b):
     """
     p = n - b + 1  # samples
     y = [1./b] * b + [0] * (n-b)
+
     table = _shift(y, p-1)
     table = np.column_stack(table)
     return table

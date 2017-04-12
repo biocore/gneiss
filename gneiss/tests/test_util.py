@@ -366,6 +366,14 @@ class TestUtil(unittest.TestCase):
 
         npt.assert_allclose(res, exp, rtol=1e-5, atol=1e-5)
 
+    def test_block_diagonal_error(self):
+
+        with self.assertRaises(ValueError):
+            block_diagonal(3, 4, 1)
+
+        with self.assertRaises(ValueError):
+            block_diagonal(3, 4, 0)
+
     def test_band_diagonal(self):
         res = band_diagonal(8, 3)
         exp = np.array([[0.33333333, 0., 0., 0., 0., 0.],
