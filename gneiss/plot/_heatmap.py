@@ -32,7 +32,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
         The first color will always correspond to the left subtree,
         and the second color will always correspond to the right subtree.
     cmap : str
-        Species the matplotlib colormap for the heatmap (default='viridis')
+        Specifies the matplotlib colormap for the heatmap (default='viridis')
     linewidth : int
         Width of dendrogram lines.
     mdvar: pd.Series
