@@ -423,6 +423,5 @@ plugin.visualizers.register_function(
     name='Dendrogram heatmap.',
     description=("Visualize the feature tables as a heatmap. "
                  "with samples sorted along a specified metadata category "
-                 "and features clustered together specified by the tree."
-                 "In addition, the heatmap values are clr transformed.")
+                 "and features clustered together specified by the tree.")
 )
