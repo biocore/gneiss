@@ -5,8 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import numpy as np
+import pandas as pd
 from gneiss.sort import mean_niche_estimator
-from gneiss.util import match
+from gneiss.util import match, rename_internal_nodes
 from gneiss.stats.composition import variation_matrix
 
 from skbio import TreeNode, DistanceMatrix
@@ -14,21 +16,21 @@ from scipy.spatial.distance import euclidean
 from scipy.cluster.hierarchy import linkage
 
 
-def proportional_linkage(X, method='ward'):
+def correlation_linkage(X, method='ward'):
     r"""
     Principal Balance Analysis using Hierarchical Clustering
-    based on proportionality.
+    based on correlationity.
 
-    The hierarchy is built based on the proportionality between
-    any two pairs of features.  Specifically the proportionality between
+    The hierarchy is built based on the correlationity between
+    any two pairs of features.  Specifically the correlationity between
     two features :math:`x` and :math:`y` is measured by
 
     .. math::
         p(x, y) = var (\ln \frac{x}{y})
 
     If :math:`p(x, y)` is very small, then :math:`x` and :math:`y`
-    are said to be highly proportional. A hierarchical clustering is
-    then performed using this proportionality as a distance metric.
+    are said to be highly correlation. A hierarchical clustering is
+    then performed using this correlationity as a distance metric.
 
     Parameters
     ----------
@@ -52,19 +54,63 @@ def proportional_linkage(X, method='ward'):
     Examples
     --------
     >>> import pandas as pd
-    >>> from gneiss.cluster import proportional_linkage
+    >>> from gneiss.cluster import correlation_linkage
     >>> table = pd.DataFrame([[1, 1, 0, 0, 0],
     ...                       [0, 1, 1, 0, 0],
     ...                       [0, 0, 1, 1, 0],
     ...                       [0, 0, 0, 1, 1]],
     ...                      columns=['s1', 's2', 's3', 's4', 's5'],
     ...                      index=['o1', 'o2', 'o3', 'o4']).T
-    >>> tree = proportional_linkage(table+0.1)
+    >>> tree = correlation_linkage(table+0.1)
 
     """
     dm = variation_matrix(X)
     lm = linkage(dm.condensed_form(), method=method)
-    return TreeNode.from_linkage_matrix(lm, X.columns)
+    t = TreeNode.from_linkage_matrix(lm, X.columns)
+    t = rename_internal_nodes(t)
+    return t
+
+
+def rank_linkage(r, method='average'):
+    r""" Principal Balance Analysis using Hierchical Clustering on
+    feature ranks.
+
+    The hierarchy is built based on the rank values of the features given
+    an input vector `r` of ranks. The distance between two features :math:`x`
+    and :math:`y` can be defined as
+
+    .. math::
+       d(x, y) = (r(x) - r(y))^2
+
+    Where :math:`r(x)` is the rank of the features.  Hierarchical clustering is
+    then performed using :math:`d(x, y)` as the distance metric.
+
+    Parameters
+    ----------
+    r : pd.Series
+        Continuous vector representing some ordering of the features in X.
+    method : str
+        Clustering method.  (default='average')
+
+    Returns
+    -------
+    skbio.TreeNode
+        Tree generated from principal balance analysis.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from gneiss.cluster import rank_linkage
+    >>> ranks = pd.Series([1, 2, 4, 5],
+    ...                   index=['o1', 'o2', 'o3', 'o4'])
+    >>> tree = rank_linkage(ranks)
+
+    """
+    dm = DistanceMatrix.from_iterable(r, euclidean)
+    lm = linkage(dm.condensed_form(), method)
+    t = TreeNode.from_linkage_matrix(lm, r.index)
+    t = rename_internal_nodes(t)
+    return t
 
 
 def gradient_linkage(X, y, method='average'):
@@ -91,7 +137,7 @@ def gradient_linkage(X, y, method='average'):
 
     If :math:`d(x, y)` is very small, then :math:`x` and :math:`y`
     are expected to live in very similar positions across the gradient.
-    A hierarchical clustering is  then performed using :math:`d(x, y)` as
+    A hierarchical clustering is then performed using :math:`d(x, y)` as
     the distance metric.
 
     Parameters
@@ -100,7 +146,7 @@ def gradient_linkage(X, y, method='average'):
         Contingency table where the samples are rows and the features
         are columns.
     y : pd.Series
-        Continuous vector representing some ordering of the features in X.
+        Continuous vector representing some ordering of the samples in X.
     method : str
         Clustering method.  (default='average')
 
@@ -130,6 +176,34 @@ def gradient_linkage(X, y, method='average'):
     """
     _X, _y = match(X, y)
     mean_X = mean_niche_estimator(_X, gradient=_y)
-    dm = DistanceMatrix.from_iterable(mean_X, euclidean)
-    lm = linkage(dm.condensed_form(), method)
-    return TreeNode.from_linkage_matrix(lm, X.columns)
+    t = rank_linkage(mean_X)
+    return t
+
+
+def random_linkage(n):
+    """ Generates a tree with random topology.
+
+    Parameters
+    ----------
+    n : int
+        Number of nodes in the tree
+
+    Returns
+    -------
+    skbio.TreeNode
+        Random tree
+
+    Examples
+    --------
+    >>> from gneiss.cluster import random_linkage
+    >>> tree = random_linkage(10)
+
+
+    Notes
+    -----
+    The nodes will be labeled from 0 to n.
+    """
+    index = np.arange(n).astype(np.str)
+    x = pd.Series(np.random.rand(n), index=index)
+    t = rank_linkage(x)
+    return t
