@@ -22,7 +22,7 @@ def correlation_linkage(X, method='ward'):
     based on correlationity.
 
     The hierarchy is built based on the correlationity between
-    any two pairs of features.  Specifically the correlationity between
+    any two pairs of features.  Specifically the correlation between
     two features :math:`x` and :math:`y` is measured by
 
     .. math::
@@ -30,7 +30,7 @@ def correlation_linkage(X, method='ward'):
 
     If :math:`p(x, y)` is very small, then :math:`x` and :math:`y`
     are said to be highly correlation. A hierarchical clustering is
-    then performed using this correlationity as a distance metric.
+    then performed using this correlation as a distance metric.
 
     Parameters
     ----------

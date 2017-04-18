@@ -19,7 +19,7 @@ from gneiss.sort import gradient_sort, mean_niche_estimator
 
 
 def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
-    """ Builds a tree for features based on a correlationity.
+    """ Builds a tree for features based on correlation.
 
     Parameters
     ----------
@@ -30,7 +30,7 @@ def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
     Returns
     -------
     skbio.TreeNode
-       Represents the partitioning of features with respect to correlationity.
+       Represents the partitioning of features with respect to correlation.
     """
     t = correlation_linkage(table)
     return t
