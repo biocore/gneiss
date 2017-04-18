@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import numpy as np
 from gneiss.sort import mean_niche_estimator
 from gneiss.util import match, rename_internal_nodes
 from gneiss.stats.composition import variation_matrix

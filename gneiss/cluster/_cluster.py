@@ -15,7 +15,6 @@ from q2_types.tree import Phylogeny, Rooted
 from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import correlation_linkage, gradient_linkage
-from gneiss.util import rename_internal_nodes
 from gneiss.sort import gradient_sort, mean_niche_estimator
 
 

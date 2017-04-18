@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-
+import numpy as np
 import pandas as pd
 import unittest
 from gneiss.cluster._pba import (correlation_linkage, gradient_linkage,
@@ -70,7 +70,7 @@ class TestRandomLinkage(unittest.TestCase):
 
     def test_random_tree(self):
         np.random.seed(0)
-        t = random_tree(10)
+        t = random_linkage(10)
         exp = ('((7:0.0359448798595,8:0.0359448798595)y1:0.312827608797,'
                '((9:0.0272390892166,(4:0.00696620596189,6:0.00696620596189)'
                'y5:0.0202728832547)y3:0.16313179006,((0:0.00196516046521,'
@@ -80,7 +80,7 @@ class TestRandomLinkage(unittest.TestCase):
         self.assertEqual(str(t), exp)
 
 
-class TestRandomLinkage(unittest.TestCase):
+class TestRankLinkage(unittest.TestCase):
 
     def test_rank_linkage(self):
         ranks = pd.Series([1, 2, 4, 5],
