@@ -14,12 +14,13 @@ from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.tree import Phylogeny, Rooted
 from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
-from gneiss.cluster._pba import correlation_linkage, gradient_linkage
+from gneiss.cluster._pba import proportional_linkage, gradient_linkage
+from gneiss.util import rename_internal_nodes
 from gneiss.sort import gradient_sort, mean_niche_estimator
 
 
-def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
-    """ Builds a tree for features based on a correlationity.
+def proportional_clustering(table: pd.DataFrame) -> skbio.TreeNode:
+    """ Builds a tree for features based on a proportionality.
 
     Parameters
     ----------
@@ -30,17 +31,18 @@ def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
     Returns
     -------
     skbio.TreeNode
-       Represents the partitioning of features with respect to correlationity.
+       Represents the partitioning of features with respect to proportionality.
     """
-    t = correlation_linkage(table)
+    t = proportional_linkage(table)
+    t = rename_internal_nodes(t)
     return t
 
 
 plugin.methods.register_function(
-    function=correlation_clustering,
+    function=proportional_clustering,
     inputs={'table': FeatureTable[Composition]},
     outputs=[('clustering', Phylogeny[Rooted])],
-    name='Hierarchical clustering using feature correlation.',
+    name='Hierarchical clustering using proportionality.',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
                   'the columns will be clustered.')},
@@ -88,6 +90,7 @@ def gradient_clustering(table: pd.DataFrame,
     mean_g = pd.Series(mean_g, index=table.columns)
     mean_g = mean_g.sort_values()
     t = gradient_sort(t, mean_g)
+    t = rename_internal_nodes(t)
     return t
 
 
