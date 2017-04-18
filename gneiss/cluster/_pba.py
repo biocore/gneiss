@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import numpy as np
+import pandas as pd
 from gneiss.sort import mean_niche_estimator
 from gneiss.util import match, rename_internal_nodes
 from gneiss.stats.composition import variation_matrix
@@ -197,7 +198,12 @@ def random_linkage(n):
     >>> from gneiss.cluster import random_linkage
     >>> tree = random_linkage(10)
 
+
+    Notes
+    -----
+    The nodes will be labeled from 0 to n.
     """
-    x = np.random.rand(n)
+    index = np.arange(n).astype(np.str)
+    x = pd.Series(np.random.rand(n), index=index)
     t = rank_linkage(x)
     return t
