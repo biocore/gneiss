@@ -12,7 +12,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
-                         _type_cast_to_float, random_tree)
+                         _type_cast_to_float)
 
 
 class TestUtil(unittest.TestCase):
@@ -334,16 +334,6 @@ class TestUtil(unittest.TestCase):
                             'd': [1., 2., 3., 4., 5.]})
         pdt.assert_frame_equal(res, exp)
 
-    def test_random_tree(self):
-        np.random.seed(0)
-        t = random_tree(10)
-        exp = ('((7:0.0359448798595,8:0.0359448798595)y1:0.312827608797,'
-               '((9:0.0272390892166,(4:0.00696620596189,6:0.00696620596189)'
-               'y5:0.0202728832547)y3:0.16313179006,((0:0.00196516046521,'
-               '3:0.00196516046521)y6:0.0815110118351,(1:0.0524584044569,'
-               '(2:0.0215653684975,5:0.0215653684975)y8:0.0308930359593)'
-               'y7:0.0310177678435)y4:0.106894706976)y2:0.15840160938)y0;\n')
-        self.assertEqual(str(t), exp)
 
 
 if __name__ == '__main__':

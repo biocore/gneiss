@@ -295,25 +295,3 @@ def _type_cast_to_float(df):
         except:
             continue
     return df
-
-
-def random_tree(n):
-    """ Generates a tree with random topology.
-
-    Parameters
-    ----------
-    n : int
-        Number of nodes in the tree
-
-    Returns
-    -------
-    skbio.TreeNode
-        Random tree
-    """
-    x = np.random.rand(n)
-    dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
-    lm = ward(dm.condensed_form())
-    ids = np.arange(len(x)).astype(np.str)
-    t = TreeNode.from_linkage_matrix(lm, ids)
-    t = rename_internal_nodes(t)
-    return t
