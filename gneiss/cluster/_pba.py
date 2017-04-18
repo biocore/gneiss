@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from gneiss.sort import mean_niche_estimator
 from gneiss.util import match, rename_internal_nodes
-from gneiss.stats.composition import variation_matrix
+from gneiss.composition import variation_matrix
 
 from skbio import TreeNode, DistanceMatrix
 from scipy.spatial.distance import euclidean
