@@ -58,21 +58,38 @@ class HeatmapTest(unittest.TestCase):
         lines = list(fig.get_axes()[1].get_lines())
 
         exp_coords = np.array([[14.25, 0.5],
+                               [14.25, 1.],
+                               [14.25, 1.],
                                [20., 1.],
                                [9.5, 1.25],
+                               [9.5, 2.],
+                               [9.5, 2.],
                                [20., 2.],
                                [4.75, 2.125],
+                               [4.75, 3.],
+                               [4.75, 3.],
                                [20., 3.],
                                [0., 3.0625],
+                               [0., 4.],
+                               [0., 4.],
                                [20., 4.],
                                [14.25, 0.5],
+                               [14.25, 0.],
+                               [14.25, 0.],
                                [20., 0.],
                                [9.5, 1.25],
+                               [9.5, 0.5],
+                               [9.5, 0.5],
                                [14.25, 0.5],
                                [4.75, 2.125],
+                               [4.75, 1.25],
+                               [4.75, 1.25],
                                [9.5, 1.25],
                                [0., 3.0625],
+                               [0., 2.125],
+                               [0., 2.125],
                                [4.75, 2.125]])
+
         res = np.vstack([i._xy for i in lines])
 
         npt.assert_allclose(exp_coords, res)
@@ -87,31 +104,57 @@ class HeatmapTest(unittest.TestCase):
         res = str(fig.get_axes()[0].get_xlabel())
         self.assertEqual(res, "None")
 
+    def test_basic_line_width(self):
+        fig = heatmap(self.table, self.t, self.md,
+                      figsize=(5, self.table.shape[0]), linewidth=1)
+
+        # Test to see if the lineages of the tree are ok
+        lines = list(fig.get_axes()[1].get_lines())
+        widths = [l.get_lw() for l in lines]
+        np.allclose(widths, [1.0] * len(widths))
+
     def test_basic_highlights(self):
         fig = heatmap(self.table, self.t, self.md, self.highlights)
 
         # Test to see if the lineages of the tree are ok
         lines = list(fig.get_axes()[1].get_lines())
+
         pts = self.t.coords(width=20, height=self.table.shape[0])
         pts['y'] = pts['y'] - 0.5  # account for offset
         pts['x'] = pts['x'].astype(np.float)
         pts['y'] = pts['y'].astype(np.float)
 
         exp_coords = np.array([[14.25, 0.5],
+                               [14.25, 1.],
+                               [14.25, 1.],
                                [20., 1.],
                                [9.5, 1.25],
+                               [9.5, 2.],
+                               [9.5, 2.],
                                [20., 2.],
                                [4.75, 2.125],
+                               [4.75, 3.],
+                               [4.75, 3.],
                                [20., 3.],
                                [0., 3.0625],
+                               [0., 4.],
+                               [0., 4.],
                                [20., 4.],
                                [14.25, 0.5],
+                               [14.25, 0.],
+                               [14.25, 0.],
                                [20., 0.],
                                [9.5, 1.25],
+                               [9.5, 0.5],
+                               [9.5, 0.5],
                                [14.25, 0.5],
                                [4.75, 2.125],
+                               [4.75, 1.25],
+                               [4.75, 1.25],
                                [9.5, 1.25],
                                [0., 3.0625],
+                               [0., 2.125],
+                               [0., 2.125],
                                [4.75, 2.125]])
         res = np.vstack([i._xy for i in lines])
 

@@ -55,6 +55,8 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
     --------
     bifurcate
     """
+    # TODO: Add in example doc string
+
     # This entire function was motivated by
     # http://chuckpr.github.io/blog/trees2.html
     t = UnrootedDendrogram.from_tree(tree)

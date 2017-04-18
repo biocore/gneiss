@@ -13,9 +13,9 @@ from gneiss.plot._dendrogram import SquareDendrogram
 from gneiss.util import match_tips
 
 
-def heatmap(table, tree, mdvar, highlights=None,
-            grid_col='w', grid_width=2,
-            highlight_width=0.02, figsize=(5, 5)):
+def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
+            linewidth=0.5, grid_col='w', grid_width=2, highlight_width=0.02,
+            figsize=(5, 5)):
     """ Creates heatmap plotting object
 
     Parameters
@@ -31,6 +31,10 @@ def heatmap(table, tree, mdvar, highlights=None,
         subtree and the other for the right subtree highlight.
         The first color will always correspond to the left subtree,
         and the second color will always correspond to the right subtree.
+    cmap : str
+        Species the matplotlib colormap for the heatmap (default='viridis')
+    linewidth : int
+        Width of dendrogram lines.
     mdvar: pd.Series
         Metadata values for samples.  The index must correspond to the
         index of `table`.
@@ -69,10 +73,21 @@ def heatmap(table, tree, mdvar, highlights=None,
     edges = edges.unstack()
     edges = pd.DataFrame({'src_node': edges.index.get_level_values(1),
                           'dest_node': edges.values})
-    edges['x0'] = [pts.loc[n].x for n in edges.src_node]
-    edges['x1'] = [pts.loc[n].x for n in edges.dest_node]
-    edges['y0'] = [pts.loc[n].y for n in edges.src_node]
-    edges['y1'] = [pts.loc[n].y for n in edges.dest_node]
+
+    edge_list = []
+    for i in edges.index:
+        src = edges.loc[i, 'src_node']
+        dest = edges.loc[i, 'dest_node']
+        sx, sy = pts.loc[src].x, pts.loc[src].y
+        dx, dy = pts.loc[dest].x, pts.loc[dest].y
+
+        edge_list.append(
+            {'x0':sx, 'y0':sy, 'x1':sx, 'y1':dy}
+        )
+        edge_list.append(
+            {'x0':sx, 'y0':dy, 'x1':dx, 'y1':dy}
+        )
+    edge_list = pd.DataFrame(edge_list)
 
     # now plot the stuff
     fig = plt.figure(figsize=figsize, facecolor='white')
@@ -98,12 +113,12 @@ def heatmap(table, tree, mdvar, highlights=None,
 
     # plot heatmap
     ax_heatmap = fig.add_axes([ax1_x, ax1_y, ax1_w, ax1_h], frame_on=True)
-    _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width)
+    _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap)
 
     # plot dendrogram
     ax_dendrogram = fig.add_axes([axm_x, axm_y, axm_w, axm_h],
                                  frame_on=True, sharey=ax_heatmap)
-    _plot_dendrogram(ax_dendrogram, table, edges)
+    _plot_dendrogram(ax_dendrogram, table, edge_list, linewidth=linewidth)
 
     # plot highlights for dendrogram
     if highlights is not None:
@@ -114,6 +129,8 @@ def heatmap(table, tree, mdvar, highlights=None,
     return fig
 
 
+# TODO: Refactor and place in utils.  This can be also
+# be used for the balance_basis calculations
 def _tree_coordinates(t):
     """ Builds a matrix to link tree positions to matrix"""
     # first traverse the tree to count the children
@@ -176,7 +193,7 @@ def _plot_highlights_dendrogram(ax_highlights, table, t, highlights):
     ax_highlights.set_xticklabels(highlights.index, rotation=90)
 
 
-def _plot_dendrogram(ax_dendrogram, table, edges):
+def _plot_dendrogram(ax_dendrogram, table, edges, linewidth=1):
     """ Plots the actual dendrogram.
 
     Parameters
@@ -193,10 +210,11 @@ def _plot_dendrogram(ax_dendrogram, table, edges):
     for i in range(len(edges.index)):
         row = edges.iloc[i]
         ax_dendrogram.plot([row.x0, row.x1],
-                           [row.y0-offset, row.y1-offset], '-k')
+                           [row.y0-offset, row.y1-offset], '-k', lw=linewidth)
     ax_dendrogram.set_ylim([-offset, table.shape[0]-offset])
     ax_dendrogram.set_yticks([])
     ax_dendrogram.set_xticks([])
+    ax_dendrogram.axis('off')
 
 
 def _sort_table(table, mdvar):
@@ -223,7 +241,7 @@ def _sort_table(table, mdvar):
     return table, mdvar
 
 
-def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
+def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap):
     """ Sorts metadata category and aligns with table.
 
     Parameters
@@ -248,7 +266,7 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width):
     table, mdvar = _sort_table(table, mdvar)
     table = table.iloc[::-1, :]
     ax_heatmap.imshow(table, aspect='auto', interpolation='nearest',
-                      cmap='viridis')
+                      cmap=cmap)
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
 
