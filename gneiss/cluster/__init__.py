@@ -16,6 +16,7 @@ Functions
        correlation_linkage
        gradient_linkage
        rank_linkage
+       random_linkage
 
 """
 # ----------------------------------------------------------------------------
