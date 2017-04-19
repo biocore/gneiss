@@ -49,6 +49,7 @@ class TestDendrogram(unittest.TestCase):
         t1 = UnrootedDendrogram.from_tree(t1)
         self.assertEqual(t1.find('a').depth, 5)
 
+
 class TestUnrootedDendrogram(unittest.TestCase):
 
     def setUp(self):
