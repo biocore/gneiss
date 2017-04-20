@@ -1,5 +1,8 @@
 # gneiss changelog
 
+## Version 0.3.2
+* Added `balance_boxplot` and `balance_barplot` to make interpretation balance partitions easier.
+
 ## Version 0.3.0
 * Added q2 support for linear regression and linear mixed effects models [#98](https://github.com/biocore/gneiss/pull/98)
 * Added q2 support hierarchical clustering [#116](https://github.com/biocore/gneiss/pull/116)
