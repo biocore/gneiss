@@ -82,10 +82,10 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
         dx, dy = pts.loc[dest].x, pts.loc[dest].y
 
         edge_list.append(
-            {'x0':sx, 'y0':sy, 'x1':sx, 'y1':dy}
+            {'x0': sx, 'y0': sy, 'x1': sx, 'y1': dy}
         )
         edge_list.append(
-            {'x0':sx, 'y0':dy, 'x1':dx, 'y1':dy}
+            {'x0': sx, 'y0': dy, 'x1': dx, 'y1': dy}
         )
     edge_list = pd.DataFrame(edge_list)
 
