@@ -57,11 +57,13 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
                facecolor=num_color, zorder=0)
     ax.axvspan(0, data[balance_name].max()+pad,
                facecolor=denom_color, zorder=0)
+
     if 'hue' in kwargs.keys():
+        hue = kwargs['hue']
         num_groups = len(data[hue].value_counts())
     else:
         num_groups = 1
-    a = sns.boxplot(ax=ax, y=balance_name, data=data, **kwargs)
+    a = sns.boxplot(ax=ax, x=balance_name, data=data, **kwargs)
     a.minorticks_on()
     minorLocator = matplotlib.ticker.AutoMinorLocator(num_groups)
     a.get_yaxis().set_minor_locator(minorLocator)
