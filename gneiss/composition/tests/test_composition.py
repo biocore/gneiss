@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from gneiss.composition._composition import ilr_transform
-from gneiss.util import random_tree
+from gneiss.cluster import random_linkage
 import pandas.util.testing as pdt
 
 
@@ -22,7 +22,7 @@ class TestILRTransform(unittest.TestCase):
         sample_ids = np.arange(D).astype(np.str)
         table = pd.DataFrame(np.random.random((N, D)),
                              index=sample_ids, columns=ids)
-        tree = random_tree(D)
+        tree = random_linkage(D)
 
         res = ilr_transform(table, tree)
 
