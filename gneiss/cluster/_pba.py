@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 from gneiss.sort import mean_niche_estimator
-from gneiss.util import match
+from gneiss.util import match, rename_internal_nodes
 from gneiss.composition._variance import variation_matrix
 
 from skbio import TreeNode, DistanceMatrix

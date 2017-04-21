@@ -12,8 +12,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
-                         _type_cast_to_float, random_tree,
-                         block_diagonal, band_diagonal)
+                         _type_cast_to_float, block_diagonal, band_diagonal)
 import numpy.testing as npt
 
 
@@ -335,7 +334,6 @@ class TestUtil(unittest.TestCase):
                             'c': ['a', 'b', 'c', 'd', 'e'],
                             'd': [1., 2., 3., 4., 5.]})
         pdt.assert_frame_equal(res, exp)
-
 
     def test_block_diagonal_4x4(self):
         np.random.seed(0)

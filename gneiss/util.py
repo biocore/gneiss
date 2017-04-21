@@ -29,8 +29,6 @@ import numpy as np
 import pandas as pd
 from .balances import balance_basis
 from skbio.stats.composition import ilr
-from scipy.cluster.hierarchy import ward
-from skbio import TreeNode, DistanceMatrix
 
 
 def match(table, metadata):
