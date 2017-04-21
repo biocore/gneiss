@@ -1,6 +1,0 @@
-git+https://github.com/qiime2/qiime2.git
-git+https://github.com/qiime2/q2-types.git
-git+https://github.com/qiime2/q2templates.git
-git+https://github.com/qiime2/q2-composition.git
-git+https://github.com/qiime2/q2cli.git
-git+https://github.com/qiime2/q2-feature-table.git
