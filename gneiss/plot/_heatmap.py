@@ -73,10 +73,21 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     edges = edges.unstack()
     edges = pd.DataFrame({'src_node': edges.index.get_level_values(1),
                           'dest_node': edges.values})
-    edges['x0'] = [pts.loc[n].x for n in edges.src_node]
-    edges['x1'] = [pts.loc[n].x for n in edges.dest_node]
-    edges['y0'] = [pts.loc[n].y for n in edges.src_node]
-    edges['y1'] = [pts.loc[n].y for n in edges.dest_node]
+
+    edge_list = []
+    for i in edges.index:
+        src = edges.loc[i, 'src_node']
+        dest = edges.loc[i, 'dest_node']
+        sx, sy = pts.loc[src].x, pts.loc[src].y
+        dx, dy = pts.loc[dest].x, pts.loc[dest].y
+
+        edge_list.append(
+            {'x0': sx, 'y0': sy, 'x1': sx, 'y1': dy}
+        )
+        edge_list.append(
+            {'x0': sx, 'y0': dy, 'x1': dx, 'y1': dy}
+        )
+    edge_list = pd.DataFrame(edge_list)
 
     # now plot the stuff
     fig = plt.figure(figsize=figsize, facecolor='white')
@@ -107,7 +118,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     # plot dendrogram
     ax_dendrogram = fig.add_axes([axm_x, axm_y, axm_w, axm_h],
                                  frame_on=True, sharey=ax_heatmap)
-    _plot_dendrogram(ax_dendrogram, table, edges, linewidth=linewidth)
+    _plot_dendrogram(ax_dendrogram, table, edge_list, linewidth=linewidth)
 
     # plot highlights for dendrogram
     if highlights is not None:
@@ -203,6 +214,7 @@ def _plot_dendrogram(ax_dendrogram, table, edges, linewidth=1):
     ax_dendrogram.set_ylim([-offset, table.shape[0]-offset])
     ax_dendrogram.set_yticks([])
     ax_dendrogram.set_xticks([])
+    ax_dendrogram.axis('off')
 
 
 def _sort_table(table, mdvar):
