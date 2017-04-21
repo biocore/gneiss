@@ -10,7 +10,7 @@ import pandas as pd
 import unittest
 from skbio import DistanceMatrix
 from skbio.util import get_data_path
-from gneiss.stats.composition import variation_matrix
+from gneiss.composition._variance import variation_matrix
 
 
 class TestVariationMatrix(unittest.TestCase):

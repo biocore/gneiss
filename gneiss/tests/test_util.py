@@ -12,7 +12,9 @@ import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
-                         _type_cast_to_float, random_tree)
+                         _type_cast_to_float, random_tree,
+                         block_diagonal, band_diagonal)
+import numpy.testing as npt
 
 
 class TestUtil(unittest.TestCase):
@@ -333,6 +335,46 @@ class TestUtil(unittest.TestCase):
                             'c': ['a', 'b', 'c', 'd', 'e'],
                             'd': [1., 2., 3., 4., 5.]})
         pdt.assert_frame_equal(res, exp)
+
+
+    def test_block_diagonal_4x4(self):
+        np.random.seed(0)
+        res = block_diagonal(4, 4, 2)
+        exp = np.array([[0.5488135, 0.71518937, 0., 0.],
+                        [0.60276338, 0.54488318, 0., 0.],
+                        [0., 0., 0.4236548, 0.64589411],
+                        [0., 0., 0.43758721, 0.891773]])
+        npt.assert_allclose(res, exp, rtol=1e-5, atol=1e-5)
+
+    def test_block_diagonal_3x4(self):
+        np.random.seed(0)
+        res = block_diagonal(3, 4, 2)
+        exp = np.array([[0.548814, 0., 0.],
+                        [0.715189, 0., 0.],
+                        [0., 0.602763, 0.544883],
+                        [0., 0.423655, 0.645894]])
+
+        npt.assert_allclose(res, exp, rtol=1e-5, atol=1e-5)
+
+    def test_block_diagonal_error(self):
+
+        with self.assertRaises(ValueError):
+            block_diagonal(3, 4, 1)
+
+        with self.assertRaises(ValueError):
+            block_diagonal(3, 4, 0)
+
+    def test_band_diagonal(self):
+        res = band_diagonal(8, 3)
+        exp = np.array([[0.33333333, 0., 0., 0., 0., 0.],
+                        [0.33333333, 0.33333333, 0., 0., 0., 0.],
+                        [0.33333333, 0.33333333, 0.33333333, 0., 0., 0.],
+                        [0., 0.33333333, 0.33333333, 0.33333333, 0., 0.],
+                        [0., 0., 0.33333333, 0.33333333, 0.33333333, 0.],
+                        [0., 0., 0., 0.33333333, 0.33333333, 0.33333333],
+                        [0., 0., 0., 0., 0.33333333, 0.33333333],
+                        [0., 0., 0., 0., 0., 0.33333333]])
+        npt.assert_allclose(res, exp, rtol=1e-4, atol=1e-4)
 
 
 if __name__ == '__main__':
