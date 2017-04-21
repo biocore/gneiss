@@ -13,8 +13,10 @@ Functions
 .. autosummary::
    :toctree: generated/
 
-       proportional_linkage
+       correlation_linkage
        gradient_linkage
+       rank_linkage
+       random_linkage
 
 """
 # ----------------------------------------------------------------------------
@@ -24,9 +26,11 @@ Functions
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-from ._pba import proportional_linkage, gradient_linkage
-from ._cluster import proportional_clustering, gradient_clustering
+from ._pba import (correlation_linkage, gradient_linkage,
+                   rank_linkage, random_linkage)
+from ._cluster import correlation_clustering, gradient_clustering
 
 
-__all__ = ['proportional_linkage', 'gradient_linkage',
-           'proportional_clustering', 'gradient_clustering']
+__all__ = ['correlation_linkage', 'gradient_linkage',
+           'rank_linkage', 'random_linkage',
+           'correlation_clustering', 'gradient_clustering']
