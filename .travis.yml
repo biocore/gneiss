@@ -16,7 +16,8 @@ before_install:
   # Useful for debugging any issues with conda
   - conda info -a
 install:
-  - conda create --yes -n test_env python=$PYVERSION --file ci/conda_requirements.txt -c biocore -c qiime2
+  - conda create --yes -n test_env python=$PYVERSION --file https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-conda-linux-64.txt
+  - conda install --yes -n test_env --file ci/conda_requirements.txt -c biocore
   - conda install --yes -n test_env cython
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
