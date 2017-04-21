@@ -13,6 +13,7 @@ from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from skbio.util import get_data_path
 from gneiss.regression import ols
+import numpy.testing as npt
 
 
 class TestOLS(unittest.TestCase):
@@ -267,7 +268,9 @@ class TestOLSFunctions(TestOLS):
                                columns=['mse', 'pred_err'],
                                index=self.y.index)
         res_loo = res.loo().astype(np.float)
-        pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
+        # Precision issues ...
+        # pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
+        npt.assert_allclose(exp_loo, res_loo, atol=1e-3,  rtol=1e-3)
 
     def test_lovo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
