@@ -75,8 +75,6 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
 
     p.title.text = 'Projected Prediction'
     p.title_location = 'above'
-    p.title.align = 'center'
-    p.title.text_font_size = '18pt'
 
     p.xaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[0], pcvar.iloc[0])
     p.yaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[1], pcvar.iloc[1])
@@ -111,8 +109,6 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
 
     p.title.text = 'Projected Residuals'
     p.title_location = 'above'
-    p.title.align = 'center'
-    p.title.text_font_size = '18pt'
     p.xaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[0], pcvar.iloc[0])
     p.yaxis.axis_label = '{} ({:.2%})'.format(pcvar.index[1], pcvar.iloc[1])
     return p
@@ -306,8 +302,8 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     hm_p = _heatmap_summary(model.pvalues, model.coefficients())
     # combine the cross validation, explained sum of squares tree and
     # residual plots into a single plot
-    p = column(row(mse_p, pred_p), row(p2, p3))
-    p = row(p, p1)
+
+    p = row(column(mse_p, pred_p), column(p2, p3), p1)
     p = column(hm_p, p)
     index_fp = os.path.join(output_dir, 'index.html')
     with open(index_fp, 'w') as index_f:
@@ -359,7 +355,7 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     # log likelihood
     loglike = pd.Series({r.model.endog_names: r.model.loglike(r.params)
                          for r in model.results})
-
+    w, h = 300, 300  # plot width and height
     # Summary object
     smry = model.summary(ndim=10)
 
@@ -371,10 +367,16 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
     p1.title.text_font_size = '18pt'
 
     # 2D scatter plot for prediction on PB
-    p2 = _projected_prediction(model)
-    p3 = _projected_residuals(model)
+    p2 = _projected_prediction(model, plot_width=w, plot_height=h)
+    p3 = _projected_residuals(model, plot_width=w, plot_height=h)
 
-    p23 = row(p2, p3)
+    hm_p = _heatmap_summary(model.pvalues, model.coefficients(),
+                            plot_width=900, plot_height=400)
+
+    # combine the cross validation, explained sum of squares tree and
+    # residual plots into a single plot
+    p = row(column(p2, p3), p1)
+    p = column(hm_p, p)
 
     # Deposit all regression results
     _deposit_results(model, output_dir)
@@ -385,10 +387,8 @@ def lme_summary(output_dir: str, model: LMEModel, ndim=10) -> None:
         index_f.write('<h1>Simplicial Linear Mixed Effects Summary</h1>\n')
         index_f.write(smry.as_html())
         _deposit_results_html(index_f)
-        ess_tree_html = file_html(p1, CDN, 'Loglikelihood')
-        index_f.write(ess_tree_html)
-        reg_smry_html = file_html(p23, CDN, 'Prediction and Residual plot')
-        index_f.write(reg_smry_html)
+        diag_html = file_html(p, CDN, 'Diagnostic plots')
+        index_f.write(diag_html)
         index_f.write('</body></html>\n')
 
 

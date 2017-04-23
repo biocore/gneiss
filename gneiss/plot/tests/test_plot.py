@@ -60,7 +60,8 @@ class TestOLS_Summary(unittest.TestCase):
         os.mkdir(self.results)
 
     def tearDown(self):
-        shutil.rmtree(self.results)
+        # shutil.rmtree(self.results)
+        pass
 
     def test_visualization(self):
         res = ols(formula="x1 + x2 + x3 + x4",
