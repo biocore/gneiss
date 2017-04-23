@@ -87,6 +87,7 @@ class TestRadial(unittest.TestCase):
 
         self.assertDictEqual(p.renderers[0].data_source.data, exp_edges)
         self.assertDictEqual(p.renderers[1].data_source.data, exp_nodes)
+        self.assertTrue(isinstance(t, TreeNode))
 
 
 if __name__ == "__main__":
