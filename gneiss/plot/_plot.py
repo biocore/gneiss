@@ -66,7 +66,7 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
 
     p = figure(plot_width=plot_width, plot_height=plot_height,
                tools=[hover, BoxZoomTool(), ResetTool(),
-                      WheelZoomTool(), SaveTool()])
+                      WheelZoomTool(), SaveTool(), PanTool()])
     raw_source = ColumnDataSource(raw)
     pred_source = ColumnDataSource(pred)
 
@@ -103,7 +103,7 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     resid = model.residuals()
     p = figure(plot_width=plot_width, plot_height=plot_height,
                tools=[hover, BoxZoomTool(), ResetTool(),
-                      WheelZoomTool(), SaveTool()])
+                      WheelZoomTool(), SaveTool(), PanTool()])
     resid_source = ColumnDataSource(resid)
 
     p.circle(resid.columns[0], resid.columns[1], size=7,
@@ -183,12 +183,12 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     Ylabels = pd.Series(pvals.columns, index=np.arange(len(pvals.columns)), )
 
     hm.xaxis[0].ticker=FixedTicker(ticks=Xlabels.index)
-
     hm.xaxis.formatter = FuncTickFormatter(code="""
     var labels = %s;
     return labels[tick];
     """ % Xlabels.to_dict())
 
+    hm.yaxis[0].ticker=FixedTicker(ticks=Ylabels.index)
     hm.yaxis.formatter = FuncTickFormatter(code="""
     var labels = %s;
     return labels[tick];
@@ -310,7 +310,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
 
     # Summary object
-    smry = model.summary(ndim=0)
+    smry = model.summary(ndim=ndim)
     _deposit_results(model, output_dir)
     t = _decorate_tree(model.tree, ess)
 
