@@ -159,7 +159,6 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
                   ("Coefficient", "@Coefficient")]
     )
 
-
     N, _min, _max = len(palette), m.log_Pvalue.min(), m.log_Pvalue.max()
     X = pd.Series(np.arange(len(pvals.index)), index=pvals.index)
     Y = pd.Series(np.arange(len(pvals.columns)), index=pvals.columns)
@@ -182,13 +181,13 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     Xlabels = pd.Series(pvals.index, index=np.arange(len(pvals.index)))
     Ylabels = pd.Series(pvals.columns, index=np.arange(len(pvals.columns)), )
 
-    hm.xaxis[0].ticker=FixedTicker(ticks=Xlabels.index)
+    hm.xaxis[0].ticker = FixedTicker(ticks=Xlabels.index)
     hm.xaxis.formatter = FuncTickFormatter(code="""
     var labels = %s;
     return labels[tick];
     """ % Xlabels.to_dict())
 
-    hm.yaxis[0].ticker=FixedTicker(ticks=Ylabels.index)
+    hm.yaxis[0].ticker = FixedTicker(ticks=Ylabels.index)
     hm.yaxis.formatter = FuncTickFormatter(code="""
     var labels = %s;
     return labels[tick];
