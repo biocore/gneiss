@@ -178,6 +178,7 @@ class TestOLS_Summary(unittest.TestCase):
 
         with open(index_fp, 'r') as fh:
             html = fh.read()
+
             self.assertIn('<h1>Simplicial Linear Regression Summary</h1>',
                           html)
             self.assertIn('<th>Relative importance</th>', html)

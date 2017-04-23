@@ -22,14 +22,13 @@ from gneiss.regression._type import (LinearRegression_g,
 from q2_types.tree import Phylogeny, Rooted
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable
-from q2_types.feature_data import FeatureData, Taxonomy
 from qiime2.plugin import Int, MetadataCategory, Str, Choices
 
 
 from bokeh.embed import file_html
 from bokeh.resources import CDN
 from bokeh.plotting import figure, ColumnDataSource
-from bokeh.layouts import row, layout, column
+from bokeh.layouts import row, column
 from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
                           ResetTool, SaveTool, PanTool)
 from bokeh.charts import HeatMap
@@ -152,12 +151,12 @@ def _heatmap_summary(pvals, coefs, cmap='viridis',
     p = pvals.reset_index()
     p = p.rename(columns={'index': 'balance'})
 
-    cm =  pd.melt(c, id_vars='balance', var_name='Covariate',
-                  value_name='Coefficient')
-    pm =  pd.melt(p, id_vars='balance', var_name='Covariate',
-                  value_name='Pvalue')
-    logpm =  pd.melt(log_p, id_vars='balance', var_name='Covariate',
-                  value_name='log_Pvalue')
+    cm = pd.melt(c, id_vars='balance', var_name='Covariate',
+                 value_name='Coefficient')
+    pm = pd.melt(p, id_vars='balance', var_name='Covariate',
+                 value_name='Pvalue')
+    logpm = pd.melt(log_p, id_vars='balance', var_name='Covariate',
+                    value_name='log_Pvalue')
     m = pd.merge(cm, pm)
     m = pd.merge(m, logpm)
 
@@ -170,8 +169,8 @@ def _heatmap_summary(pvals, coefs, cmap='viridis',
 
     hm = HeatMap(m, x='balance', y='Covariate', values='log_Pvalue',
                  title='Regression Coefficients Summary',
-                 sort_dim={'x': False}, width=plot_width,
-                 plot_height=plot_height, legend=False, source=source, stat=None,
+                 sort_dim={'x': False}, width=plot_width, stat=None,
+                 plot_height=plot_height, legend=False, source=source,
                  tools=[hover, PanTool(), BoxZoomTool(), WheelZoomTool(),
                         ResetTool(), SaveTool()])
 
@@ -221,6 +220,7 @@ def _deposit_results(model, output_dir):
     balances.to_csv(os.path.join(output_dir, 'balances.csv'),
                     header=True, index=True)
     model.tree.write(os.path.join(output_dir, 'tree.nwk'))
+
 
 def _deposit_results_html(index_f):
     """ Create links to all of the regression results. """

@@ -124,6 +124,7 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
         tooltip += [(hover_var, "@" + hover_var)]
 
     hover = HoverTool(renderers=[ns], tooltips=tooltip)
-    plot.add_tools(hover, BoxZoomTool(), ResetTool(), WheelZoomTool(), SaveTool())
+    plot.add_tools(hover, BoxZoomTool(), ResetTool(),
+                   WheelZoomTool(), SaveTool())
 
     return plot
