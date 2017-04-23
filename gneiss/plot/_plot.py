@@ -32,7 +32,6 @@ from bokeh.layouts import row, column
 from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
                           ResetTool, SaveTool, PanTool,
                           FuncTickFormatter, FixedTicker)
-from bokeh.charts import HeatMap
 from bokeh.palettes import RdYlBu11 as palette
 
 
