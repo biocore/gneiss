@@ -9,7 +9,8 @@ import pandas as pd
 from gneiss.plot._dendrogram import UnrootedDendrogram
 from bokeh.models.glyphs import Circle, Segment
 from bokeh.models import ColumnDataSource, DataRange1d, Plot
-from bokeh.models import HoverTool, BoxZoomTool, ResetTool
+from bokeh.models import (HoverTool, BoxZoomTool, ResetTool,
+                          WheelZoomTool, SaveTool)
 
 
 def radialplot(tree, node_color='node_color', node_size='node_size',
@@ -59,7 +60,7 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
 
     # This entire function was motivated by
     # http://chuckpr.github.io/blog/trees2.html
-    t = UnrootedDendrogram.from_tree(tree)
+    t = UnrootedDendrogram.from_tree(tree.copy())
 
     nodes = t.coords(figsize[0], figsize[1])
 
@@ -123,6 +124,7 @@ def radialplot(tree, node_color='node_color', node_size='node_size',
         tooltip += [(hover_var, "@" + hover_var)]
 
     hover = HoverTool(renderers=[ns], tooltips=tooltip)
-    plot.add_tools(hover, BoxZoomTool(), ResetTool())
+    plot.add_tools(hover, BoxZoomTool(), ResetTool(),
+                   WheelZoomTool(), SaveTool())
 
     return plot
