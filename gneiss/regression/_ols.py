@@ -164,7 +164,6 @@ def ols(formula, table, metadata, tree, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
 
-
     # one-time creation of exogenous data matrix allows for faster run-time
     metadata = _type_cast_to_float(metadata)
     x = dmatrix(formula, metadata, return_type='dataframe')
