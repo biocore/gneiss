@@ -289,9 +289,6 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     mse_p.quad(top=mse_hist, bottom=0, left=edges[:-1], right=edges[1:],
                fill_color="#FFFF00", line_color="#033649", fill_alpha=0.5,
                legend='CV Mean Squared Error')
-    mse_p.ray(x=model.mse, y=0, length=h*max(mse_hist),
-              angle=1.57079633, color='red',
-              legend='Model Error', line_width=0.5)
 
     # Histogram of prediction error from cross validation
     pred_p = figure(title="Prediction Error",
@@ -300,9 +297,6 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     pred_p.quad(top=pred_hist, bottom=0, left=edges[:-1], right=edges[1:],
                 fill_color="#00FFFF", line_color="#033649", fill_alpha=0.5,
                 legend='Prediction Error')
-    pred_p.ray(x=model.mse, y=0, length=h,
-               angle=1.57079633, color='red',
-               legend='Model Error', line_width=0.5)
 
     # Explained sum of squares
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
