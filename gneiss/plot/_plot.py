@@ -30,8 +30,9 @@ from bokeh.resources import CDN
 from bokeh.plotting import figure, ColumnDataSource
 from bokeh.layouts import row, column
 from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
-                          ResetTool, SaveTool, PanTool)
-from bokeh.charts import HeatMap
+                          ResetTool, SaveTool, PanTool,
+                          FuncTickFormatter, FixedTicker)
+from bokeh.palettes import RdYlBu11 as palette
 
 
 def _projected_prediction(model, plot_width=400, plot_height=400):
@@ -64,7 +65,7 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
 
     p = figure(plot_width=plot_width, plot_height=plot_height,
                tools=[hover, BoxZoomTool(), ResetTool(),
-                      WheelZoomTool(), SaveTool()])
+                      WheelZoomTool(), SaveTool(), PanTool()])
     raw_source = ColumnDataSource(raw)
     pred_source = ColumnDataSource(pred)
 
@@ -101,7 +102,7 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     resid = model.residuals()
     p = figure(plot_width=plot_width, plot_height=plot_height,
                tools=[hover, BoxZoomTool(), ResetTool(),
-                      WheelZoomTool(), SaveTool()])
+                      WheelZoomTool(), SaveTool(), PanTool()])
     resid_source = ColumnDataSource(resid)
 
     p.circle(resid.columns[0], resid.columns[1], size=7,
@@ -114,8 +115,7 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     return p
 
 
-def _heatmap_summary(pvals, coefs, cmap='viridis',
-                     plot_width=1200, plot_height=400):
+def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     """ Plots heatmap of coefficients colored by pvalues
 
     Parameters
@@ -126,8 +126,6 @@ def _heatmap_summary(pvals, coefs, cmap='viridis',
     coefs : pd.DataFrame
         Table of coefficients where rows are balances and columns are
         covariates.
-    cmap : str
-        Color scheme to plot heatmap.
     plot_width : int
         Width of plot.
     plot_height : int
@@ -155,20 +153,44 @@ def _heatmap_summary(pvals, coefs, cmap='viridis',
                     value_name='log_Pvalue')
     m = pd.merge(cm, pm)
     m = pd.merge(m, logpm)
-
     hover = HoverTool(
-        tooltips=[
-            ("log_Pvalue", "@log_Pvalue"),
-        ]
+        tooltips=[("Pvalue", "@Pvalue"),
+                  ("Coefficient", "@Coefficient")]
     )
-    source = ColumnDataSource(ColumnDataSource.from_df(m))
 
-    hm = HeatMap(m, x='balance', y='Covariate', values='log_Pvalue',
-                 title='Regression Coefficients Summary',
-                 sort_dim={'x': False}, width=plot_width, stat=None,
-                 plot_height=plot_height, legend=False, source=source,
-                 tools=[hover, PanTool(), BoxZoomTool(), WheelZoomTool(),
-                        ResetTool(), SaveTool()])
+    N, _min, _max = len(palette), m.log_Pvalue.min(), m.log_Pvalue.max()
+    X = pd.Series(np.arange(len(pvals.index)), index=pvals.index)
+    Y = pd.Series(np.arange(len(pvals.columns)), index=pvals.columns)
+    m['X'] = [X.loc[i] for i in m.balance]
+    m['Y'] = [Y.loc[i] for i in m.Covariate]
+
+    for i in m.index:
+        x = m.loc[i, 'log_Pvalue']
+        ind = int(np.floor((x - _min) / (_max - _min) * (N - 1)))
+        m.loc[i, 'color'] = palette[ind]
+
+    source = ColumnDataSource(ColumnDataSource.from_df(m))
+    hm = figure(title='Regression Coefficients Summary',
+                plot_width=1200, plot_height=400,
+                tools=[hover, PanTool(), BoxZoomTool(),
+                       WheelZoomTool(), ResetTool(),
+                       SaveTool()])
+    hm.rect(x='X', y='Y', width=1, height=1,
+            fill_color='color', line_color="white", source=source)
+    Xlabels = pd.Series(pvals.index, index=np.arange(len(pvals.index)))
+    Ylabels = pd.Series(pvals.columns, index=np.arange(len(pvals.columns)), )
+
+    hm.xaxis[0].ticker = FixedTicker(ticks=Xlabels.index)
+    hm.xaxis.formatter = FuncTickFormatter(code="""
+    var labels = %s;
+    return labels[tick];
+    """ % Xlabels.to_dict())
+
+    hm.yaxis[0].ticker = FixedTicker(ticks=Ylabels.index)
+    hm.yaxis.formatter = FuncTickFormatter(code="""
+    var labels = %s;
+    return labels[tick];
+    """ % Ylabels.to_dict())
 
     return hm
 
@@ -286,7 +308,7 @@ def ols_summary(output_dir: str, model: OLSModel, ndim=10) -> None:
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
 
     # Summary object
-    smry = model.summary(ndim=0)
+    smry = model.summary(ndim=ndim)
     _deposit_results(model, output_dir)
     t = _decorate_tree(model.tree, ess)
 
