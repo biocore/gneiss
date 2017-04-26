@@ -457,7 +457,8 @@ def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
                        tree: TreeNode, metadata: MetadataCategory,
                        ndim=10, method='clr', color_map='viridis'):
 
-    nodes = [n.name for n in tree.levelorder()]
+    nodes = [n.name for n in tree.levelorder() if not n.is_tip()]
+
     nlen = min(ndim, len(nodes))
     highlights = pd.DataFrame([['#00FF00', '#FF0000']] * nlen,
                               index=nodes[:nlen])

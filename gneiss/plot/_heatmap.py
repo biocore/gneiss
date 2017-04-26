@@ -169,6 +169,7 @@ def _plot_highlights_dendrogram(ax_highlights, table, t, highlights):
     hcoords = []
     for i, n in enumerate(highlights.index):
         node = t.find(n)
+
         k, l, r = node._k, node._l, node._r
 
         ax_highlights.add_patch(
