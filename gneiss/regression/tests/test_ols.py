@@ -135,6 +135,37 @@ class TestOLSFunctions(TestOLS):
         self.assertEqual(str(table), str(exp_table))
         self.assertEqual(str(exp_tree), str(res.tree))
 
+    def test_ols_missing_metadata(self):
+        np.random.seed(0)
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': ilr_inv(A([1., 1.])),
+            's2': ilr_inv(A([1., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([1., 4.])),
+            's5': ilr_inv(A([1., 5.])),
+            's6': ilr_inv(A([1., 5.])),
+            's7': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+
+        tree = TreeNode.read(['((c,d),(b,a));'])
+        exp_tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1, 0],
+            'real': [1, 2, 3, 4, 5, np.nan]
+        }, index=['s1', 's2', 's3', 's4', 's5', 's7'])
+
+        res = ols('real + lame', table, metadata, tree)
+        res.fit()
+        self.assertEqual(str(exp_tree), str(res.tree))
+
+        exp_coefs = pd.DataFrame(
+            [[-7.494005e-16, -7.494005e-16, -1.000000e+00],
+             [5.000000e-01, 5.000000e-01, -1.294503e-16]],
+            columns=['Intercept', 'lame', 'real'], index=['y0', 'y1'])
+        pdt.assert_frame_equal(exp_coefs, res.coefficients(),
+                               check_less_precise=True)
+
     def test_ols_empty_table_error(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({

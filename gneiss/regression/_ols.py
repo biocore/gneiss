@@ -164,11 +164,11 @@ def ols(formula, table, metadata, tree, **kwargs):
                                                               tree)
     ilr_table, basis = _to_balances(table, tree)
 
-    ilr_table, metadata = ilr_table.align(metadata, join='inner', axis=0)
     # one-time creation of exogenous data matrix allows for faster run-time
     metadata = _type_cast_to_float(metadata)
     x = dmatrix(formula, metadata, return_type='dataframe')
 
+    ilr_table, x = ilr_table.align(x, join='inner', axis=0)
     submodels = _fit_ols(ilr_table, x)
 
     basis = pd.DataFrame(basis, index=ilr_table.columns,
