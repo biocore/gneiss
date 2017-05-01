@@ -18,7 +18,8 @@ from skbio import TreeNode, DistanceMatrix
 from skbio.stats.composition import ilr_inv
 from skbio.util import get_data_path
 
-from gneiss.plot._plot import ols_summary, lme_summary, dendrogram_heatmap
+from gneiss.plot._plot import (ols_summary, lme_summary,
+                               dendrogram_heatmap, balance_summary)
 from gneiss.regression import ols, mixedlm
 
 from qiime2 import MetadataCategory
@@ -346,6 +347,33 @@ class TestHeatmap(unittest.TestCase):
             html = fh.read()
             self.assertIn('<h1>Dendrogram heatmap</h1>',
                           html)
+
+class TestBalanceSummary(unittest.TestCase):
+
+    def setUp(self):
+        self.results = "results"
+        os.mkdir(self.results)
+        self.balances = pd.DataFrame(
+            {'a': [ -2, -1, 0, 1, 2],
+             'b': [ -2, 0, 0, 0, 0]},
+            index = ['a1', 'a2', 'a3', 'a4', 'a5']
+        )
+        self.tree = TreeNode.read([r'((x, y)a, z)b;'])
+
+    def tearDown(self):
+        shutil.rmtree(self.results)
+
+    def test_balance_summary(self):
+        index_fp = os.path.join(self.results, 'index.html')
+        balance_summary(self.results, self.balances, self.tree, 'a')
+        index_fp = os.path.join(self.results, 'index.html')
+        self.assertTrue(os.path.exists(index_fp))
+
+        with open(index_fp, 'r') as fh:
+            html = fh.read()
+            self.assertIn('<h1>Balance Summary</h1>', html)
+            self.assertIn('Numerator', html)
+            self.assertIn('Denominator', html)
 
 
 if __name__ == "__main__":

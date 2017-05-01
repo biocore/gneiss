@@ -100,23 +100,6 @@ class TestModel(unittest.TestCase):
         self.assertTrue(isinstance(res.tree, TreeNode))
         self.assertEqual(str(res.tree), str(self.tree))
 
-    def test_split_balance(self):
-        submodels = [None, None]
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
-        exp = pd.DataFrame([[0.19557032, 0.80442968],
-                            [0.5, 0.5],
-                            [0.80442968, 0.19557032]],
-                           columns=['x', 'y'])
-        pdt.assert_frame_equal(exp, res.split_balance('a'))
-
-    def test_split_balance_error(self):
-        submodels = [None, None]
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
-        with self.assertRaises(ValueError):
-            res.split_balance('x')
-
     # pickle io tests
     def test_read_write(self):
 

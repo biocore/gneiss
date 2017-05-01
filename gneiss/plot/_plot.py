@@ -12,9 +12,10 @@ from skbio import TreeNode
 from skbio.stats.composition import clr, centralize
 
 from gneiss.plugin_setup import plugin
+from gneiss.util import split_balance
 from gneiss.plot._radial import radialplot
 from gneiss.plot._heatmap import heatmap
-
+from gneiss.composition import Balance
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
 from gneiss.regression._type import (LinearRegression_g,
@@ -423,6 +424,78 @@ plugin.visualizers.register_function(
                  "loglikhood estimates, coefficients, "
                  "coefficient pvalues, coefficient of determination, "
                  "predicted fit and residuals")
+)
+
+
+def balance_summary(output_dir: str, balances: pd.DataFrame,
+                    tree: TreeNode, balance_name : Str) -> None:
+
+    # Make distribution
+    w, h = 400, 400
+    dist_p = figure(title="Balance Distribution",
+                    plot_width=w, plot_height=h)
+    balance_hist, edges = np.histogram(balances[balance_name],
+                                       density=True, bins=20)
+    dist_p.quad(top=balance_hist, bottom=0, left=edges[:-1], right=edges[1:],
+                fill_color="#0000FF", line_color="#033649", fill_alpha=0.5)
+
+    # Decompose balance into two parts
+    hover = HoverTool(
+            tooltips=[
+                ("#SampleID", "@index"),
+            ]
+        )
+
+    parts = split_balance(balances[balance_name], tree)
+    parts_p = figure(plot_width=w, plot_height=h,
+                     tools=[hover, BoxZoomTool(), ResetTool(),
+                            WheelZoomTool(), SaveTool(), PanTool()])
+    parts_source = ColumnDataSource(parts)
+    parts_p.circle(parts.columns[0], parts.columns[1], size=7,
+                   source=parts_source, fill_color='blue')
+    parts_p.xaxis.axis_label = 'numerator'
+    parts_p.yaxis.axis_label = 'denominator'
+    parts_p.title.text = 'Balance decomposition'
+    parts_p.title_location = 'above'
+
+    p = row(dist_p, parts_p)
+
+    num_features = pd.Series(list(
+        tree.find(balance_name).children[0].subset()))
+    denom_features = pd.Series(list(
+        tree.find(balance_name).children[1].subset()))
+
+    index_fp = os.path.join(output_dir, 'index.html')
+    with open(index_fp, 'w') as index_f:
+        index_f.write('<html><body>\n')
+        index_f.write('<h1>Balance Summary</h1>\n')
+        index_f.write(('<th>Numerator features</th>\n'))
+        index_f.write(('<a href="numerator.csv">'
+                       'Download as CSV</a><br>\n'))
+        num_features.to_csv(os.path.join(output_dir, 'num_features.csv'),
+                            header=True, index=True)
+        index_f.write(('<th>Denominator features</th>\n'))
+        index_f.write(('<a href="denominator.csv">'
+                       'Download as CSV</a><br>\n'))
+        denom_features.to_csv(os.path.join(output_dir, 'denom_features.csv'),
+                              header=True, index=True)
+        plot_html = file_html(p, CDN, 'Balance plots')
+        index_f.write(plot_html)
+
+
+plugin.visualizers.register_function(
+    function=balance_summary,
+    inputs={'balances': FeatureTable[Balance], 'tree': Phylogeny[Rooted]},
+    parameters={'balance_name': Str},
+    input_descriptions={
+        'balances': 'The table of balances resulting from the ilr transform.',
+        'tree': 'The tree used to calculate the balances.',
+    },
+    parameter_descriptions={
+        'balance_name': 'Name of the balance to summarize.'},
+    name='Balance Summary',
+    description=("Visualize the distribution of a single balance "
+                 "and access its numerator and denominator components.")
 )
 
 _transform_methods = ['clr', 'log']

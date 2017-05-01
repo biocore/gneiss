@@ -56,44 +56,6 @@ class Model(metaclass=abc.ABCMeta):
         """ Print summary results """
         pass
 
-    def split_balance(self, balance_name):
-        """ Splits a balance into its log ratio components.
-
-        Parameters
-        ----------
-        node : str
-             Name of internal node in the tree to be retrieved for
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe where the first column contains the numerator and the
-            second column contains the denominator of the balance.
-        """
-        node = self.tree.find(balance_name)
-
-        if node.is_tip():
-            raise ValueError("%s is not a balance." % balance_name)
-
-        left = node.children[0]
-        right = node.children[1]
-        if left.is_tip():
-            L = 1
-        else:
-            L = len([n for n in left.tips()])
-        if right.is_tip():
-            R = 1
-        else:
-            R = len([n for n in right.tips()])
-        b = np.expand_dims(self.balances[balance_name].values, axis=1)
-        # need to scale down by the number of children in subtrees
-        b = np.exp(b / (np.sqrt((L*R) / (L + R))))
-        o = np.ones((len(b), 1))
-        k = np.hstack((b, o))
-        p = closure(k)
-        return pd.DataFrame(p, columns=[left.name, right.name],
-                            index=self.balances.index)
-
     @classmethod
     def read_pickle(self, filename):
         """ Reads Model object from pickle file.
