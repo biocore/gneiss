@@ -8,9 +8,6 @@
 import pickle
 from skbio import TreeNode
 import abc
-from skbio.stats.composition import closure
-import numpy as np
-import pandas as pd
 
 
 class Model(metaclass=abc.ABCMeta):
