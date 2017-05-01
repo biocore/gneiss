@@ -348,15 +348,16 @@ class TestHeatmap(unittest.TestCase):
             self.assertIn('<h1>Dendrogram heatmap</h1>',
                           html)
 
+
 class TestBalanceSummary(unittest.TestCase):
 
     def setUp(self):
         self.results = "results"
         os.mkdir(self.results)
         self.balances = pd.DataFrame(
-            {'a': [ -2, -1, 0, 1, 2],
-             'b': [ -2, 0, 0, 0, 0]},
-            index = ['a1', 'a2', 'a3', 'a4', 'a5']
+            {'a': [-2, -1, 0, 1, 2],
+             'b': [-2, 0, 0, 0, 0]},
+            index=['a1', 'a2', 'a3', 'a4', 'a5']
         )
         self.tree = TreeNode.read([r'((x, y)a, z)b;'])
 

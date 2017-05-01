@@ -428,7 +428,7 @@ plugin.visualizers.register_function(
 
 
 def balance_summary(output_dir: str, balances: pd.DataFrame,
-                    tree: TreeNode, balance_name : Str) -> None:
+                    tree: TreeNode, balance_name: Str) -> None:
 
     # Make distribution
     w, h = 400, 400
