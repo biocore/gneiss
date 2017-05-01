@@ -54,7 +54,7 @@ def split_balance(balance, tree):
     node = tree.find(balance.name)
 
     if node.is_tip():
-        raise ValueError("%s is not a balance." % balance_name)
+        raise ValueError("%s is not a balance." % balance.name)
 
     left = node.children[0]
     right = node.children[1]
