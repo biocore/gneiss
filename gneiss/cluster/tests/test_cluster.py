@@ -66,7 +66,6 @@ class TestClusteringPlugin(unittest.TestCase):
         res_t = out_tree.tree._view(TreeNode)
         for n in res_t.levelorder(include_self=True):
             self.assertTrue(n.name is not None)
-            self.assertNotIn('-', n.name)
 
     def test_assign_ids_polytomy(self):
         from qiime2.plugins.gneiss.methods import assign_ids
@@ -77,7 +76,6 @@ class TestClusteringPlugin(unittest.TestCase):
         res_nontips = []
         for n in res_t.levelorder(include_self=True):
             self.assertTrue(n.name is not None)
-            self.assertNotIn('-', n.name)
             if not n.is_tip():
                 res_nontips.append(n.name)
         self.assertEqual(len(res_nontips), 4)

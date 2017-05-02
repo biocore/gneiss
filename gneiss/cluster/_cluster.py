@@ -126,11 +126,10 @@ plugin.methods.register_function(
 
 
 def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
-    def replace_dashes(x):
-        return str(x).replace('-', '')
+
     t = tree.copy()
     t.bifurcate()
-    ids = ['%sL_%s' % (i, replace_dashes(uuid.uuid4()))
+    ids = ['%sL-%s' % (i, uuid.uuid4())
            for i, n in enumerate(t.levelorder(include_self=True))
            if not n.is_tip()]
     t = rename_internal_nodes(t, names=ids)
