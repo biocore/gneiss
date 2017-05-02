@@ -126,11 +126,14 @@ plugin.methods.register_function(
 
 
 def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
-    f = lambda x: x.replace('-', '')
-    ids = ['%sL_%s' % (i, f(str(uuid.uuid4())))
-           for i, n in enumerate(tree.levelorder(include_self=True))
+    def replace_dashes(x):
+        return str(x).replace('-', '')
+    t = tree.copy()
+    t.bifurcate()
+    ids = ['%sL_%s' % (i, replace_dashes(uuid.uuid4()))
+           for i, n in enumerate(t.levelorder(include_self=True))
            if not n.is_tip()]
-    t = rename_internal_nodes(tree, names=ids)
+    t = rename_internal_nodes(t, names=ids)
     return t
 
 
@@ -144,5 +147,7 @@ plugin.methods.register_function(
     parameters={},
     output_descriptions={
         'tree': ('A tree with uniquely identifying ids.')},
-    description=('Assigns UUIDs to uniquely identify internal nodes in the tree.')
+    description=('Assigns UUIDs to uniquely identify internal nodes '
+                 'in the tree.  Also corrects for polytomies to create '
+                 'strictly bifurcating trees.')
 )

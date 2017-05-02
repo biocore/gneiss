@@ -39,7 +39,6 @@ class TestClusteringPlugin(unittest.TestCase):
         res = gradient_clustering(in_table, in_metadata.get_category('x'))
         res_clust = res.clustering._view(TreeNode)
         exp_str = '((o1:0.5,o2:0.5)y1:0.5,(o3:0.5,o4:0.5)y2:0.5)y0;\n'
-        print(str(res_clust))
         self.assertEqual(exp_str, str(res_clust))
 
     def test_gradient_artifact_weighted(self):
@@ -68,6 +67,20 @@ class TestClusteringPlugin(unittest.TestCase):
         for n in res_t.levelorder(include_self=True):
             self.assertTrue(n.name is not None)
             self.assertNotIn('-', n.name)
+
+    def test_assign_ids_polytomy(self):
+        from qiime2.plugins.gneiss.methods import assign_ids
+        tree_f = get_data_path("polytomy.qza")
+        tree = qiime2.Artifact.load(tree_f)
+        out_tree = assign_ids(tree)
+        res_t = out_tree.tree._view(TreeNode)
+        res_nontips = []
+        for n in res_t.levelorder(include_self=True):
+            self.assertTrue(n.name is not None)
+            self.assertNotIn('-', n.name)
+            if not n.is_tip():
+                res_nontips.append(n.name)
+        self.assertEqual(len(res_nontips), 4)
 
 
 if __name__ == '__main__':
