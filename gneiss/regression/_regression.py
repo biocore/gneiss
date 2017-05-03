@@ -10,7 +10,7 @@ import skbio
 from ._ols import OLSModel, ols
 from ._mixedlm import LMEModel, mixedlm
 
-from q2_composition.plugin_setup import Composition
+from q2_composition.plugin_setup import Composition, Balance
 from q2_types.feature_table import FeatureTable
 from q2_types.tree import Phylogeny, Rooted, Unrooted
 from qiime2.plugin import Str, Metadata
@@ -28,8 +28,8 @@ def ols_regression(table: pd.DataFrame, tree: skbio.TreeNode,
 
 plugin.methods.register_function(
     function=ols_regression,
-    inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted | Unrooted]},
+    inputs={'table': FeatureTable[Balance],
+            'tree': Phylogeny[Rooted]},
     parameters={'formula': Str, 'metadata': Metadata},
     outputs=[('linear_model', LinearRegression_g)],
     name='Simplicial Ordinary Least Squares Regression',

@@ -48,8 +48,7 @@ def ols(formula, table, metadata, tree, **kwargs):
         individual balances. See `patsy` for more details.
     table : pd.DataFrame
         Contingency table where samples correspond to rows and
-        features correspond to columns.  The features could either
-        correspond proportions or balances.
+        balances correspond to columns.
     metadata: pd.DataFrame
         Metadata table that contains information about the samples contained
         in the `table` object.  Samples correspond to rows and covariates
@@ -158,24 +157,14 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     skbio.stats.composition.multiplicative_replacement
     """
-    # TODO: clean up
-    table, metadata, tree = _intersect_of_table_metadata_tree(table,
-                                                              metadata,
-                                                              tree)
-    ilr_table, basis = _to_balances(table, tree)
-
     # one-time creation of exogenous data matrix allows for faster run-time
     metadata = _type_cast_to_float(metadata)
     x = dmatrix(formula, metadata, return_type='dataframe')
 
-    ilr_table, x = ilr_table.align(x, join='inner', axis=0)
+    ilr_table, x = balances.align(x, join='inner', axis=0)
     submodels = _fit_ols(ilr_table, x)
 
-    basis = pd.DataFrame(basis, index=ilr_table.columns,
-                         columns=table.columns)
-    return OLSModel(submodels, basis=basis,
-                    balances=ilr_table,
-                    tree=tree)
+    return OLSModel(submodels, balances=ilr_table)
 
 
 class OLSModel(RegressionModel):
@@ -192,14 +181,6 @@ class OLSModel(RegressionModel):
     ----------
     submodels : list of statsmodels objects
         List of statsmodels result objects.
-    basis : pd.DataFrame
-        Orthonormal basis in the Aitchison simplex.
-        Row names correspond to the leaves of the tree
-        and the column names correspond to the internal nodes
-        in the tree. If this is not specified, then `project` cannot
-        be enabled in `coefficients` or `predict`.
-    tree : skbio.TreeNode
-        Bifurcating tree that defines `basis`.
     balances : pd.DataFrame
         A table of balances where samples are rows and
         balances are columns.  These balances were calculated
@@ -208,14 +189,11 @@ class OLSModel(RegressionModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def fit(self, regularized=False, **kwargs):
+    def fit(self, **kwargs):
         """ Fit the model.
 
         Parameters
         ----------
-        regularized : bool
-            Specifies if a regularization procedure should be used
-            when performing the fit. (default = False)
         **kwargs : dict
            Keyword arguments used to tune the parameter estimation.
 

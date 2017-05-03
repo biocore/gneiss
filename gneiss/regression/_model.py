@@ -40,15 +40,16 @@ class RegressionModel(Model):
         """
         super().__init__(*args, **kwargs)
 
-    def coefficients(self, project=False):
+    def coefficients(self, tree=None):
         """ Returns coefficients from fit.
 
         Parameters
         ----------
-        project : bool, optional
-            Specifies if coefficients should be projected back into
-            the Aitchison simplex [1]_.  If false, the coefficients will be
-            represented as balances  (default: False).
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented as proportions.
+            Otherwise, if this is not specified, the prediction will be represented as
+            balances. (default: None).
 
         Returns
         -------
@@ -56,11 +57,6 @@ class RegressionModel(Model):
             A table of values where columns are coefficients, and the index
             is either balances or proportions, depending on the value of
             `project`.
-
-        References
-        ----------
-        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
-           CDA work." Girona 24 (2003): 73-81.
         """
         coef = pd.DataFrame()
 
@@ -70,17 +66,14 @@ class RegressionModel(Model):
             coef = coef.append(c)
 
         if project:
-            # `check=False`, due to a problem with error handling
-            # addressed here https://github.com/biocore/scikit-bio/pull/1396
-            # This will need to be fixed here:
-            # https://github.com/biocore/gneiss/issues/34
-            c = ilr_inv(coef.values.T, basis=self.basis, check=False).T
-            return pd.DataFrame(c, index=self.basis.columns,
+            basis, _ = balance_basis(tree)
+            c = ilr_inv(coef.values.T, basis=basis).T
+            return pd.DataFrame(c, index=[n.name for n in tree.tips()],
                                 columns=coef.columns)
         else:
             return coef
 
-    def residuals(self, project=False):
+    def residuals(self, tree=None):
         """ Returns calculated residuals from fit.
 
         Parameters
@@ -89,10 +82,12 @@ class RegressionModel(Model):
             Input table of covariates.  If not specified, then the
             fitted values calculated from training the model will be
             returned.
-        project : bool, optional
-            Specifies if coefficients should be projected back into
-            the Aitchison simplex [1]_.  If false, the coefficients will be
-            represented as balances  (default: False).
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented as proportions.
+            Otherwise, if this is not specified, the prediction will be represented as
+            balances. (default: None).
+
 
         Returns
         -------
@@ -114,18 +109,15 @@ class RegressionModel(Model):
             resid = resid.append(err)
 
         if project:
-            # `check=False`, due to a problem with error handling
-            # addressed here https://github.com/biocore/scikit-bio/pull/1396
-            # This will need to be fixed here:
-            # https://github.com/biocore/gneiss/issues/34
-            proj_resid = ilr_inv(resid.values.T, basis=self.basis,
-                                 check=False).T
-            return pd.DataFrame(proj_resid, index=self.basis.columns,
+            basis, _ = balance_basis(tree)
+            proj_resid = ilr_inv(prediction.values.T, basis=basis).T
+            return pd.DataFrame(proj_resid,
+                                index=[n.name for n in tree.tips()],
                                 columns=resid.columns).T
         else:
             return resid.T
 
-    def predict(self, X=None, project=False, **kwargs):
+    def predict(self, X=None, tree=None, **kwargs):
         """ Performs a prediction based on model.
 
         Parameters
@@ -134,10 +126,11 @@ class RegressionModel(Model):
             Input table of covariates, where columns are covariates, and
             rows are samples.  If not specified, then the fitted values
             calculated from training the model will be returned.
-        project : bool, optional
-            Specifies if coefficients should be projected back into
-            the Aitchison simplex [1]_.  If false, the coefficients will be
-            represented as balances  (default: False).
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented as proportions.
+            Otherwise, if this is not specified, the prediction will be represented as
+            balances. (default: None).
         **kwargs : dict
             Other arguments to be passed into the model prediction.
 
@@ -147,11 +140,6 @@ class RegressionModel(Model):
             A table of values where rows are coefficients, and the columns
             are either balances or proportions, depending on the value of
             `project`.
-
-        References
-        ----------
-        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
-           CDA work." Girona 24 (2003): 73-81.
         """
         prediction = pd.DataFrame()
         for m in self.results:
@@ -164,15 +152,11 @@ class RegressionModel(Model):
                 p.index = m.fittedvalues.index
             prediction = prediction.append(p)
 
-        if project:
-            # `check=False`, due to a problem with error handling
-            # addressed here https://github.com/biocore/scikit-bio/pull/1396
-            # This will need to be fixed here:
-            # https://github.com/biocore/gneiss/issues/34
-            proj_prediction = ilr_inv(prediction.values.T, basis=self.basis,
-                                      check=False)
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_prediction = ilr_inv(prediction.values.T, basis=basis)
             return pd.DataFrame(proj_prediction,
-                                columns=self.basis.columns,
+                                columns=[n.name for n in tree.tips()],
                                 index=prediction.columns)
         else:
             return prediction.T
