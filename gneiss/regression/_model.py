@@ -8,6 +8,7 @@
 import pandas as pd
 from skbio.stats.composition import ilr_inv
 from gneiss._model import Model
+from gneiss.balances import balance_basis
 
 
 class RegressionModel(Model):
@@ -25,14 +26,6 @@ class RegressionModel(Model):
         ----------
         submodels : list of statsmodels objects
             List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leafs of the tree
-            and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
             balances are columns.  These balances were calculated
@@ -54,9 +47,8 @@ class RegressionModel(Model):
         Returns
         -------
         pd.DataFrame
-            A table of values where columns are coefficients, and the index
-            is either balances or proportions, depending on the value of
-            `project`.
+            A table of values where rows are coefficients, and the columns
+            are proportions, if `tree` is specified.
         """
         coef = pd.DataFrame()
 
@@ -65,9 +57,10 @@ class RegressionModel(Model):
             c.name = r.model.endog_names
             coef = coef.append(c)
 
-        if project:
+        if tree is not None:
             basis, _ = balance_basis(tree)
             c = ilr_inv(coef.values.T, basis=basis).T
+
             return pd.DataFrame(c, index=[n.name for n in tree.tips()],
                                 columns=coef.columns)
         else:
@@ -88,13 +81,11 @@ class RegressionModel(Model):
             Otherwise, if this is not specified, the prediction will be represented as
             balances. (default: None).
 
-
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are samples, and the columns
-            are either balances or proportions, depending on the value of
-            `project`.
+            A table of values where rows are coefficients, and the columns
+            are proportions, if `tree` is specified.
 
         References
         ----------
@@ -108,9 +99,9 @@ class RegressionModel(Model):
             err.name = r.model.endog_names
             resid = resid.append(err)
 
-        if project:
+        if tree is not None:
             basis, _ = balance_basis(tree)
-            proj_resid = ilr_inv(prediction.values.T, basis=basis).T
+            proj_resid = ilr_inv(resid.values.T, basis=basis).T
             return pd.DataFrame(proj_resid,
                                 index=[n.name for n in tree.tips()],
                                 columns=resid.columns).T
@@ -138,8 +129,8 @@ class RegressionModel(Model):
         -------
         pd.DataFrame
             A table of values where rows are coefficients, and the columns
-            are either balances or proportions, depending on the value of
-            `project`.
+            are proportions, if `tree` is specified.
+
         """
         prediction = pd.DataFrame()
         for m in self.results:

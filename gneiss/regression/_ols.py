@@ -157,11 +157,12 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     skbio.stats.composition.multiplicative_replacement
     """
+
     # one-time creation of exogenous data matrix allows for faster run-time
     metadata = _type_cast_to_float(metadata)
     x = dmatrix(formula, metadata, return_type='dataframe')
 
-    ilr_table, x = balances.align(x, join='inner', axis=0)
+    ilr_table, x = table.align(x, join='inner', axis=0)
     submodels = _fit_ols(ilr_table, x)
 
     return OLSModel(submodels, balances=ilr_table)

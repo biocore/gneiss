@@ -20,12 +20,12 @@ class TestOLS(unittest.TestCase):
     def setUp(self):
         A = np.array  # aliasing for the sake of pep8
         self.table = pd.DataFrame({
-            's1': ilr_inv(A([1., 1.])),
-            's2': ilr_inv(A([1., 2.])),
-            's3': ilr_inv(A([1., 3.])),
-            's4': ilr_inv(A([1., 4.])),
-            's5': ilr_inv(A([1., 5.]))},
-            index=['a', 'b', 'c']).T
+            's1': A([1., 1.]),
+            's2': A([1., 2.]),
+            's3': A([1., 3.]),
+            's4': A([1., 4.]),
+            's5': A([1., 5.])},
+            index=['Y1', 'Y2']).T
         self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
         self.unannotated_tree = TreeNode.read(['(c, (b,a));'])
         self.metadata = pd.DataFrame({
@@ -55,8 +55,8 @@ class TestOLSFunctions(TestOLS):
         res.fit()
         res_coef = res.coefficients()
         exp_coef = pd.DataFrame(
-            {'Intercept': [0, 1.00],
-             'real': [1.0, 0]},
+            {'Intercept': [1.00, 0],
+             'real': [0, 1.0]},
             index=['Y1', 'Y2'])
 
         pdt.assert_frame_equal(res_coef, exp_coef,
@@ -74,9 +74,6 @@ class TestOLSFunctions(TestOLS):
                                  index=['s1', 's2', 's3', 's4', 's5'],
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
-
-        # make sure that it is a dataframe
-        self.assertEqual(pd.DataFrame, type(res.basis))
 
     def test_ols_rename(self):
         res = ols('real', self.table, self.metadata,
