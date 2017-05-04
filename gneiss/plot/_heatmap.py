@@ -62,7 +62,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     # match the tips
     dendrogram_width = 20
 
-    table, tree = match_tips(table, tree)
+    table, tree = match_tips(table, tree.copy())
     table = table.T
     # get edges from tree
     t = SquareDendrogram.from_tree(tree)
