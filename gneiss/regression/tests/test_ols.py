@@ -75,33 +75,8 @@ class TestOLSFunctions(TestOLS):
                                  columns=['Y1', 'Y2'])
         pdt.assert_frame_equal(exp_resid, res.residuals())
 
-    def test_ols_rename(self):
-        res = ols('real', self.table, self.metadata,
-                  self.unannotated_tree)
-        res.fit()
-        res_coef = res.coefficients()
-        exp_coef = pd.DataFrame(
-            {'Intercept': [0, 1.00],
-             'real': [1.0, 0]},
-            index=['y0', 'y1'])
-
-        pdt.assert_frame_equal(res_coef, exp_coef,
-                               check_exact=False,
-                               check_less_precise=True)
-        # Double check to make sure the fit is perfect
-        self.assertAlmostEqual(res.r2, 1)
-
-        # Double check to make sure residuals are zero
-        exp_resid = pd.DataFrame([[0., 0.],
-                                  [0., 0.],
-                                  [0., 0.],
-                                  [0., 0.],
-                                  [0., 0.]],
-                                 index=['s1', 's2', 's3', 's4', 's5'],
-                                 columns=['y0', 'y1'])
-        pdt.assert_frame_equal(exp_resid, res.residuals())
-
-    def test_ols_immutable(self):
+    def test_ols_table_immutable(self):
+        # test to see if values in table get filtered out.
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
             's1': ilr_inv(A([1., 1.])),
@@ -120,8 +95,7 @@ class TestOLSFunctions(TestOLS):
             's6': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((c,d),(b,a));'])
-        exp_tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
+        tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5]
@@ -130,37 +104,70 @@ class TestOLSFunctions(TestOLS):
         res = ols('real + lame', table, metadata, tree)
         res.fit()
         self.assertEqual(str(table), str(exp_table))
-        self.assertEqual(str(exp_tree), str(res.tree))
 
-    def test_ols_missing_metadata(self):
-        np.random.seed(0)
+    def test_ols_metadata_immutable(self):
+        # test to see if values in table get filtered out.
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
             's1': ilr_inv(A([1., 1.])),
             's2': ilr_inv(A([1., 2.])),
             's3': ilr_inv(A([1., 3.])),
             's4': ilr_inv(A([1., 4.])),
-            's5': ilr_inv(A([1., 5.])),
-            's6': ilr_inv(A([1., 5.])),
-            's7': ilr_inv(A([1., 5.]))},
+            's5': ilr_inv(A([1., 5.]))},
+            index=['a', 'b', 'c']).T
+        exp_table = pd.DataFrame({
+            's1': ilr_inv(A([1., 1.])),
+            's2': ilr_inv(A([1., 2.])),
+            's3': ilr_inv(A([1., 3.])),
+            's4': ilr_inv(A([1., 4.])),
+            's5': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((c,d),(b,a));'])
-        exp_tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
+        tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
+        metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5, 1]
+        }, index=['s1', 's2', 's3', 's4', 's5', 's6'])
+
+        exp_metadata = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5, 1]
+        }, index=['s1', 's2', 's3', 's4', 's5', 's6'])
+
+        res = ols('real + lame', table, metadata, tree)
+        res.fit()
+        self.assertEqual(str(table), str(exp_table))
+        self.assertEqual(str(metadata), str(exp_metadata))
+
+    def test_ols_missing_metadata(self):
+        np.random.seed(0)
+        A = np.array  # aliasing for the sake of pep8
+        table = pd.DataFrame({
+            's1': A([1., 1.]),
+            's2': A([1., 2.]),
+            's3': A([1., 3.]),
+            's4': A([1., 4.]),
+            's5': A([1., 5.]),
+            's6': A([1., 5.]),
+            's7': A([1., 5.])},
+            index=['y1', 'y0']).T
+
+        tree = TreeNode.read(['((b,a)y1, c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1, 0],
             'real': [1, 2, 3, 4, 5, np.nan]
         }, index=['s1', 's2', 's3', 's4', 's5', 's7'])
-
         res = ols('real + lame', table, metadata, tree)
         res.fit()
-        self.assertEqual(str(exp_tree), str(res.tree))
 
         exp_coefs = pd.DataFrame(
             [[-7.494005e-16, -7.494005e-16, -1.000000e+00],
              [5.000000e-01, 5.000000e-01, -1.294503e-16]],
             columns=['Intercept', 'lame', 'real'], index=['y0', 'y1'])
-        pdt.assert_frame_equal(exp_coefs, res.coefficients(),
+        res_coefs = res.coefficients().sort_index()
+        print(exp_coefs)
+        print(res_coefs)
+        pdt.assert_frame_equal(exp_coefs, res_coefs,
                                check_less_precise=True)
 
     def test_ols_empty_table_error(self):

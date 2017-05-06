@@ -11,7 +11,9 @@ import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances, _type_cast_to_float)
+                         _to_balances, _type_cast_to_float,
+                         check_internal_nodes)
+
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
@@ -157,14 +159,13 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     skbio.stats.composition.multiplicative_replacement
     """
+    check_internal_nodes(tree)
 
     # one-time creation of exogenous data matrix allows for faster run-time
-    metadata = _type_cast_to_float(metadata)
+    metadata = _type_cast_to_float(metadata.copy())
     x = dmatrix(formula, metadata, return_type='dataframe')
-
     ilr_table, x = table.align(x, join='inner', axis=0)
     submodels = _fit_ols(ilr_table, x)
-
     return OLSModel(submodels, balances=ilr_table)
 
 

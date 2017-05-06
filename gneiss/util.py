@@ -132,6 +132,12 @@ def match_tips(table, tree):
     return _table, _tree
 
 
+def check_internal_nodes(tree):
+    for n in tree.levelorder():
+        if n.name is None:
+            raise ValueError('TreeNode has no name.')
+
+
 def rename_internal_nodes(tree, names=None, inplace=False):
     """ Names the internal according to level ordering.
 
