@@ -152,7 +152,7 @@ class TestOLSFunctions(TestOLS):
             's7': A([1., 5.])},
             index=['y1', 'y0']).T
 
-        tree = TreeNode.read(['((b,a)y1, c)y0;\n'])
+        tree = TreeNode.read(['(c, (b,a)y1)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1, 0],
             'real': [1, 2, 3, 4, 5, np.nan]
@@ -161,12 +161,11 @@ class TestOLSFunctions(TestOLS):
         res.fit()
 
         exp_coefs = pd.DataFrame(
-            [[-7.494005e-16, -7.494005e-16, -1.000000e+00],
+            [[-7.494005e-16, -7.494005e-16, 1.000000e+00],
              [5.000000e-01, 5.000000e-01, -1.294503e-16]],
             columns=['Intercept', 'lame', 'real'], index=['y0', 'y1'])
         res_coefs = res.coefficients().sort_index()
-        print(exp_coefs)
-        print(res_coefs)
+
         pdt.assert_frame_equal(exp_coefs, res_coefs,
                                check_less_precise=True)
 
