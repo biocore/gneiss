@@ -217,62 +217,6 @@ class LMEModel(RegressionModel):
         # TODO: We need better model statistics
         return smry
 
-    def lovo(self, **kwargs):
-        """ Leave one variable out cross-validation.
-
-        Calculates summary statistics for each iteraction of leave one variable
-        out cross-validation, specially `r2` and `mse` on entire model.
-        This technique is particularly useful for feature selection.
-
-        Parameters
-        ----------
-        **kwargs : dict
-           Keyword arguments used to tune the parameter estimation.
-
-        Returns
-        -------
-        pd.DataFrame
-           mse : np.array, float
-               Mean sum of squares error for each iteration of
-               the cross validation.
-           Rsquared : np.array, float
-               Coefficient of determination for each variable left out.
-           R2diff : np.array, float
-               Decrease in Rsquared for each variable left out.
-        """
-        endog = self.balances
-        exog_names = self.results[0].model.exog_names
-        exog = pd.DataFrame(self.results[0].model.exog,
-                            index=self.balances.index,
-                            columns=exog_names)
-        cv_iter = LeaveOneOut(len(exog_names))
-        results = pd.DataFrame(index=exog_names,
-                               columns=['mse', 'Rsquared', 'R2diff'],
-                               dtype=np.float64)
-        _r2 = self.r2
-        for i, (inidx, outidx) in enumerate(cv_iter):
-            feature_id = exog_names[i]
-
-            model_i = _fit_ols(y=endog, x=exog.loc[:, inidx], **kwargs)
-            res_i = OLSModel(model_i, balances=endog)
-            res_i.fit()
-
-            # See `statsmodels.regression.linear_model.RegressionResults`
-            # for more explanation on `ess` and `ssr`.
-            # sum of squares regression.
-            ssr = sum([r.ess for r in res_i.results])
-            # sum of squares error.
-            sse = sum([r.ssr for r in res_i.results])
-            # calculate the overall coefficient of determination (i.e. R2)
-            sst = sse + ssr
-            r2_left_out = 1 - sse / sst
-            # degrees of freedom for residuals
-            dfe = res_i.results[0].df_resid
-            results.loc[feature_id, 'mse'] = sse / dfe
-            results.loc[feature_id, 'Rsquared'] = r2_left_out
-            results.loc[feature_id, 'R2diff'] = _r2 - r2_left_out
-        return results
-
     def percent_explained(self):
         """ Proportion explained by each principal balance."""
         # Using sum of squares error calculation (df=1)
