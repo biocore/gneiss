@@ -388,7 +388,8 @@ class OLSModel(RegressionModel):
                             index=self.balances.index,
                             columns=exog_names)
         results = pd.DataFrame(index=self.balances.index,
-                               columns=['mse', 'pred_err'])
+                               columns=['mse', 'pred_err'],
+                               dtype=np.float64)
 
         for i, (inidx, outidx) in enumerate(cv_iter):
             sample_id = self.balances.index[i]
@@ -436,7 +437,8 @@ class OLSModel(RegressionModel):
                             columns=exog_names)
         cv_iter = LeaveOneOut(len(exog_names))
         results = pd.DataFrame(index=exog_names,
-                               columns=['mse', 'Rsquared'])
+                               columns=['mse', 'Rsquared'],
+                               dtype=np.float64)
         for i, (inidx, outidx) in enumerate(cv_iter):
             feature_id = exog_names[i]
             res_i = _fit_ols(endog, exog.loc[:, inidx], **kwargs)

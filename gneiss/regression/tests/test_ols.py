@@ -13,6 +13,7 @@ from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 from skbio.util import get_data_path
 from gneiss.regression import ols
+from gneiss.composition import ilr_transform
 import numpy.testing as npt
 
 
@@ -45,7 +46,7 @@ class TestOLS(unittest.TestCase):
              np.random.normal(size=n))
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
-        self.t2 = TreeNode.read([r"((a,b)n,c)f;"])
+        self.t2 = TreeNode.read([r"((a,b)y1,c)y0;"])
 
 
 class TestOLSFunctions(TestOLS):
@@ -327,7 +328,7 @@ class TestOLSFunctions(TestOLS):
                                columns=['mse', 'pred_err'],
                                index=self.y.index)
 
-        res_loo = res.loo().astype(np.float)
+        res_loo = res.loo()
         # Precision issues ...
         # pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
         npt.assert_allclose(exp_loo, res_loo, atol=1e-3,  rtol=1e-3)
@@ -336,19 +337,21 @@ class TestOLSFunctions(TestOLS):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
-        exp_lovo = pd.DataFrame([[0.799364, 0.978214],
-                                 [0.799363, 0.097355],
-                                 [0.799368, 0.0973498],
-                                 [0.799364, 0.097354],
-                                 [0.799361, 0.0973575]],
+
+        exp_lovo = pd.DataFrame([[0.000457738, 0.999651],
+                                 [0.000457738, 0.133113],
+                                 [0.000457738, 0.133046],
+                                 [0.000457738, 0.133100],
+                                 [0.000457738, 0.133143]],
                                 columns=['mse', 'Rsquared'],
                                 index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
-        res_lovo = res.lovo().astype(np.float)
+        res_lovo = res.lovo()
         pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
 
     def test_percent_explained(self):
+        table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x, tree=self.t2)
         res.fit()
         res_perc = res.percent_explained()
         exp_perc = pd.Series({'y0': 0.009901,
@@ -356,14 +359,16 @@ class TestOLSFunctions(TestOLS):
         pdt.assert_series_equal(res_perc, exp_perc)
 
     def test_mse(self):
+        table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x, tree=self.t2)
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
 
     def test_write(self):
+        table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x, tree=self.t2)
         res.fit()
         res.write_pickle('ols.pickle')
 
