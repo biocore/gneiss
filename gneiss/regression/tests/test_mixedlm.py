@@ -211,26 +211,6 @@ class TestMixedLMFunctions(TestMixedLM):
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
 
-    def test_summary(self):
-        model = mixedlm("x1 + x2", self.table, self.metadata,
-                        groups="groups")
-        model.fit()
-        res = str(model.summary())
-        fname = get_data_path('exp_lme_results.txt')
-        with open(fname, 'r') as fh:
-            exp = fh.read()
-            self.assertEqual(res, exp)
-
-    def test_summary_head(self):
-        model = mixedlm("x1 + x2", self.table, self.metadata,
-                        groups="groups")
-        model.fit()
-        res = str(model.summary(ndim=1))
-        fname = get_data_path('exp_lme_results2.txt')
-        with open(fname, 'r') as fh:
-            exp = fh.read()
-            self.assertEqual(res, exp)
-
     def test_write(self):
         res = mixedlm("x1 + x2", self.table, self.metadata,
                       groups="groups")
