@@ -52,7 +52,7 @@ class TestOLS(unittest.TestCase):
 class TestOLSFunctions(TestOLS):
 
     def test_ols(self):
-        res = ols('real', self.table, self.metadata, self.tree)
+        res = ols('real', self.table, self.metadata)
         res.fit()
         res_coef = res.coefficients()
         exp_coef = pd.DataFrame(
@@ -102,7 +102,7 @@ class TestOLSFunctions(TestOLS):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
 
-        res = ols('real + lame', table, metadata, tree)
+        res = ols('real + lame', table, metadata)
         res.fit()
         self.assertEqual(str(table), str(exp_table))
 
@@ -135,7 +135,7 @@ class TestOLSFunctions(TestOLS):
             'real': [1, 2, 3, 4, 5, 1]
         }, index=['s1', 's2', 's3', 's4', 's5', 's6'])
 
-        res = ols('real + lame', table, metadata, tree)
+        res = ols('real + lame', table, metadata)
         res.fit()
         self.assertEqual(str(table), str(exp_table))
         self.assertEqual(str(metadata), str(exp_metadata))
@@ -158,7 +158,7 @@ class TestOLSFunctions(TestOLS):
             'lame': [1, 1, 1, 1, 1, 0],
             'real': [1, 2, 3, 4, 5, np.nan]
         }, index=['s1', 's2', 's3', 's4', 's5', 's7'])
-        res = ols('real + lame', table, metadata, tree)
+        res = ols('real + lame', table, metadata)
         res.fit()
 
         exp_coefs = pd.DataFrame(
@@ -169,26 +169,6 @@ class TestOLSFunctions(TestOLS):
 
         pdt.assert_frame_equal(exp_coefs, res_coefs,
                                check_less_precise=True)
-
-    def test_ols_empty_table_error(self):
-        A = np.array  # aliasing for the sake of pep8
-        table = pd.DataFrame({
-            's1': ilr_inv(A([1., 1.])),
-            's2': ilr_inv(A([1., 2.])),
-            's3': ilr_inv(A([1., 3.])),
-            's4': ilr_inv(A([1., 4.])),
-            's5': ilr_inv(A([1., 5.])),
-            's6': ilr_inv(A([1., 5.]))},
-            index=['x', 'y', 'z']).T
-
-        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
-        metadata = pd.DataFrame({
-            'lame': [1, 1, 1, 1, 1],
-            'real': [1, 2, 3, 4, 5]
-        }, index=['s1', 's2', 's3', 's4', 's5'])
-        with self.assertRaises(ValueError):
-            res = ols('real + lame', table, metadata, tree)
-            res.fit()
 
     def test_ols_empty_metadata_error(self):
         A = np.array  # aliasing for the sake of pep8
@@ -207,26 +187,7 @@ class TestOLSFunctions(TestOLS):
             'real': [1, 2, 3, 4, 5]
         }, index=['s1', 's2', 's3', 's4', 's5'])
         with self.assertRaises(ValueError):
-            res = ols('real + lame', table, metadata, tree)
-            res.fit()
-
-    def test_ols_zero_error(self):
-        table = pd.DataFrame({
-            's1': [0, 0, 0],
-            's2': [0, 0, 0],
-            's3': [0, 0, 0],
-            's4': [0, 0, 0],
-            's5': [0, 0, 0],
-            's6': [0, 0, 0]},
-            index=['a', 'b', 'c']).T
-
-        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
-        metadata = pd.DataFrame({
-            'lame': [1, 1, 1, 1, 1],
-            'real': [1, 2, 3, 4, 5]
-        }, index=['s1', 's2', 's3', 's4', 's5'])
-        with self.assertRaises(ValueError):
-            res = ols('real + lame', table, metadata, tree)
+            res = ols('real + lame', table, metadata)
             res.fit()
 
     def test_summary(self):
@@ -246,7 +207,7 @@ class TestOLSFunctions(TestOLS):
 
         np.random.seed(0)
         self.maxDiff = None
-        model = ols('real', table, metadata, tree)
+        model = ols('real', table, metadata)
         model.fit()
 
         fname = get_data_path('exp_ols_results.txt')
@@ -258,12 +219,12 @@ class TestOLSFunctions(TestOLS):
     def test_summary_head(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
-            's1': ilr_inv(A([1., 3.])),
-            's2': ilr_inv(A([2., 2.])),
-            's3': ilr_inv(A([1., 3.])),
-            's4': ilr_inv(A([3., 4.])),
-            's5': ilr_inv(A([1., 5.]))},
-            index=['a', 'b', 'c']).T
+            's1': A([1., 3.]),
+            's2': A([2., 2.]),
+            's3': A([1., 3.]),
+            's4': A([3., 4.]),
+            's5': A([1., 5.])},
+            index=['Y2', 'Y1']).T
         tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
         metadata = pd.DataFrame({
             'lame': [1, 2, 1, 4, 1],
@@ -272,11 +233,12 @@ class TestOLSFunctions(TestOLS):
 
         np.random.seed(0)
         self.maxDiff = None
-        model = ols('real', table, metadata, tree)
+        model = ols('real', table, metadata)
         model.fit()
 
         fname = get_data_path('exp_ols_results2.txt')
         res = str(model.summary(ndim=1))
+
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
@@ -297,7 +259,7 @@ class TestOLSFunctions(TestOLS):
         y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
         t2 = TreeNode.read([r"((a,b)n,c)f;"])
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=y, metadata=x, tree=t2)
+                  table=y, metadata=x)
         res.fit()
         res_cv = res.kfold(num_folds=2)
         exp_cv = pd.DataFrame({
@@ -308,7 +270,7 @@ class TestOLSFunctions(TestOLS):
 
     def test_loo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
+                  table=self.y, metadata=self.x)
         res.fit()
         exp_loo = pd.DataFrame([[0.000493, 1.375103e-03],
                                 [0.000475, 5.679110e-04],
@@ -335,7 +297,7 @@ class TestOLSFunctions(TestOLS):
 
     def test_lovo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=self.y, metadata=self.x, tree=self.t2)
+                  table=self.y, metadata=self.x)
         res.fit()
 
         exp_lovo = pd.DataFrame([[0.000457738, 0.999651],
@@ -351,7 +313,7 @@ class TestOLSFunctions(TestOLS):
     def test_percent_explained(self):
         table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=table, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x)
         res.fit()
         res_perc = res.percent_explained()
         exp_perc = pd.Series({'y0': 0.009901,
@@ -361,14 +323,14 @@ class TestOLSFunctions(TestOLS):
     def test_mse(self):
         table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=table, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x)
         res.fit()
         self.assertAlmostEqual(res.mse, 0.79228890379010453, places=4)
 
     def test_write(self):
         table = ilr_transform(self.y, self.t2)
         res = ols(formula="x1 + x2 + x3 + x4",
-                  table=table, metadata=self.x, tree=self.t2)
+                  table=table, metadata=self.x)
         res.fit()
         res.write_pickle('ols.pickle')
 

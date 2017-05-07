@@ -16,7 +16,7 @@ from decimal import Decimal
 from statsmodels.iolib.summary2 import Summary
 
 
-def mixedlm(formula, table, metadata, tree, groups, **kwargs):
+def mixedlm(formula, table, metadata, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -39,14 +39,11 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         balances. See `patsy` [1]_ for more details.
     table : pd.DataFrame
         Contingency table where samples correspond to rows and
-        features correspond to columns.
+        balances correspond to columns.
     metadata: pd.DataFrame
         Metadata table that contains information about the samples contained
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
-    tree : skbio.TreeNode
-        Tree object that defines the partitions of the features. Each of the
-        leaves correspond to the columns contained in the table.
     groups : str
         Column names in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically

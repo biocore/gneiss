@@ -27,7 +27,7 @@ def _fit_ols(y, x, **kwargs):
     return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
 
 
-def ols(formula, table, metadata, tree, **kwargs):
+def ols(formula, table, metadata, **kwargs):
     """ Ordinary Least Squares applied to balances.
 
     An ordinary least square regression is performed on nonzero relative
@@ -55,9 +55,6 @@ def ols(formula, table, metadata, tree, **kwargs):
         Metadata table that contains information about the samples contained
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
-    tree : skbio.TreeNode
-        Tree object that defines the partitions of the features. Each of the
-        leaves correspond to the columns contained in the table.
     **kwargs : dict
         Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
@@ -159,7 +156,6 @@ def ols(formula, table, metadata, tree, **kwargs):
     statsmodels.regression.linear_model.OLS
     skbio.stats.composition.multiplicative_replacement
     """
-    check_internal_nodes(tree)
 
     # one-time creation of exogenous data matrix allows for faster run-time
     metadata = _type_cast_to_float(metadata.copy())
