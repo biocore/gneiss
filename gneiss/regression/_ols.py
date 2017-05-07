@@ -296,6 +296,62 @@ class OLSModel(RegressionModel):
         dfe = self.results[0].df_resid
         return sse / dfe
 
+    def kfold(self, num_folds=10, **kwargs):
+        """ K-fold cross-validation.
+
+        Performs k-fold cross-validation by spliting the data
+        into k partitions, building a model on k-1 partitions and
+        evaluating the predictions on the remaining partition.
+        This process is performed k times.
+
+        Parameters
+        ----------
+        num_folds: int
+            The number of partitions used for the cross validation.
+        **kwargs : dict
+           Keyword arguments used to tune the parameter estimation.
+
+        Returns
+        -------
+        pd.DataFrame
+           model_mse : np.array, float
+               The within model mean sum of squares error for each iteration of
+               the cross validation.
+           pred_mse : np.array, float
+               Prediction mean sum of squares error for each iteration of
+               the cross validation.
+        """
+        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
+        s = nobs // num_folds
+        folds = [np.arange(i*s, ((i*s)+s) % nobs) for i in range(num_folds)]
+        results = pd.DataFrame(index=['fold_%d' % i for i in range(num_folds)],
+                               columns=['model_mse', 'pred_mse'],
+                               dtype=np.float64)
+        endog = self.balances
+        exog_names = self.results[0].model.exog_names
+        exog = pd.DataFrame(self.results[0].model.exog,
+                            index=self.balances.index,
+                            columns=exog_names)
+        for k in range(num_folds):
+            train = folds[k]
+            test = np.hstack(folds[:k] + folds[k+1:])
+
+            model_i = _fit_ols(y=endog.loc[train], x=exog.loc[train], **kwargs)
+            res_i = [r.fit(**kwargs) for r in model_i]
+
+            # mean sum of squares error
+            sse = sum([r.ssr for r in res_i])
+            # degrees of freedom for residuals
+            dfe = res_i[0].df_resid
+            results.loc['fold_%d' % k, 'model_mse'] = sse / dfe
+
+            # prediction error on loo point
+            predicted = self.predict(exog.loc[test])
+            pred_mse = np.mean((predicted - self.balances.loc[test])**2)
+            results.loc['fold_%d' % k, 'pred_mse'] = pred_mse.sum()
+
+        return results
+
     def loo(self, **kwargs):
         """ Leave one out cross-validation.
 

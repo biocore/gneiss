@@ -45,7 +45,7 @@ class TestOLS(unittest.TestCase):
              np.random.normal(size=n))
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
-        self.t2 = TreeNode.read([r"((a,b)n,c);"])
+        self.t2 = TreeNode.read([r"((a,b)n,c)f;"])
 
 
 class TestOLSFunctions(TestOLS):
@@ -231,12 +231,12 @@ class TestOLSFunctions(TestOLS):
     def test_summary(self):
         A = np.array  # aliasing for the sake of pep8
         table = pd.DataFrame({
-            's1': ilr_inv(A([1., 3.])),
-            's2': ilr_inv(A([2., 2.])),
-            's3': ilr_inv(A([1., 3.])),
-            's4': ilr_inv(A([3., 4.])),
-            's5': ilr_inv(A([1., 5.]))},
-            index=['a', 'b', 'c']).T
+            's1': A([1., 3.]),
+            's2': A([2., 2.]),
+            's3': A([1., 3.]),
+            's4': A([3., 4.]),
+            's5': A([1., 5.])},
+            index=['Y2', 'Y1']).T
         tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
         metadata = pd.DataFrame({
             'lame': [1, 2, 1, 4, 1],
@@ -280,27 +280,53 @@ class TestOLSFunctions(TestOLS):
             exp = fh.read()
             self.assertEqual(res, exp)
 
+    def test_kfold(self):
+        np.random.seed(0)
+        n = 15
+        a = np.array([1, 4.2, 5.3, -2.2, 8])
+        x1 = np.linspace(.01, 0.1, n)
+        x2 = np.logspace(0, 0.01, n)
+        x3 = np.exp(np.linspace(0, 0.01, n))
+        x4 = x1 ** 2
+
+        x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4})
+        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 +
+             np.random.normal(size=n))
+        sy = np.vstack((y, y/10)).T
+        y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
+        t2 = TreeNode.read([r"((a,b)n,c)f;"])
+        res = ols(formula="x1 + x2 + x3 + x4",
+                  table=y, metadata=x, tree=t2)
+        res.fit()
+        res_cv = res.kfold(num_folds=2)
+        exp_cv = pd.DataFrame({
+            'fold_0': [0.000530145, 4.10659e-05],
+            'fold_1': [6.41364e-05, 0.000622167]},
+            index=['model_mse', 'pred_mse']).T
+        pdt.assert_frame_equal(res_cv, exp_cv)
+
     def test_loo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x, tree=self.t2)
         res.fit()
-        exp_loo = pd.DataFrame([[0.66953263510975791, 10.994700550912553],
-                                [0.69679777354984163, 2.3613911713947062],
-                                [0.84934173316473072, 0.4057812892157881],
-                                [0.6990546679957772, 2.2872776593899351],
-                                [0.72855466737125463, 1.7615637744849277],
-                                [0.55998953661859308, 3.617823652256889],
-                                [0.81787392852582308, 0.72395497360494043],
-                                [0.8653549732546999, 0.17706927499520822],
-                                [0.86983181933002329, 0.1216027316667969],
-                                [0.87779006612352628, 0.028600627330344405],
-                                [0.86591226075609384, 0.16724511075065476],
-                                [0.7787232221539, 1.2820054843437292],
-                                [0.88032413856094505, 3.4113910096200831e-06],
-                                [0.83195133809800792, 0.62276589277034022],
-                                [0.85352707356786695, 1.4038585971691198]],
+        exp_loo = pd.DataFrame([[0.000493, 1.375103e-03],
+                                [0.000475, 5.679110e-04],
+                                [0.000519, 7.118939e-07],
+                                [0.000467, 6.613313e-04],
+                                [0.000446, 8.491825e-04],
+                                [0.000141, 4.268216e-03],
+                                [0.000451, 7.942190e-04],
+                                [0.000518, 1.290519e-05],
+                                [0.000518, 1.053929e-05],
+                                [0.000513, 7.373469e-05],
+                                [0.000516, 3.535239e-05],
+                                [0.000506, 1.709011e-04],
+                                [0.000519, 4.161646e-06],
+                                [0.000501, 2.390769e-04],
+                                [0.000499, 1.068820e-03]],
                                columns=['mse', 'pred_err'],
                                index=self.y.index)
+
         res_loo = res.loo().astype(np.float)
         # Precision issues ...
         # pdt.assert_frame_equal(exp_loo, res_loo, check_less_precise=True)
