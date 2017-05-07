@@ -131,18 +131,14 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     ols
 
     """
-    table, metadata, tree = _intersect_of_table_metadata_tree(table,
-                                                              metadata,
-                                                              tree)
-    ilr_table, basis = _to_balances(table, tree)
-    metadata = _type_cast_to_float(metadata)
-    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+    metadata = _type_cast_to_float(metadata.copy())
+    data = pd.merge(table, metadata, left_index=True, right_index=True)
     if len(data) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "
                           "the sample names between `metadata` and `table` "
                           "are consistent"))
     submodels = []
-    for b in ilr_table.columns:
+    for b in table.columns:
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
@@ -151,8 +147,7 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
                           **kwargs)
         submodels.append(mdf)
 
-    return LMEModel(submodels, basis=basis,
-                    balances=ilr_table, tree=tree)
+    return LMEModel(submodels, balances=table)
 
 
 class LMEModel(RegressionModel):
