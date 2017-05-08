@@ -73,7 +73,7 @@ class Dendrogram(TreeNode):
             else:
                 self.length = 1
 
-        self.depth = (depth or 0) + 1
+        self.depth = (depth or 0) + self.length
 
         children = self.children
         if children:
