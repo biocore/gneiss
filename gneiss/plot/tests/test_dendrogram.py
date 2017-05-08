@@ -41,14 +41,6 @@ class TestDendrogram(unittest.TestCase):
         self.assertEqual(t.children[1].children[0].leafcount, 1)
         self.assertEqual(t.children[1].children[1].leafcount, 1)
 
-    def test_height(self):
-        t = TreeNode.read([r'((a, b)x,(c, d)y)r;'])
-        t = UnrootedDendrogram.from_tree(t)
-        self.assertEqual(t.find('a').depth, 3)
-        t1 = TreeNode.read([r'((((a, b)x, c)d, e)f, g)r;'])
-        t1 = UnrootedDendrogram.from_tree(t1)
-        self.assertEqual(t1.find('a').depth, 5)
-
 
 class TestUnrootedDendrogram(unittest.TestCase):
 
