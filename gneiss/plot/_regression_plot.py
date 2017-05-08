@@ -17,10 +17,7 @@ from gneiss.plot._heatmap import heatmap
 
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
-from gneiss.regression._type import (LinearRegression_g,
-                                     LinearMixedEffects_g)
 from q2_types.tree import Phylogeny, Rooted
-from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable
 from qiime2.plugin import Int, MetadataCategory, Str, Choices
 

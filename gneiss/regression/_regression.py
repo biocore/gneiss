@@ -10,12 +10,11 @@ import skbio
 from ._ols import OLSModel, ols
 from ._mixedlm import LMEModel, mixedlm
 
-from q2_composition.plugin_setup import Composition, Balance
+from q2_composition.plugin_setup import Balance
 from q2_types.feature_table import FeatureTable
 from q2_types.tree import Phylogeny, Rooted, Unrooted
 from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
-from ._type import LinearRegression_g, LinearMixedEffects_g
 from gneiss.plot._regression_plot import ols_summary, lme_summary
 
 

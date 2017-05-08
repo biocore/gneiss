@@ -40,6 +40,3 @@ from ._regression import lme_regression, ols_regression
 
 __all__ = ["ols", "OLSModel", "mixedlm", "LMEModel",
            "lme_regression", "ols_regression"]
-
-
-importlib.import_module('gneiss.regression._transformer')
