@@ -12,8 +12,8 @@ from q2_composition.plugin_setup import Composition
 from q2_types.tree import Phylogeny, Rooted, Unrooted
 from gneiss.plugin_setup import plugin
 from gneiss.balances import balance_basis
-from gneiss.composition._type import Balance
 from q2_types.feature_table import FeatureTable
+from q2_composition import Balance
 
 
 def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
