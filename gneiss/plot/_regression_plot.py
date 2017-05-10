@@ -237,23 +237,30 @@ def _deposit_results(model, output_dir):
 
 
 def _deposit_results_html(index_f):
-    """ Create links to all of the regression results. """
-    index_f.write(('<th>Coefficients</th>\n'))
-    index_f.write(('<a href="coefficients.csv">'
-                   'Download as CSV</a><br>\n'))
-    index_f.write(('<th>Coefficient pvalues</th>\n'))
-    index_f.write(('<a href="pvalues.csv">'
-                   'Download as CSV</a><br>\n'))
-    index_f.write(('<th>Raw Balances</th>\n'))
-    index_f.write(('<a href="balances.csv.csv">'
-                   'Download as CSV</a><br>\n'))
-    index_f.write(('<th>Predicted Balances</th>\n'))
-    index_f.write(('<a href="predicted.csv">'
-                   'Download as CSV</a><br>\n'))
-    index_f.write(('<th>Residuals</th>\n'))
-    index_f.write(('<a href="residuals.csv">'
-                   'Download as CSV</a><br>\n'))
-    index_f.write(('<th>Tree</th>\n'))
+    """ Create links to all of the regression results.
+    Parameters
+    ----------
+    index_f : filehandle
+        File handle for dumping the results.
+    """
+    index_f.write(
+        ('<th>Coefficients</th>\n'
+         '<a href="coefficients.csv">'
+         'Download as CSV</a><br>\n'
+         '<th>Coefficient pvalues</th>\n'
+         '<a href="pvalues.csv">'
+         'Download as CSV</a><br>\n'
+         '<th>Raw Balances</th>\n'
+         '<a href="balances.csv.csv">'
+         'Download as CSV</a><br>\n'
+         '<th>Predicted Balances</th>\n'
+         '<a href="predicted.csv">'
+         'Download as CSV</a><br>\n'
+         '<th>Residuals</th>\n'
+         '<a href="residuals.csv">'
+         'Download as CSV</a><br>\n'
+         '<th>Tree</th>\n')
+    )
 
 
 # OLS summary
@@ -275,7 +282,7 @@ def ols_summary(output_dir: str, model: OLSModel,
     """
     # Cross validation
     cv = model.loo()
-    w, h = 300, 300  # plot width and height
+    w, h = 500, 300  # plot width and height
 
     # Explained sum of squares
     ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
@@ -332,7 +339,7 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
     # log likelihood
     loglike = pd.Series({r.model.endog_names: r.model.loglike(r.params)
                          for r in model.results})
-    w, h = 300, 300  # plot width and height
+    w, h = 500, 300  # plot width and height
     # Summary object
     smry = model.summary()
 
