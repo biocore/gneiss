@@ -21,9 +21,10 @@ from gneiss.plot._regression_plot import ols_summary, lme_summary
 def ols_regression(output_dir: str,
                    table: pd.DataFrame, tree: skbio.TreeNode,
                    metadata: Metadata, formula: str) -> None:
-    res = ols(table=table, tree=tree, metadata=metadata._dataframe,
+    res = ols(table=table, metadata=metadata._dataframe,
               formula=formula)
     res.fit()
+
     ols_summary(output_dir, res, tree)
 
 plugin.visualizers.register_function(

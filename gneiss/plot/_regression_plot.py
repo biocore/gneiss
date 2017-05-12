@@ -211,7 +211,6 @@ def _decorate_tree(t, series):
             n.color = '#00FF00'  # left child is green
         else:
             n.color = '#FF0000'  # right child is red
-
         if not n.is_tip():
             t.length = series.loc[n.name]
     return t
@@ -281,7 +280,6 @@ def ols_summary(output_dir: str, model: OLSModel,
         leaves correspond to the balances in the model.
     """
     # Cross validation
-    cv = model.loo()
     w, h = 500, 300  # plot width and height
 
     # Explained sum of squares

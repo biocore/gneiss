@@ -5,6 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
+import shutil
 import unittest
 import numpy as np
 import pandas as pd
@@ -47,6 +49,43 @@ class TestOLS(unittest.TestCase):
         sy = np.vstack((y, y/10)).T
         self.y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
         self.t2 = TreeNode.read([r"((a,b)y1,c)y0;"])
+
+        # for testing the plugins
+        self.results = "results"
+        os.mkdir(self.results)
+
+        self.table2 = pd.DataFrame({
+            's1': A([1., 1.]),
+            's2': A([1., 2.]),
+            's3': A([1., 3.]),
+            's4': A([1., 4.]),
+            's5': A([1., 5.]),
+            's6': A([1., 6.]),
+            's7': A([1., 7.]),
+            's8': A([1., 8.]),
+            's9': A([1., 9.]),
+            's10': A([1., 10.]),
+            's11': A([1., 11.]),
+            's12': A([1., 12.]),
+            's13': A([1., 13.]),
+            's14': A([1., 14.]),
+            's15': A([1., 15.])},
+            index=['Y1', 'Y2']).T
+
+        self.metadata2 = pd.DataFrame({
+            'lame': [1, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1],
+            'real': [1, 2, 3, 4, 5,
+                     6, 7, 8, 9, 10,
+                     11, 12, 13, 14, 15]
+        }, index=['s1', 's2', 's3', 's4', 's5',
+                  's6', 's7', 's8', 's9', 's10',
+                  's11', 's12', 's13', 's14', 's15'])
+
+
+    def tearDown(self):
+        shutil.rmtree(self.results)
 
 
 class TestOLSFunctions(TestOLS):
