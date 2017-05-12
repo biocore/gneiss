@@ -55,7 +55,7 @@ def lme_regression(output_dir: str,
                    table: pd.DataFrame, tree: skbio.TreeNode,
                    metadata: Metadata, formula: str,
                    groups: str) -> None:
-    res = mixedlm(table=table, tree=tree, metadata=metadata._dataframe,
+    res = mixedlm(table=table, metadata=metadata._dataframe,
                   formula=formula, groups=groups)
     res.fit()
     lme_summary(output_dir, res, tree)

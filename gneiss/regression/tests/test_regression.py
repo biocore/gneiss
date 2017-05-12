@@ -84,32 +84,38 @@ class TestMixedLMPlugin(TestMixedLM):
 
     def test_mixedlm_balances(self):
 
-        res = lme_regression(formula="x1 + x2", table=self.table,
-                             metadata=Metadata(self.metadata), tree=self.tree,
-                             groups="groups")
-        res.fit()
+        lme_regression(self.results,
+                       formula="x1 + x2", table=self.table,
+                       metadata=Metadata(self.metadata), tree=self.tree,
+                       groups="groups")
+        res_pvalues = pd.read_csv(os.path.join(self.results, 'pvalues.csv'),
+                                  index_col=0)
+        res_coefficients = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
+                                       index_col=0)
+
         exp_pvalues = pd.DataFrame(
-            [[4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
-             [0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
-            index=['Y1', 'Y2'],
+            [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
+             [4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
+            index=['y1', 'y2'],
             columns=['Intercept', 'groups RE', 'x1', 'x2'])
 
-        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
+        pdt.assert_frame_equal(res_pvalues, exp_pvalues,
                                check_less_precise=True)
 
         exp_coefficients = pd.DataFrame(
-            [[4.211451,  0.0935786, 1.022008, 0.924873],
-             [0.211451,  0.0935786, 1.022008, 0.924873]],
+            [[0.211451,  0.0935786, 1.022008, 0.924873],
+             [4.211451,  0.0935786, 1.022008, 0.924873]],
             columns=['Intercept', 'groups RE', 'x1', 'x2'],
-            index=['Y1', 'Y2'])
+            index=['y1', 'y2'])
 
-        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
+        pdt.assert_frame_equal(res_coefficients, exp_coefficients,
                                check_less_precise=True)
 
     def test_lme_artifact(self):
-        from qiime2.plugins.gneiss.methods import lme_regression
-        table_f = get_data_path("test_lme_composition.qza")
-        tree_f = get_data_path("test_tree.qza")
+        from qiime2.plugins.gneiss.visualizers import lme_regression
+
+        table_f = get_data_path("lme_balances.qza")
+        tree_f = get_data_path("lme_tree.qza")
         metadata_f = get_data_path("test_lme_metadata.txt")
 
         in_table = qiime2.Artifact.load(table_f)
@@ -117,11 +123,15 @@ class TestMixedLMPlugin(TestMixedLM):
         in_metadata = qiime2.Metadata(
             pd.read_table(metadata_f, index_col=0))
 
-        result, = lme_regression(in_table, in_tree, in_metadata,
-                                 'ph', 'host_subject_id')
-        res = result.view(LMEModel)
+        viz = lme_regression(in_table, in_tree, in_metadata,
+                             'ph', 'host_subject_id')
+        viz.visualization.export_data('regression_summary_dir')
 
-        self.assertAlmostEqual(res.coefficients().loc['y0', 'groups RE'],
+        res_coef = pd.read_csv(os.path.join('regression_summary_dir',
+                                            'coefficients.csv'),
+                               index_col=0)
+
+        self.assertAlmostEqual(res_coef.loc['y0', 'groups RE'],
                                1.105630e+00, places=5)
 
 

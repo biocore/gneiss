@@ -161,8 +161,11 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     m['X'] = [X.loc[i] for i in m.balance]
     m['Y'] = [Y.loc[i] for i in m.Covariate]
 
+    # fill in nans with zero.  Sometimes the pvalue calculation fails.
+    m = m.fillna(0)
     for i in m.index:
         x = m.loc[i, 'log_Pvalue']
+
         ind = int(np.floor((x - _min) / (_max - _min) * (N - 1)))
         m.loc[i, 'color'] = palette[ind]
 

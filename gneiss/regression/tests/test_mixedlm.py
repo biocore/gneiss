@@ -5,6 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
+import shutil
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
@@ -52,9 +54,16 @@ class TestMixedLM(unittest.TestCase):
         df["x1"] = exog[:, 0]
         df["x2"] = exog[:, 1]
 
-        self.tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        self.tree = TreeNode.read(['(c, (b,a)y2)y1;'])
         self.table = df[["y1", "y2"]]
         self.metadata = df[['x1', 'x2', 'groups']]
+
+        # for testing the plugins
+        self.results = "results"
+        os.mkdir(self.results)
+
+    def tearDown(self):
+        shutil.rmtree(self.results)
 
 
 class TestMixedLMFunctions(TestMixedLM):
@@ -177,7 +186,7 @@ class TestMixedLMFunctions(TestMixedLM):
         df["v1"] = subgroups1
         df["v2"] = subgroups2
 
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
+        tree = TreeNode.read(['(c, (b,a)y2)y1;'])
         table = df[["y1", "y2"]]
         metadata = df[['x1', 'x2', 'z1', 'z2', 'v1', 'v2', 'groups']]
 
