@@ -199,15 +199,15 @@ class OLSModel(RegressionModel):
         # assumes that the underlying submodels have implemented `fit`.
         self.results = [s.fit(**kwargs) for s in self.submodels]
 
-    def summary(self, ndim=10):
+    def summary(self, kfolds, lovo):
         """ Summarize the Ordinary Least Squares Regression Results.
 
         Parameters
         ----------
-        ndim : int
-            Number of dimensions to summarize for coefficients.
-            If `ndim` is None, then all of the dimensions of the covariates
-            will be printed. (default 10)
+        kfold : pd.DataFrame
+            Results from kfold cross-validation
+        lovo : pd.DataFrame
+            Results from leave-one-variable-out cross-validation.
 
         Returns
         -------
@@ -217,36 +217,6 @@ class OLSModel(RegressionModel):
         """
 
         coefs = self.coefficients()
-
-        if ndim:
-            coefs = coefs.head(ndim)
-        coefs.insert(0, 'c', ['slope']*coefs.shape[0])
-        # We need a hierarchical index.  The outer index for each balance
-        # and the inner index for each covariate
-        pvals = self.pvalues
-        if ndim:
-            pvals = pvals.head(ndim)
-        pvals.insert(0, 'c', ['pvalue']*pvals.shape[0])
-        scores = pd.concat((coefs, pvals))
-        # adding blank column just for the sake of display
-        scores = scores.sort_values(by='c', ascending=False)
-        scores = scores.sort_index(kind='mergesort')
-
-        def _format(x):
-            # format scores to be printable
-            if x.dtypes == float:
-                return ["%3.2E" % Decimal(k) for k in x]
-            else:
-                return x
-
-        scores = scores.apply(_format)
-        # TODO: Add sort measure of effect size for slopes.
-        # Not sure if euclidean norm is the most appropriate.
-        # See https://github.com/biocore/gneiss/issues/27
-        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
-        #                        for c in coefs.columns}, index=['A-Norm']).T
-        # cnorms = cnorms.apply(_format)
-        # TODO: Will want results from Hotelling t-test
         _r2 = self.r2
 
         self.params = coefs
@@ -266,7 +236,8 @@ class OLSModel(RegressionModel):
         # TODO: Investigate how to properly resize the tables
         smry.add_dict(info, ncols=1)
         smry.add_title("Simplicial Least Squares Results")
-        smry.add_df(scores, align='r')
+        smry.add_df(lovo, align='l')
+        smry.add_df(kfolds, align='l')
         return smry
 
     @property
@@ -313,6 +284,8 @@ class OLSModel(RegressionModel):
            model_mse : np.array, float
                The within model mean sum of squares error for each iteration of
                the cross validation.
+           Rsquared : np.array, float
+               The Rsquared of the model fitted on training data.
            pred_mse : np.array, float
                Prediction mean sum of squares error for each iteration of
                the cross validation.
@@ -321,7 +294,7 @@ class OLSModel(RegressionModel):
         s = nobs // num_folds
         folds = [np.arange(i*s, ((i*s)+s) % nobs) for i in range(num_folds)]
         results = pd.DataFrame(index=['fold_%d' % i for i in range(num_folds)],
-                               columns=['model_mse', 'pred_mse'],
+                               columns=['model_mse', 'Rsquared', 'pred_mse'],
                                dtype=np.float64)
         endog = self.balances
         exog_names = self.results[0].model.exog_names
@@ -332,19 +305,23 @@ class OLSModel(RegressionModel):
             train = folds[k]
             test = np.hstack(folds[:k] + folds[k+1:])
 
-            model_i = _fit_ols(y=endog.loc[train], x=exog.loc[train], **kwargs)
-            res_i = [r.fit(**kwargs) for r in model_i]
+            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train], **kwargs)
+            res_i = OLSModel(model_i, balances=endog.iloc[train])
+            res_i.fit()
 
-            # mean sum of squares error
-            sse = sum([r.ssr for r in res_i])
-            # degrees of freedom for residuals
-            dfe = res_i[0].df_resid
-            results.loc['fold_%d' % k, 'model_mse'] = sse / dfe
+            # model error
+            predicted = res_i.predict()
+            model_resid = ((predicted - endog.iloc[train])**2)
+            model_mse = np.mean(model_resid.sum(axis=0))
+            results.loc['fold_%d' % k, 'model_mse'] = model_mse
+            results.loc['fold_%d' % k, 'Rsquared'] = res_i.r2
 
-            # prediction error on loo point
-            predicted = self.predict(exog.loc[test])
-            pred_mse = np.mean((predicted - self.balances.loc[test])**2)
-            results.loc['fold_%d' % k, 'pred_mse'] = pred_mse.sum()
+            # prediction error
+            predicted = res_i.predict(exog.iloc[test])
+            pred_resid = ((predicted - endog.iloc[test])**2)
+            pred_mse = np.mean(pred_resid.sum(axis=0))
+
+            results.loc['fold_%d' % k, 'pred_mse'] = pred_mse
 
         return results
 
@@ -363,10 +340,10 @@ class OLSModel(RegressionModel):
         Returns
         -------
         pd.DataFrame
-           mse : np.array, float
+           model_mse : np.array, float
                Mean sum of squares error for each iteration of
                the cross validation.
-           pred_err : np.array, float
+           pred_mse : np.array, float
                Prediction mean sum of squares error for each iteration of
                the cross validation.
 
@@ -384,25 +361,28 @@ class OLSModel(RegressionModel):
                             index=self.balances.index,
                             columns=exog_names)
         results = pd.DataFrame(index=self.balances.index,
-                               columns=['mse', 'pred_err'],
+                               columns=['model_mse', 'pred_mse'],
                                dtype=np.float64)
 
-        for i, (inidx, outidx) in enumerate(cv_iter):
+        for i, (train, test) in enumerate(cv_iter):
             sample_id = self.balances.index[i]
-            model_i = _fit_ols(y=endog.loc[inidx], x=exog.loc[inidx], **kwargs)
-            res_i = [r.fit(**kwargs) for r in model_i]
+            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train],
+                               **kwargs)
+            res_i = OLSModel(model_i, balances=endog.iloc[train])
+            res_i.fit()
 
-            # mean sum of squares error
-            sse = sum([r.ssr for r in res_i])
-            # degrees of freedom for residuals
-            dfe = res_i[0].df_resid
-            results.loc[sample_id, 'mse'] = sse / dfe
+            # model error
+            predicted = res_i.predict()
+            model_resid = ((predicted - self.balances.iloc[train])**2)
+            model_mse = np.mean(model_resid.sum(axis=0))
+            results.loc[sample_id, 'model_mse'] = model_mse
 
-            # prediction error on loo point
-            predicted = np.hstack([r.predict(exog.loc[outidx]) for r in res_i])
+            # prediction error
+            predicted = res_i.predict(exog.iloc[test])
+            pred_resid = ((predicted - self.balances.iloc[test])**2)
+            pred_mse = np.mean(pred_resid.sum(axis=0))
+            results.loc[sample_id, 'pred_mse'] = pred_mse
 
-            pred_sse = np.sum((predicted - self.balances.loc[outidx])**2)
-            results.loc[sample_id, 'pred_err'] = pred_sse.sum()
         return results
 
     def lovo(self, **kwargs):
@@ -420,11 +400,13 @@ class OLSModel(RegressionModel):
         Returns
         -------
         pd.DataFrame
-           Rsquared : np.array, flot
-               Coefficient of determination for each variable left out.
            mse : np.array, float
                Mean sum of squares error for each iteration of
                the cross validation.
+           Rsquared : np.array, float
+               Coefficient of determination for each variable left out.
+           R2diff : np.array, float
+               Decrease in Rsquared for each variable left out.
         """
         endog = self.balances
         exog_names = self.results[0].model.exog_names
@@ -433,24 +415,30 @@ class OLSModel(RegressionModel):
                             columns=exog_names)
         cv_iter = LeaveOneOut(len(exog_names))
         results = pd.DataFrame(index=exog_names,
-                               columns=['mse', 'Rsquared'],
+                               columns=['mse', 'Rsquared', 'R2diff'],
                                dtype=np.float64)
+        _r2 = self.r2
         for i, (inidx, outidx) in enumerate(cv_iter):
             feature_id = exog_names[i]
-            res_i = _fit_ols(endog, exog.loc[:, inidx], **kwargs)
-            res_i = [r.fit(**kwargs) for r in res_i]
+
+            model_i = _fit_ols(y=endog, x=exog.loc[:, inidx], **kwargs)
+            res_i = OLSModel(model_i, balances=endog)
+            res_i.fit()
+
             # See `statsmodels.regression.linear_model.RegressionResults`
             # for more explanation on `ess` and `ssr`.
             # sum of squares regression.
-            ssr = sum([r.ess for r in res_i])
+            ssr = sum([r.ess for r in res_i.results])
             # sum of squares error.
-            sse = sum([r.ssr for r in res_i])
+            sse = sum([r.ssr for r in res_i.results])
             # calculate the overall coefficient of determination (i.e. R2)
             sst = sse + ssr
-            results.loc[feature_id, 'Rsquared'] = 1 - sse / sst
+            r2_left_out = 1 - sse / sst
             # degrees of freedom for residuals
-            dfe = res_i[0].df_resid
+            dfe = res_i.results[0].df_resid
             results.loc[feature_id, 'mse'] = sse / dfe
+            results.loc[feature_id, 'Rsquared'] = r2_left_out
+            results.loc[feature_id, 'R2diff'] = _r2 - r2_left_out
         return results
 
     def percent_explained(self):

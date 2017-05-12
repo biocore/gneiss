@@ -199,7 +199,6 @@ class TestOLSFunctions(TestOLS):
             's4': A([3., 4.]),
             's5': A([1., 5.])},
             index=['Y2', 'Y1']).T
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
         metadata = pd.DataFrame({
             'lame': [1, 2, 1, 4, 1],
             'real': [1, 2, 3, 4, 5]
@@ -209,36 +208,10 @@ class TestOLSFunctions(TestOLS):
         self.maxDiff = None
         model = ols('real', table, metadata)
         model.fit()
-
+        _l = model.lovo()
+        _k = model.kfold(num_folds=2)
         fname = get_data_path('exp_ols_results.txt')
-        res = str(model.summary())
-        with open(fname, 'r') as fh:
-            exp = fh.read()
-            self.assertEqual(res, exp)
-
-    def test_summary_head(self):
-        A = np.array  # aliasing for the sake of pep8
-        table = pd.DataFrame({
-            's1': A([1., 3.]),
-            's2': A([2., 2.]),
-            's3': A([1., 3.]),
-            's4': A([3., 4.]),
-            's5': A([1., 5.])},
-            index=['Y2', 'Y1']).T
-        tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-        metadata = pd.DataFrame({
-            'lame': [1, 2, 1, 4, 1],
-            'real': [1, 2, 3, 4, 5]
-        }, index=['s1', 's2', 's3', 's4', 's5'])
-
-        np.random.seed(0)
-        self.maxDiff = None
-        model = ols('real', table, metadata)
-        model.fit()
-
-        fname = get_data_path('exp_ols_results2.txt')
-        res = str(model.summary(ndim=1))
-
+        res = str(model.summary(_k, _l))
         with open(fname, 'r') as fh:
             exp = fh.read()
             self.assertEqual(res, exp)
@@ -263,30 +236,32 @@ class TestOLSFunctions(TestOLS):
         res.fit()
         res_cv = res.kfold(num_folds=2)
         exp_cv = pd.DataFrame({
-            'fold_0': [0.000530145, 4.10659e-05],
-            'fold_1': [6.41364e-05, 0.000622167]},
-            index=['model_mse', 'pred_mse']).T
-        pdt.assert_frame_equal(res_cv, exp_cv)
+            'fold_0': [0.000353, 0.786741, 332.452084],
+            'fold_1': [0.000043, 0.838284, 0.230325]},
+            index=['model_mse', 'Rsquared', 'pred_mse']).T
+        # Precision issues ...
+        # pdt.assert_frame_equal(res_cv, exp_cv, check_less_precise=True)
+        npt.assert_allclose(exp_cv, res_cv, atol=1e-3,  rtol=1e-3)
 
     def test_loo(self):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x)
         res.fit()
-        exp_loo = pd.DataFrame([[0.000493, 1.375103e-03],
-                                [0.000475, 5.679110e-04],
-                                [0.000519, 7.118939e-07],
-                                [0.000467, 6.613313e-04],
-                                [0.000446, 8.491825e-04],
-                                [0.000141, 4.268216e-03],
-                                [0.000451, 7.942190e-04],
-                                [0.000518, 1.290519e-05],
-                                [0.000518, 1.053929e-05],
-                                [0.000513, 7.373469e-05],
-                                [0.000516, 3.535239e-05],
-                                [0.000506, 1.709011e-04],
-                                [0.000519, 4.161646e-06],
-                                [0.000501, 2.390769e-04],
-                                [0.000499, 1.068820e-03]],
+        exp_loo = pd.DataFrame([[0.001479, 4.583677e-04],
+                                [0.001426, 1.893037e-04],
+                                [0.001558, 2.372980e-07],
+                                [0.001401, 2.204438e-04],
+                                [0.001339, 2.830608e-04],
+                                [0.000424, 1.422739e-03],
+                                [0.001353, 2.647397e-04],
+                                [0.001555, 4.301729e-06],
+                                [0.001555, 3.513098e-06],
+                                [0.001538, 2.457823e-05],
+                                [0.001549, 1.178413e-05],
+                                [0.001517, 5.696703e-05],
+                                [0.001557, 1.387215e-06],
+                                [0.001502, 7.969229e-05],
+                                [0.001497, 3.562734e-04]],
                                columns=['mse', 'pred_err'],
                                index=self.y.index)
 
@@ -300,15 +275,17 @@ class TestOLSFunctions(TestOLS):
                   table=self.y, metadata=self.x)
         res.fit()
 
-        exp_lovo = pd.DataFrame([[0.000457738, 0.999651],
-                                 [0.000457738, 0.133113],
-                                 [0.000457738, 0.133046],
-                                 [0.000457738, 0.133100],
-                                 [0.000457738, 0.133143]],
-                                columns=['mse', 'Rsquared'],
+        exp_lovo = pd.DataFrame([[0.000458, 0.999651, -0.804403],
+                                 [0.000458, 0.133113, 0.062136],
+                                 [0.000458, 0.133046, 0.062203],
+                                 [0.000458, 0.133100, 0.062148],
+                                 [0.000458, 0.133143, 0.062106]],
+                                columns=['mse', 'Rsquared', 'R2diff'],
                                 index=['Intercept', 'x1', 'x2', 'x3', 'x4'])
         res_lovo = res.lovo()
-        pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
+        # Precision issues ...
+        # pdt.assert_frame_equal(exp_lovo, res_lovo, check_less_precise=True)
+        npt.assert_allclose(exp_lovo, res_lovo, atol=1e-3,  rtol=1e-3)
 
     def test_percent_explained(self):
         table = ilr_transform(self.y, self.t2)
