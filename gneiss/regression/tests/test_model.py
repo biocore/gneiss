@@ -90,7 +90,7 @@ class TestRegressionModel(unittest.TestCase):
         exp_coef = pd.DataFrame(
             np.array([[0.47802399, 0.44373548, 0.07824052],
                       [0.11793186, 0.73047731, 0.15159083]]).T,
-            columns = ['Intercept', 'X'],
+            columns=['Intercept', 'X'],
             index=['a', 'b', 'c'])
 
         submodels = [self.model1, self.model2]
@@ -114,7 +114,8 @@ class TestRegressionModel(unittest.TestCase):
                                   's7': [0.394737, 1.894737]},
                                  index=['Y1', 'Y2']).T
         exp_resid = pd.DataFrame(ilr_inv(exp_resid, basis),
-                                 index=['s1', 's2', 's3', 's4', 's5', 's6', 's7'],
+                                 index=['s1', 's2', 's3', 's4',
+                                        's5', 's6', 's7'],
                                  columns=['c', 'a', 'b'])
 
         submodels = [self.model1, self.model2]

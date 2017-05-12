@@ -40,9 +40,9 @@ class RegressionModel(Model):
         ----------
         tree : skbio.TreeNode, optional
             The tree used to perform the ilr transformation.  If this
-            is specified, then the prediction will be represented as proportions.
-            Otherwise, if this is not specified, the prediction will be represented as
-            balances. (default: None).
+            is specified, then the prediction will be represented as
+            proportions. Otherwise, if this is not specified, the prediction
+            will be represented as balances. (default: None).
 
         Returns
         -------
@@ -77,9 +77,9 @@ class RegressionModel(Model):
             returned.
         tree : skbio.TreeNode, optional
             The tree used to perform the ilr transformation.  If this
-            is specified, then the prediction will be represented as proportions.
-            Otherwise, if this is not specified, the prediction will be represented as
-            balances. (default: None).
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
 
         Returns
         -------
@@ -119,9 +119,9 @@ class RegressionModel(Model):
             calculated from training the model will be returned.
         tree : skbio.TreeNode, optional
             The tree used to perform the ilr transformation.  If this
-            is specified, then the prediction will be represented as proportions.
-            Otherwise, if this is not specified, the prediction will be represented as
-            balances. (default: None).
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
         **kwargs : dict
             Other arguments to be passed into the model prediction.
 

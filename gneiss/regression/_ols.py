@@ -305,7 +305,8 @@ class OLSModel(RegressionModel):
             train = folds[k]
             test = np.hstack(folds[:k] + folds[k+1:])
 
-            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train], **kwargs)
+            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train],
+                               **kwargs)
             res_i = OLSModel(model_i, balances=endog.iloc[train])
             res_i.fit()
 
