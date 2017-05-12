@@ -27,10 +27,9 @@ class TestOLSPlugin(TestOLS):
         res = ols_regression(self.table, self.tree, m, 'real')
         res_coef = res.coefficients()
         exp_coef = pd.DataFrame(
-            {'Intercept': [0, 1.00],
-             'real': [1.0, 0]},
+            {'Intercept': [1.00, 0],
+             'real': [0, 1.0]},
             index=['Y1', 'Y2'])
-
         pdt.assert_frame_equal(res_coef, exp_coef,
                                check_exact=False,
                                check_less_precise=True)

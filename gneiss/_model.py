@@ -19,14 +19,6 @@ class Model(metaclass=abc.ABCMeta):
         ----------
         submodels : list of statsmodels objects
             List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leaves of the tree
-            and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
             balances are columns. These balances were calculated

@@ -14,12 +14,14 @@ from gneiss.plugin_setup import plugin
 from gneiss.balances import balance_basis
 from q2_composition._type import Balance
 from q2_types.feature_table import FeatureTable
+from gneiss.util import match_tips
 
 
 def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
-    basis, _ = balance_basis(tree)
-    balances = ilr(table.values, basis)
-    in_nodes = [n.name for n in tree.levelorder() if not n.is_tip()]
+    _table, _tree = match_tips(table, tree)
+    basis, _ = balance_basis(_tree)
+    balances = ilr(_table.values, basis)
+    in_nodes = [n.name for n in _tree.levelorder() if not n.is_tip()]
     return pd.DataFrame(balances,
                         columns=in_nodes,
                         index=table.index)
