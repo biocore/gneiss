@@ -8,13 +8,11 @@
 import os
 import shutil
 import unittest
-import subprocess
 
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
-from gneiss.regression._regression import (lme_regression, ols_regression,
-                                           OLSModel, LMEModel)
+from gneiss.regression._regression import lme_regression, ols_regression
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
 from qiime2.metadata import Metadata
@@ -28,7 +26,7 @@ class TestOLSPlugin(TestOLS):
         ols_regression(self.results, self.table2, self.tree, m, 'real')
 
         res_coef = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
-                                index_col=0)
+                               index_col=0)
         res_resid = pd.read_csv(os.path.join(self.results, 'residuals.csv'),
                                 index_col=0)
 
@@ -70,7 +68,6 @@ class TestOLSPlugin(TestOLS):
         viz = ols_regression(in_table, in_tree, in_metadata, 'ph')
         viz.visualization.export_data('regression_summary_dir')
 
-
         res_coef = pd.read_csv(os.path.join('regression_summary_dir',
                                             'coefficients.csv'),
                                index_col=0)
@@ -88,10 +85,13 @@ class TestMixedLMPlugin(TestMixedLM):
                        formula="x1 + x2", table=self.table,
                        metadata=Metadata(self.metadata), tree=self.tree,
                        groups="groups")
-        res_pvalues = pd.read_csv(os.path.join(self.results, 'pvalues.csv'),
-                                  index_col=0)
-        res_coefficients = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
-                                       index_col=0)
+        res_pvalues = pd.read_csv(
+            os.path.join(self.results, 'pvalues.csv'),
+            index_col=0)
+
+        res_coefficients = pd.read_csv(
+            os.path.join(self.results, 'coefficients.csv'),
+            index_col=0)
 
         exp_pvalues = pd.DataFrame(
             [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],

@@ -83,7 +83,6 @@ class TestOLS(unittest.TestCase):
                   's6', 's7', 's8', 's9', 's10',
                   's11', 's12', 's13', 's14', 's15'])
 
-
     def tearDown(self):
         shutil.rmtree(self.results)
 
@@ -135,7 +134,6 @@ class TestOLSFunctions(TestOLS):
             's6': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5]
@@ -163,7 +161,6 @@ class TestOLSFunctions(TestOLS):
             's5': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((b,a)y1,c)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5, 1]
@@ -192,7 +189,6 @@ class TestOLSFunctions(TestOLS):
             's7': A([1., 5.])},
             index=['y1', 'y0']).T
 
-        tree = TreeNode.read(['(c, (b,a)y1)y0;\n'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1, 0],
             'real': [1, 2, 3, 4, 5, np.nan]
@@ -220,7 +216,6 @@ class TestOLSFunctions(TestOLS):
             'k6': ilr_inv(A([1., 5.]))},
             index=['a', 'b', 'c']).T
 
-        tree = TreeNode.read(['((c,d),(b,a)Y2)Y1;'])
         metadata = pd.DataFrame({
             'lame': [1, 1, 1, 1, 1],
             'real': [1, 2, 3, 4, 5]
@@ -269,7 +264,6 @@ class TestOLSFunctions(TestOLS):
              np.random.normal(size=n))
         sy = np.vstack((y, y/10)).T
         y = pd.DataFrame(ilr_inv(sy), columns=['a', 'b', 'c'])
-        t2 = TreeNode.read([r"((a,b)n,c)f;"])
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=y, metadata=x)
         res.fit()

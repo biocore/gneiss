@@ -9,18 +9,10 @@ import os
 import numpy as np
 import pandas as pd
 from skbio import TreeNode
-from skbio.stats.composition import clr, centralize
 
-from gneiss.plugin_setup import plugin
 from gneiss.plot._radial import radialplot
-from gneiss.plot._heatmap import heatmap
-
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
-from q2_types.tree import Phylogeny, Rooted
-from q2_types.feature_table import FeatureTable
-from qiime2.plugin import Int, MetadataCategory, Str, Choices
-
 
 from bokeh.embed import file_html
 from bokeh.resources import CDN

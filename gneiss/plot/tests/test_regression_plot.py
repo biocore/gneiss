@@ -12,17 +12,13 @@ import shutil
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-from scipy.cluster.hierarchy import ward
 
-from skbio import TreeNode, DistanceMatrix
-from skbio.stats.composition import ilr_inv
+from skbio import TreeNode
 from skbio.util import get_data_path
 
-from gneiss.plot._plot import dendrogram_heatmap
 from gneiss.plot._regression_plot import ols_summary, lme_summary
 from gneiss.regression import ols, mixedlm
 
-from qiime2 import MetadataCategory
 
 class TestOLS_Summary(unittest.TestCase):
 
@@ -277,4 +273,3 @@ class TestLME_Summary(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

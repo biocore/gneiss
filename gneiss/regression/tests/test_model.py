@@ -8,7 +8,7 @@
 import pandas as pd
 from skbio import TreeNode
 import numpy as np
-from skbio.stats.composition import ilr_inv, _gram_schmidt_basis, clr_inv
+from skbio.stats.composition import ilr_inv, clr_inv
 import statsmodels.formula.api as smf
 import pandas.util.testing as pdt
 from gneiss.regression._model import RegressionModel
@@ -86,7 +86,6 @@ class TestRegressionModel(unittest.TestCase):
 
     def test_regression_results_coefficient_projection(self):
         tree = TreeNode.read([r'(c, (a, b)Y2)Y1;'])
-        basis, _ = balance_basis(tree)
         exp_coef = pd.DataFrame(
             np.array([[0.47802399, 0.44373548, 0.07824052],
                       [0.11793186, 0.73047731, 0.15159083]]).T,
@@ -144,9 +143,6 @@ class TestRegressionModel(unittest.TestCase):
                                check_less_precise=True)
 
     def test_regression_results_predict(self):
-        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
-                             index=['Y1', 'Y2'],
-                             columns=['a', 'b', 'c'])
         submodels = [self.model1, self.model2]
         res = submock(submodels=submodels, balances=self.balances)
         res.fit()
@@ -182,14 +178,14 @@ class TestRegressionModel(unittest.TestCase):
         pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_projection(self):
+        submodels = [self.model1, self.model2]
         tree = TreeNode.read([r'(c, (a, b)Y2)Y1;'])
         basis, _ = balance_basis(tree)
-        submodels = [self.model1, self.model2]
+
         res = submock(submodels=submodels, balances=self.balances)
         res.fit()
 
         res_predict = res.predict(self.data[['X']], tree)
-        A = np.array  # aliasing np.array for the sake of pep8
         exp_predict = [[1.986842, 1.236842],
                        [3.065789, 3.815789],
                        [2.526316, 2.526316],
@@ -205,9 +201,6 @@ class TestRegressionModel(unittest.TestCase):
         pdt.assert_frame_equal(res_predict, exp_predict)
 
     def test_regression_results_predict_none(self):
-        basis = pd.DataFrame(clr_inv(_gram_schmidt_basis(3)),
-                             index=['Y1', 'Y2'],
-                             columns=['a', 'b', 'c'])
         submodels = [self.model1, self.model2]
         res = submock(submodels=submodels, balances=self.balances)
         res.fit()

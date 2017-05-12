@@ -11,11 +11,9 @@ import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import unittest
-from skbio.stats.composition import ilr_inv
 from skbio import TreeNode
 import statsmodels.formula.api as smf
 import numpy.testing as npt
-from skbio.util import get_data_path
 from gneiss.regression import mixedlm
 
 
@@ -186,7 +184,6 @@ class TestMixedLMFunctions(TestMixedLM):
         df["v1"] = subgroups1
         df["v2"] = subgroups2
 
-        tree = TreeNode.read(['(c, (b,a)y2)y1;'])
         table = df[["y1", "y2"]]
         metadata = df[['x1', 'x2', 'z1', 'z2', 'v1', 'v2', 'groups']]
 

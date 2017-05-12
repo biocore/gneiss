@@ -10,9 +10,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
-from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances, _type_cast_to_float)
-from decimal import Decimal
+from gneiss.util import _type_cast_to_float
 from statsmodels.iolib.summary2 import Summary
 
 

@@ -5,14 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-from decimal import Decimal
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
-from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances, _type_cast_to_float,
-                         check_internal_nodes)
+from gneiss.util import _type_cast_to_float
+
 
 import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary

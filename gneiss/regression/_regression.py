@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 import skbio
-from ._ols import OLSModel, ols
-from ._mixedlm import LMEModel, mixedlm
+from ._ols import ols
+from ._mixedlm import mixedlm
 
 from q2_composition.plugin_setup import Balance
 from q2_types.feature_table import FeatureTable
-from q2_types.tree import Phylogeny, Rooted, Unrooted
+from q2_types.tree import Phylogeny, Rooted
 from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
 from gneiss.plot._regression_plot import ols_summary, lme_summary

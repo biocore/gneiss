@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from gneiss.composition._composition import ilr_transform
-from gneiss.cluster import random_linkage, gradient_linkage
+from gneiss.cluster import gradient_linkage
 import pandas.util.testing as pdt
 
 
