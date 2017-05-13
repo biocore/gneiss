@@ -27,6 +27,7 @@ def ols_regression(output_dir: str,
 
     ols_summary(output_dir, res, tree)
 
+
 plugin.visualizers.register_function(
     function=ols_regression,
     inputs={'table': FeatureTable[Balance],
