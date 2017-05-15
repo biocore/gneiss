@@ -26,9 +26,6 @@ Functions
 # ----------------------------------------------------------------------------
 import warnings
 import numpy as np
-import pandas as pd
-from .balances import balance_basis
-from skbio.stats.composition import ilr
 
 
 def match(table, metadata):
