@@ -31,9 +31,9 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
     ----------
     model : RegressionModel
         Input regression model to plot prediction.
-    plot_width : int
+    plot_width : int, optional
         Width of plot.
-    plot_height : int
+    plot_height : int, optional
         Height of plot.
 
     Returns
@@ -77,6 +77,11 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     Parameters
     ----------
     model : RegressionModel
+        Input regression model to plot prediction.
+    plot_width : int, optional
+        Width of plot.
+    plot_height : int, optional
+        Height of plot.
 
     Returns
     -------
@@ -230,32 +235,6 @@ def _deposit_results(model, output_dir):
                     header=True, index=True)
 
 
-def _deposit_results_html(index_f):
-    """ Create links to all of the regression results.
-    Parameters
-    ----------
-    index_f : filehandle
-        File handle for dumping the results.
-    """
-    index_f.write(
-        ('<th>Coefficients</th>\n'
-         '<a href="coefficients.csv">'
-         'Download as CSV</a><br>\n'
-         '<th>Coefficient pvalues</th>\n'
-         '<a href="pvalues.csv">'
-         'Download as CSV</a><br>\n'
-         '<th>Raw Balances</th>\n'
-         '<a href="balances.csv.csv">'
-         'Download as CSV</a><br>\n'
-         '<th>Predicted Balances</th>\n'
-         '<a href="predicted.csv">'
-         'Download as CSV</a><br>\n'
-         '<th>Residuals</th>\n'
-         '<a href="residuals.csv">'
-         'Download as CSV</a><br>\n'
-         '<th>Tree</th>\n')
-    )
-
 
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel,
@@ -306,7 +285,24 @@ def ols_summary(output_dir: str, model: OLSModel,
         index_f.write('<html><body>\n')
         index_f.write('<h1>Simplicial Linear Regression Summary</h1>\n')
         index_f.write(smry.as_html())
-        _deposit_results_html(index_f)
+        index_f.write(
+            ('<th>Coefficients</th>\n'
+             '<a href="coefficients.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Coefficient pvalues</th>\n'
+             '<a href="pvalues.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Raw Balances</th>\n'
+             '<a href="balances.csv.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Predicted Balances</th>\n'
+             '<a href="predicted.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Residuals</th>\n'
+             '<a href="residuals.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Tree</th>\n')
+        )
 
         plot_html = file_html(p, CDN, 'Diagnostics')
         index_f.write(plot_html)
@@ -363,7 +359,25 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
         index_f.write('<html><body>\n')
         index_f.write('<h1>Simplicial Linear Mixed Effects Summary</h1>\n')
         index_f.write(smry.as_html())
-        _deposit_results_html(index_f)
+        index_f.write(
+            ('<th>Coefficients</th>\n'
+             '<a href="coefficients.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Coefficient pvalues</th>\n'
+             '<a href="pvalues.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Raw Balances</th>\n'
+             '<a href="balances.csv.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Predicted Balances</th>\n'
+             '<a href="predicted.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Residuals</th>\n'
+             '<a href="residuals.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>Tree</th>\n')
+        )
+
         diag_html = file_html(p, CDN, 'Diagnostic plots')
         index_f.write(diag_html)
         index_f.write('</body></html>\n')

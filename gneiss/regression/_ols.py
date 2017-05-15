@@ -271,7 +271,7 @@ class OLSModel(RegressionModel):
 
         Parameters
         ----------
-        num_folds: int
+        num_folds: int, optional
             The number of partitions used for the cross validation.
         **kwargs : dict
            Keyword arguments used to tune the parameter estimation.
