@@ -120,9 +120,9 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     coefs : pd.DataFrame
         Table of coefficients where rows are balances and columns are
         covariates.
-    plot_width : int
+    plot_width : int, optional
         Width of plot.
-    plot_height : int
+    plot_height : int, optional
         Height of plot.
 
     Returns
