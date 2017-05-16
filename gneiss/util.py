@@ -26,9 +26,6 @@ Functions
 # ----------------------------------------------------------------------------
 import warnings
 import numpy as np
-import pandas as pd
-from .balances import balance_basis
-from skbio.stats.composition import ilr
 
 
 def match(table, metadata):
@@ -132,6 +129,12 @@ def match_tips(table, tree):
     return _table, _tree
 
 
+def check_internal_nodes(tree):
+    for n in tree.levelorder():
+        if n.name is None:
+            raise ValueError('TreeNode has no name.')
+
+
 def rename_internal_nodes(tree, names=None, inplace=False):
     """ Names the internal according to level ordering.
 
@@ -186,88 +189,6 @@ def rename_internal_nodes(tree, names=None, inplace=False):
             n.name = label
             i += 1
     return _tree
-
-
-def _intersect_of_table_metadata_tree(table, metadata, tree):
-    """ The intersection of tips, samples and features.
-
-    This calculates the common features between the table and the tree,
-    in addition to the common samples between the table and the metadata
-    table.  The common subset of features and samples between these
-    three objects will be returned.
-
-
-    Parameters
-    ----------
-    table : pd.DataFrame
-        Contingency table where samples correspond to rows and
-        features correspond to columns.
-    metadata: pd.DataFrame
-        Metadata table that contains information about the samples contained
-        in the `table` object.  Samples correspond to rows and covariates
-        correspond to columns.
-    tree : skbio.TreeNode
-        Tree object where the leaves correspond to the columns contained in
-        the sample table.
-
-    Returns
-    -------
-    pd.DataFrame
-        Subset of `table` with common row names as `metadata`
-        and common columns as `tree.tips()`
-    pd.DataFrame
-        Subset of `metadata` with common row names as `table`
-    skbio.TreeNode
-        Subtree of `tree` with common tips as `table`
-    """
-    if np.any(table <= 0):
-        raise ValueError('Cannot handle zeros or negative values in `table`. '
-                         'Use pseudocounts or ``multiplicative_replacement``.'
-                         )
-    # check to see if there are overlapping nodes in tree and table
-    overlap = {n.name for n in tree.tips()} & set(table.columns)
-    if len(overlap) == 0:
-        raise ValueError('There are no internal nodes in `tree` after'
-                         'intersection with `table`.')
-
-    _table, _metadata = match(table, metadata)
-    _table, _tree = match_tips(_table, tree)
-    non_tips_no_name = [(n.name is None) for n in _tree.levelorder()
-                        if not n.is_tip()]
-
-    if any(non_tips_no_name):
-        _tree = rename_internal_nodes(_tree)
-    return _table, _metadata, _tree
-
-
-def _to_balances(table, tree):
-    """ Converts a table of abundances to balances given a tree.
-
-    Parameters
-    ----------
-    table : pd.DataFrame
-        Contingency table where samples correspond to rows and
-        features correspond to columns.
-    tree : skbio.TreeNode
-        Tree object where the leaves correspond to the columns contained in
-        the table.
-
-    Returns
-    -------
-    pd.DataFrame
-        Contingency table where samples correspond to rows and
-        balances correspond to columns.
-    np.array
-        Orthonormal basis in the Aitchison simplex generated from `tree`.
-    """
-    non_tips = [n.name for n in tree.levelorder() if not n.is_tip()]
-    basis, _ = balance_basis(tree)
-
-    mat = ilr(table.values, basis=basis)
-    ilr_table = pd.DataFrame(mat,
-                             columns=non_tips,
-                             index=table.index)
-    return ilr_table, basis
 
 
 def _type_cast_to_float(df):
