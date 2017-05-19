@@ -2,6 +2,7 @@
 
 ## Version 0.3.2
 * Added `balance_boxplot` and `balance_barplot` to make interpretation balance partitions easier.
+* Added `assign_ids` command to allow for ids to be added manually.
 
 ## Version 0.3.0
 * Added q2 support for linear regression and linear mixed effects models [#98](https://github.com/biocore/gneiss/pull/98)

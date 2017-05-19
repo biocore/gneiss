@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import uuid
 import pandas as pd
 import numpy as np
 import skbio
@@ -16,6 +17,7 @@ from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import correlation_linkage, gradient_linkage
 from gneiss.sort import gradient_sort, mean_niche_estimator
+from gneiss.util import rename_internal_nodes
 
 
 def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
@@ -120,4 +122,31 @@ plugin.methods.register_function(
                  'difference of gradients that each feature is observed in. '
                  'This method is primarily used to sort the table to reveal '
                  'the underlying block-like structures.')
+)
+
+
+def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
+
+    t = tree.copy()
+    t.bifurcate()
+    ids = ['%sL-%s' % (i, uuid.uuid4())
+           for i, n in enumerate(t.levelorder(include_self=True))
+           if not n.is_tip()]
+    t = rename_internal_nodes(t, names=ids)
+    return t
+
+
+plugin.methods.register_function(
+    function=assign_ids,
+    inputs={'tree': Phylogeny[Rooted]},
+    outputs=[('tree', Phylogeny[Rooted])],
+    name='Assigns ids on internal nodes in the tree.',
+    input_descriptions={
+        'tree': ('The input tree with potential missing ids.')},
+    parameters={},
+    output_descriptions={
+        'tree': ('A tree with uniquely identifying ids.')},
+    description=('Assigns UUIDs to uniquely identify internal nodes '
+                 'in the tree.  Also corrects for polytomies to create '
+                 'strictly bifurcating trees.')
 )

@@ -65,15 +65,11 @@ class TestModel(unittest.TestCase):
     def test_init(self):
         submodels = [None, None]
 
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
+        res = submock_ok(submodels=submodels, balances=self.balances)
         # check submodels
         self.assertTrue(res.submodels[0] is None)
         self.assertTrue(res.submodels[1] is None)
-        # check basis
-        pdt.assert_frame_equal(self.basis, res.basis)
-        # check tree
-        self.assertEqual(str(self.tree), str(res.tree))
+
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
@@ -84,38 +80,7 @@ class TestModel(unittest.TestCase):
         submodels = [None, None]
 
         with self.assertRaises(TypeError):
-            submock_bad(submodels=submodels, basis=self.basis,
-                        tree=self.tree, balances=self.balances)
-
-    def test_tree(self):
-        # check tree
-        submodels = [None, None]
-        basis = pd.DataFrame([[0.80442968, 0.19557032]],
-                             index=['a'],
-                             columns=['x', 'y'])
-        tree = TreeNode.read(['(x, y)a;'])
-        balances = pd.DataFrame({'a': [-1, 0, 1]})
-        res = submock_ok(submodels=submodels, basis=basis,
-                         tree=tree, balances=balances)
-        self.assertTrue(isinstance(res.tree, TreeNode))
-        self.assertEqual(str(res.tree), str(self.tree))
-
-    def test_split_balance(self):
-        submodels = [None, None]
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
-        exp = pd.DataFrame([[0.19557032, 0.80442968],
-                            [0.5, 0.5],
-                            [0.80442968, 0.19557032]],
-                           columns=['x', 'y'])
-        pdt.assert_frame_equal(exp, res.split_balance('a'))
-
-    def test_split_balance_error(self):
-        submodels = [None, None]
-        res = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
-        with self.assertRaises(ValueError):
-            res.split_balance('x')
+            submock_bad(submodels=submodels, balances=self.balances)
 
     # pickle io tests
     def test_read_write(self):
@@ -123,22 +88,15 @@ class TestModel(unittest.TestCase):
         # now initialize model
         submodels = [self.model1, self.model2]
 
-        exp = submock_ok(submodels=submodels, basis=self.basis,
-                         tree=self.tree, balances=self.balances)
+        exp = submock_ok(submodels=submodels, balances=self.balances)
 
         exp.write_pickle(self.pickle_fname)
-        # make sure that tree is not nullified
-        self.assertTrue(exp.tree is not None)
 
         res = submock_ok.read_pickle(self.pickle_fname)
         res.fit()
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
 
-        # check basis
-        pdt.assert_frame_equal(self.basis, res.basis)
-        # check tree
-        self.assertEqual(str(self.tree), res._tree)
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
@@ -150,12 +108,9 @@ class TestModel(unittest.TestCase):
     def test_read_write_handle(self):
         submodels = [self.model1, self.model2]
         with open(self.pickle_fname, 'wb') as wfh:
-            exp = submock_ok(submodels=submodels, basis=self.basis,
-                             tree=self.tree, balances=self.balances)
+            exp = submock_ok(submodels=submodels, balances=self.balances)
 
             exp.write_pickle(wfh)
-            # make sure that tree is not nullified
-            self.assertTrue(exp.tree is not None)
 
         with open(self.pickle_fname, 'rb') as rfh:
             res = submock_ok.read_pickle(rfh)
@@ -164,10 +119,6 @@ class TestModel(unittest.TestCase):
         exp1 = self.model1.fit()
         exp2 = self.model2.fit()
 
-        # check basis
-        pdt.assert_frame_equal(self.basis, res.basis)
-        # check tree
-        self.assertEqual(str(self.tree), res._tree)
         # check balances
         pdt.assert_frame_equal(self.balances, res.balances)
         # check results
