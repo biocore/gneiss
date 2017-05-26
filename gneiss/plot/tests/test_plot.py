@@ -131,7 +131,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
         )
 
     def tearDown(self):
-        #shutil.rmtree(self.results)
+        shutil.rmtree(self.results)
         pass
 
     def test_balance_taxonomy(self):
@@ -211,14 +211,19 @@ class TestBalanceTaxonomy(unittest.TestCase):
                          metadata=self.continuous)
 
 
-    def test_balance_taxonomy_phylum(self):
-        pass
-
     def test_balance_taxonomy_genus(self):
-        pass
+        index_fp = os.path.join(self.results, 'index.html')
+        balance_taxonomy(self.results, self.balances, self.tree,
+                         self.taxonomy, balance_name='c',
+                         taxa_level='genus')
 
-    def test_balance_taxonomy_y1(self):
-        pass
+        self.assertTrue(os.path.exists(index_fp))
+        # test to make sure that the numerator file is there
+        num_fp = os.path.join(self.results, 'numerator.csv')
+        self.assertTrue(os.path.exists(num_fp))
+        # test to make sure that the denominator file is there
+        denom_fp = os.path.join(self.results, 'denominator.csv')
+        self.assertTrue(os.path.exists(denom_fp))
 
 
 if __name__ == "__main__":
