@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
 from gneiss.plot._dendrogram import SquareDendrogram
-from gneiss.util import match_tips
+from gneiss.util import match_tips, NUMERATOR, DENOMINATOR
 
 
 def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
@@ -145,7 +145,7 @@ def _tree_coordinates(t):
             n._k = 0
             n._t = 0
         else:
-            if n is n.parent.children[0]:
+            if n is n.parent.children[NUMERATOR]:
                 n._k = n.parent._k + n.parent._r
                 n._t = n.parent._t
             else:
@@ -153,7 +153,8 @@ def _tree_coordinates(t):
                 n._t = n.parent._t + n.parent._l
         if n.is_tip():
             continue
-        n._l, n._r = n.children[0]._n_tips, n.children[1]._n_tips
+        n._l = n.children[NUMERATOR]._n_tips,
+        n._r = n.children[DENOMINATOR]._n_tips
     return t
 
 

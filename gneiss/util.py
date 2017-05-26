@@ -27,6 +27,9 @@ Functions
 import warnings
 import numpy as np
 
+# Specifies which child is numberator and denominator
+NUMERATOR = 1
+DENOMINATOR = 0
 
 def split_balance(balance, tree):
     """ Splits a balance into its log ratio components.

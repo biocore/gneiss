@@ -7,6 +7,8 @@
 # ----------------------------------------------------------------------------
 import matplotlib
 import matplotlib.pyplot as plt
+import pandas as pd
+from gneiss.util import NUMERATOR, DENOMINATOR
 
 
 def balance_boxplot(balance_name, data, num_color='#FFFFFF',
@@ -111,16 +113,29 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
         Barplot of the features in the denominator of the balance.
     """
     import seaborn as sns
-    if axes[0] is None or axes[2] is None:
+    if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(2)
     else:
         ax_num, ax_denom = axes[0], axes[1]
     st = tree.find(balance_name)
-    num = feature_metadata.loc[list(st.children[0].subset())]
-    denom = feature_metadata.loc[list(st.children[1].subset())]
+    num_clade = st.children[NUMERATOR]
+    denom_clade = st.children[DENOMINATOR]
+    if num_clade.is_tip():
 
-    num_ = num[header].value_counts().head(ndim).reset_index()
-    denom_ = denom[header].value_counts().head(ndim).reset_index()
+        num_ = pd.DataFrame(
+            {'index': feature_metadata.loc[num_clade.name, header],
+             header: 1}, index=[header])
+    else:
+        num = feature_metadata.loc[list(num_clade.subset())]
+        num_ = num[header].value_counts().head(ndim).reset_index()
+
+    if denom_clade.is_tip():
+        denom_ = pd.DataFrame(
+            {'index': feature_metadata.loc[denom_clade.name, header],
+             header: 1}, index=[header])
+    else:
+        denom = feature_metadata.loc[list(denom_clade.subset())]
+        denom_ = denom[header].value_counts().head(ndim).reset_index()
 
     ax_denom = sns.barplot(y='index', x=header, data=denom_, ax=ax_denom,
                            color=denom_color)
