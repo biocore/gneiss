@@ -6,13 +6,12 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import pickle
-from skbio import TreeNode
 import abc
 
 
 class Model(metaclass=abc.ABCMeta):
 
-    def __init__(self, submodels, basis, tree, balances):
+    def __init__(self, submodels, balances):
         """
         Abstract container for balance models.
 
@@ -20,14 +19,6 @@ class Model(metaclass=abc.ABCMeta):
         ----------
         submodels : list of statsmodels objects
             List of statsmodels result objects.
-        basis : pd.DataFrame
-            Orthonormal basis in the Aitchison simplex.
-            Row names correspond to the leaves of the tree
-            and the column names correspond to the internal nodes
-            in the tree. If this is not specified, then `project` cannot
-            be enabled in `coefficients` or `predict`.
-        tree : skbio.TreeNode
-            Bifurcating tree that defines `basis`.
         balances : pd.DataFrame
             A table of balances where samples are rows and
             balances are columns. These balances were calculated
@@ -37,10 +28,6 @@ class Model(metaclass=abc.ABCMeta):
         # this will require the development of methods to convert
         # back and forth between these methods.
         self.submodels = submodels
-        self.basis = basis
-
-        self.tree = tree
-
         self.balances = balances
         self.results = []
 
@@ -77,7 +64,6 @@ class Model(metaclass=abc.ABCMeta):
                 res = pickle.load(fh)
         else:
             res = pickle.load(filename)
-        res.tree = TreeNode.read([res._tree])
 
         return res
 
@@ -89,14 +75,8 @@ class Model(metaclass=abc.ABCMeta):
         filename : str or filehandle
             Output file to store pickled object.
         """
-        t = self.tree.copy()
-        self._tree = str(self.tree)
-        self.tree = None
         if isinstance(filename, str):
             with open(filename, 'wb') as fh:
                 pickle.dump(self, fh)
         else:
             pickle.dump(self, filename)
-
-        # restore the tree
-        self.tree = t

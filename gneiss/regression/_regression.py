@@ -7,31 +7,32 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 import skbio
-from ._ols import OLSModel, ols
-from ._mixedlm import LMEModel, mixedlm
+from ._ols import ols
+from ._mixedlm import mixedlm
 
-from q2_composition.plugin_setup import Composition
+from q2_composition.plugin_setup import Balance
 from q2_types.feature_table import FeatureTable
-from q2_types.tree import Phylogeny, Rooted, Unrooted
+from q2_types.tree import Phylogeny, Rooted
 from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
-from ._type import LinearRegression_g, LinearMixedEffects_g
+from gneiss.plot._regression_plot import ols_summary, lme_summary
 
 
-def ols_regression(table: pd.DataFrame, tree: skbio.TreeNode,
-                   metadata: Metadata, formula: str) -> OLSModel:
-    res = ols(table=table, tree=tree, metadata=metadata._dataframe,
+def ols_regression(output_dir: str,
+                   table: pd.DataFrame, tree: skbio.TreeNode,
+                   metadata: Metadata, formula: str) -> None:
+    res = ols(table=table, metadata=metadata._dataframe,
               formula=formula)
     res.fit()
-    return res
+
+    ols_summary(output_dir, res, tree)
 
 
-plugin.methods.register_function(
+plugin.visualizers.register_function(
     function=ols_regression,
-    inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted | Unrooted]},
+    inputs={'table': FeatureTable[Balance],
+            'tree': Phylogeny[Rooted]},
     parameters={'formula': Str, 'metadata': Metadata},
-    outputs=[('linear_model', LinearRegression_g)],
     name='Simplicial Ordinary Least Squares Regression',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -47,28 +48,25 @@ plugin.methods.register_function(
         'metadata': ('Metadata information that contains the '
                      'covariates of interest.')
     },
-    output_descriptions={'linear_model': ('The resulting '
-                                          'fit.')},
     description="Perform linear regression on balances."
 )
 
 
-def lme_regression(table: pd.DataFrame, tree: skbio.TreeNode,
+def lme_regression(output_dir: str,
+                   table: pd.DataFrame, tree: skbio.TreeNode,
                    metadata: Metadata, formula: str,
-                   groups: str) -> LMEModel:
-    res = mixedlm(table=table, tree=tree, metadata=metadata._dataframe,
+                   groups: str) -> None:
+    res = mixedlm(table=table, metadata=metadata._dataframe,
                   formula=formula, groups=groups)
     res.fit()
-    return res
+    lme_summary(output_dir, res, tree)
 
 
-plugin.methods.register_function(
+plugin.visualizers.register_function(
     function=lme_regression,
-    inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted | Unrooted]},
+    inputs={'table': FeatureTable[Balance],
+            'tree': Phylogeny[Rooted]},
     parameters={'metadata': Metadata, 'formula': Str, 'groups': Str},
-    outputs=[('linear_mixed_effects_model',
-              LinearMixedEffects_g)],
     name='Simplicial Linear mixed effects regression',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -85,7 +83,5 @@ plugin.methods.register_function(
         'metadata': ('Metadata information that contains the '
                      'covariates of interest.')
     },
-    output_descriptions={'linear_mixed_effects_model': ('The resulting '
-                                                        'fit.')},
     description="Build and run linear mixed effects model on balances."
 )

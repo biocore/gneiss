@@ -8,17 +8,20 @@
 import pandas as pd
 import skbio
 from skbio.stats.composition import ilr
-from q2_composition.plugin_setup import Composition, Balance
-from q2_types.tree import Phylogeny, Rooted, Unrooted
+from q2_composition.plugin_setup import Composition
+from q2_types.tree import Phylogeny, Rooted
 from gneiss.plugin_setup import plugin
 from gneiss.balances import balance_basis
+from q2_composition._type import Balance
 from q2_types.feature_table import FeatureTable
+from gneiss.util import match_tips
 
 
 def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
-    basis, _ = balance_basis(tree)
-    balances = ilr(table.values, basis)
-    in_nodes = [n.name for n in tree.levelorder() if not n.is_tip()]
+    _table, _tree = match_tips(table, tree)
+    basis, _ = balance_basis(_tree)
+    balances = ilr(_table.values, basis)
+    in_nodes = [n.name for n in _tree.levelorder() if not n.is_tip()]
     return pd.DataFrame(balances,
                         columns=in_nodes,
                         index=table.index)
@@ -27,7 +30,7 @@ def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
 plugin.methods.register_function(
     function=ilr_transform,
     inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted | Unrooted]},
+            'tree': Phylogeny[Rooted]},
     outputs=[('balances', FeatureTable[Balance])],
     parameters={},
     name='Isometric Log-ratio Transform',

@@ -10,13 +10,11 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
-from gneiss.util import (_intersect_of_table_metadata_tree,
-                         _to_balances, _type_cast_to_float)
-from decimal import Decimal
+from gneiss.util import _type_cast_to_float
 from statsmodels.iolib.summary2 import Summary
 
 
-def mixedlm(formula, table, metadata, tree, groups, **kwargs):
+def mixedlm(formula, table, metadata, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
     A linear mixed effects model is performed on nonzero relative abundance
@@ -39,14 +37,11 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
         balances. See `patsy` [1]_ for more details.
     table : pd.DataFrame
         Contingency table where samples correspond to rows and
-        features correspond to columns.
+        balances correspond to columns.
     metadata: pd.DataFrame
         Metadata table that contains information about the samples contained
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
-    tree : skbio.TreeNode
-        Tree object that defines the partitions of the features. Each of the
-        leaves correspond to the columns contained in the table.
     groups : str
         Column names in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
@@ -134,18 +129,14 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
     ols
 
     """
-    table, metadata, tree = _intersect_of_table_metadata_tree(table,
-                                                              metadata,
-                                                              tree)
-    ilr_table, basis = _to_balances(table, tree)
-    metadata = _type_cast_to_float(metadata)
-    data = pd.merge(ilr_table, metadata, left_index=True, right_index=True)
+    metadata = _type_cast_to_float(metadata.copy())
+    data = pd.merge(table, metadata, left_index=True, right_index=True)
     if len(data) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "
                           "the sample names between `metadata` and `table` "
                           "are consistent"))
     submodels = []
-    for b in ilr_table.columns:
+    for b in table.columns:
         # mixed effects code is obtained here:
         # http://stackoverflow.com/a/22439820/1167475
         stats_formula = '%s ~ %s' % (b, formula)
@@ -154,8 +145,7 @@ def mixedlm(formula, table, metadata, tree, groups, **kwargs):
                           **kwargs)
         submodels.append(mdf)
 
-    return LMEModel(submodels, basis=basis,
-                    balances=ilr_table, tree=tree)
+    return LMEModel(submodels, balances=table)
 
 
 class LMEModel(RegressionModel):
@@ -193,8 +183,8 @@ class LMEModel(RegressionModel):
         # TODO: Add regularized fit
         self.results = [s.fit(**kwargs) for s in self.submodels]
 
-    def summary(self, ndim=10):
-        """ Summarize the Ordinary Least Squares Regression Results.
+    def summary(self):
+        """ Summarize the Linear Mixed Effects Regression Results.
 
         Parameters
         ----------
@@ -208,39 +198,7 @@ class LMEModel(RegressionModel):
         str :
             This holds the summary of regression coefficients and fit
             information.
-
         """
-
-        # calculate the aitchison norm for all of the coefficients
-        coefs = self.coefficients()
-        if ndim:
-            coefs = coefs.head(ndim)
-        coefs.insert(0, '     ', ['slope']*coefs.shape[0])
-        # We need a hierarchical index.  The outer index for each balance
-        # and the inner index for each covariate
-        if ndim:
-            pvals = self.pvalues.head(ndim)
-        # adding blank column just for the sake of display
-        pvals.insert(0, '     ', ['pvalue']*pvals.shape[0])
-        scores = pd.concat((coefs, pvals))
-        scores = scores.sort_values(by='     ', ascending=False)
-        scores = scores.sort_index(kind='mergesort')
-
-        def _format(x):
-            # format scores to be printable
-            if x.dtypes == float:
-                return ["%3.2E" % Decimal(k) for k in x]
-            else:
-                return x
-
-        scores = scores.apply(_format)
-        # TODO: Will want to add results for Aitchison norm
-        # cnorms = pd.DataFrame({c: euclidean(0, coefs[c].values)
-        #                        for c in coefs.columns}, index=['A-Norm']).T
-        # cnorms = cnorms.apply(_format)
-
-        self.params = coefs
-        # TODO: Will want results from Hotelling t-test
 
         # number of observations
         self.nobs = self.balances.shape[0]
@@ -252,14 +210,9 @@ class LMEModel(RegressionModel):
         info = OrderedDict()
         info["No. Observations"] = self.balances.shape[0]
         info["Model:"] = "Simplicial MixedLM"
-
         smry.add_dict(info)
-
         smry.add_title("Simplicial Mixed Linear Model Results")
-        # TODO
-        # smry.add_df(cnorms, align='r')
-        smry.add_df(scores, align='r')
-
+        # TODO: We need better model statistics
         return smry
 
     def percent_explained(self):

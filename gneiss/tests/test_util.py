@@ -14,6 +14,8 @@ from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
                          split_balance)
+                         _type_cast_to_float, block_diagonal, band_diagonal,
+                         check_internal_nodes)
 import numpy.testing as npt
 
 
@@ -323,6 +325,15 @@ class TestUtil(unittest.TestCase):
         tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
         rename_internal_nodes(tree, inplace=True)
         self.assertEqual(str(tree), "(((a,b)y2,c)y1,d)y0;\n")
+
+    def test_check_internal_nodes_error(self):
+        tree = TreeNode.read([u"(((a,b)y2, c),d)r;"])
+        with self.assertRaises(ValueError):
+            check_internal_nodes(tree)
+
+    def test_check_internal_nodes(self):
+        tree = TreeNode.read([u"(((a,b)y2, c)x,d)r;"])
+        check_internal_nodes(tree)
 
     def test_type_cast_to_float(self):
         x = pd.DataFrame({'a': [1, 2, 3, 4, 5],
