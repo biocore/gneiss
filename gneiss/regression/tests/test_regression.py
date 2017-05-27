@@ -10,48 +10,13 @@ import shutil
 import unittest
 
 import pandas as pd
-import pandas.util.testing as pdt
 from skbio.util import get_data_path
-from gneiss.regression._regression import lme_regression, ols_regression
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
-from qiime2.metadata import Metadata
 import qiime2
 
 
 class TestOLSPlugin(TestOLS):
-
-    def test_ols_regression(self):
-        m = Metadata(self.metadata2)
-        ols_regression(self.results, self.table2, self.tree, m, 'real')
-
-        res_coef = pd.read_csv(os.path.join(self.results, 'coefficients.csv'),
-                               index_col=0)
-        res_resid = pd.read_csv(os.path.join(self.results, 'residuals.csv'),
-                                index_col=0)
-
-        exp_coef = pd.DataFrame(
-            {'Intercept': [1.00, 0],
-             'real': [0, 1.0]},
-            index=['Y1', 'Y2'])
-        pdt.assert_frame_equal(res_coef, exp_coef,
-                               check_exact=False,
-                               check_less_precise=True)
-
-        # Double check to make sure residuals are zero
-        exp_resid = pd.DataFrame(
-            [[0., 0.], [0., 0.], [0., 0.],
-             [0., 0.], [0., 0.], [0., 0.],
-             [0., 0.], [0., 0.], [0., 0.],
-             [0., 0.], [0., 0.], [0., 0.],
-             [0., 0.], [0., 0.], [0., 0.]],
-            index=['s1', 's2', 's3', 's4', 's5',
-                   's6', 's7', 's8', 's9', 's10',
-                   's11', 's12', 's13', 's14', 's15'],
-            columns=['Y1', 'Y2'])
-        exp_resid = exp_resid.sort_index()
-        res_resid = res_resid.sort_index()
-        pdt.assert_frame_equal(exp_resid, res_resid)
 
     def test_ols_artifact(self):
         from qiime2.plugins.gneiss.visualizers import ols_regression
@@ -68,48 +33,44 @@ class TestOLSPlugin(TestOLS):
         viz = ols_regression(in_table, in_tree, in_metadata, 'ph')
         viz.visualization.export_data('regression_summary_dir')
 
+        # check coefficient
         res_coef = pd.read_csv(os.path.join('regression_summary_dir',
                                             'coefficients.csv'),
                                index_col=0)
-
         self.assertAlmostEqual(res_coef.loc['y0', 'ph'],
                                0.356690, places=5)
+        # check pvalue
+        res_pvalue = pd.read_csv(os.path.join('regression_summary_dir',
+                                              'pvalues.csv'),
+                                 index_col=0)
+        self.assertAlmostEqual(res_pvalue.loc['y0', 'ph'],
+                               1.59867977447e-06, places=5)
+
+        # check balance
+        res_balance = pd.read_csv(os.path.join('regression_summary_dir',
+                                               'balances.csv'),
+                                  index_col=0)
+        self.assertAlmostEqual(res_balance.loc['y0'][0],
+                               -0.756213598577, places=5)
+
+        # check residual
+        res_resid = pd.read_csv(os.path.join('regression_summary_dir',
+                                             'residuals.csv'),
+                                index_col=0)
+        self.assertAlmostEqual(res_resid.loc['y0'][0], -0.164646694173,
+                               places=5)
+
+        # check predicted
+        res_pred = pd.read_csv(os.path.join('regression_summary_dir',
+                                            'predicted.csv'),
+                               index_col=0)
+        self.assertAlmostEqual(res_pred.loc['y0'][0],
+                               -0.591566904404, places=5)
+
         shutil.rmtree('regression_summary_dir')
 
 
 class TestMixedLMPlugin(TestMixedLM):
-
-    def test_mixedlm_balances(self):
-
-        lme_regression(self.results,
-                       formula="x1 + x2", table=self.table,
-                       metadata=Metadata(self.metadata), tree=self.tree,
-                       groups="groups")
-        res_pvalues = pd.read_csv(
-            os.path.join(self.results, 'pvalues.csv'),
-            index_col=0)
-
-        res_coefficients = pd.read_csv(
-            os.path.join(self.results, 'coefficients.csv'),
-            index_col=0)
-
-        exp_pvalues = pd.DataFrame(
-            [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
-             [4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
-            index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'])
-
-        pdt.assert_frame_equal(res_pvalues, exp_pvalues,
-                               check_less_precise=True)
-
-        exp_coefficients = pd.DataFrame(
-            [[0.211451,  0.0935786, 1.022008, 0.924873],
-             [4.211451,  0.0935786, 1.022008, 0.924873]],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'],
-            index=['y1', 'y2'])
-
-        pdt.assert_frame_equal(res_coefficients, exp_coefficients,
-                               check_less_precise=True)
 
     def test_lme_artifact(self):
         from qiime2.plugins.gneiss.visualizers import lme_regression

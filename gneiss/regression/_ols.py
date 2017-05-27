@@ -10,19 +10,13 @@ import numpy as np
 import pandas as pd
 from gneiss.regression._model import RegressionModel
 from gneiss.util import _type_cast_to_float
+from gneiss.balances import balance_basis
+from skbio.stats.composition import ilr_inv
 
-
-import statsmodels.formula.api as smf
 from statsmodels.iolib.summary2 import Summary
 from statsmodels.sandbox.tools.cross_val import LeaveOneOut
 from patsy import dmatrix
-
-
-def _fit_ols(y, x, **kwargs):
-    """ Perform the basic ols regression."""
-    # mixed effects code is obtained here:
-    # http://stackoverflow.com/a/22439820/1167475
-    return [smf.OLS(endog=y[b], exog=x, **kwargs) for b in y.columns]
+from scipy import stats
 
 
 def ols(formula, table, metadata, **kwargs):
@@ -159,8 +153,7 @@ def ols(formula, table, metadata, **kwargs):
     metadata = _type_cast_to_float(metadata.copy())
     x = dmatrix(formula, metadata, return_type='dataframe')
     ilr_table, x = table.align(x, join='inner', axis=0)
-    submodels = _fit_ols(ilr_table, x)
-    return OLSModel(submodels, balances=ilr_table)
+    return OLSModel(Y=ilr_table, Xs=x)
 
 
 class OLSModel(RegressionModel):
@@ -192,10 +185,110 @@ class OLSModel(RegressionModel):
         ----------
         **kwargs : dict
            Keyword arguments used to tune the parameter estimation.
+        """
+        Y = self.response_matrix
+        X = self.design_matrices
+        n, p = X.shape
+        inv = np.linalg.pinv(np.dot(X.T, X))
+        cross = np.dot(inv, X.T)
+        beta = np.dot(cross, Y)
+        pX = np.dot(X, beta)
+        resid = (Y - pX)
+        sst = (Y - Y.mean(axis=0))
+        sse = (resid**2).sum(axis=0)
+
+        sst_balance = ((Y - Y.mean(axis=0))**2).sum(axis=0)
+
+        sse_balance = (resid**2).sum(axis=0)
+        ssr_balance = (sst_balance - sse_balance)
+
+        df_resid = n - p + 1
+        mse = sse / df_resid
+        self._mse = mse
+        # t tests
+        # TODO: Look into more robust ways to calculate cov
+        cov = np.linalg.pinv(np.dot(X.T, X))
+        bse = np.sqrt(np.outer(np.diag(cov), mse))
+        tvalues = np.divide(beta, bse)
+        pvals = stats.t.sf(np.abs(tvalues), df_resid)*2
+        self._tvalues = pd.DataFrame(tvalues, index=X.columns,
+                                     columns=Y.columns)
+        self._pvalues = pd.DataFrame(pvals, index=X.columns,
+                                     columns=Y.columns)
+        self._beta = pd.DataFrame(beta, index=X.columns,
+                                  columns=Y.columns)
+        self._resid = pd.DataFrame(resid, index=Y.index,
+                                   columns=Y.columns)
+        self._fitted = True
+        self._ess = ssr_balance
+        self._r2 = 1 - ((resid**2).values.sum() / (sst**2).values.sum())
+
+    def predict(self, X=None, tree=None, **kwargs):
+        """ Performs a prediction based on model.
+
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates, where columns are covariates, and
+            rows are samples.  If not specified, then the fitted values
+            calculated from training the model will be returned.
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
+        **kwargs : dict
+            Other arguments to be passed into the model prediction.
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of predicted values where columns are coefficients,
+            and the rows are balances. If `tree` is specified, then
+            the rows are proportions.
 
         """
-        # assumes that the underlying submodels have implemented `fit`.
-        self.results = [s.fit(**kwargs) for s in self.submodels]
+        if not self._fitted:
+            ValueError(('Model not fitted - coefficients not calculated.'
+                        'See `fit()`'))
+        if X is None:
+            X = self.design_matrices
+
+        prediction = X.dot(self._beta)
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_prediction = ilr_inv(prediction.values, basis=basis)
+            ids = [n.name for n in tree.tips()]
+            return pd.DataFrame(proj_prediction,
+                                columns=ids,
+                                index=prediction.index)
+        else:
+            return prediction
+
+    @property
+    def pvalues(self):
+        """ Return pvalues from each of the coefficients in the fit. """
+        return self._pvalues
+
+    @property
+    def tvalues(self):
+        """ Return t-statistics from each of the coefficients in the fit. """
+        return self._tvalues
+
+    @property
+    def r2(self):
+        """ Coefficient of determination for overall fit"""
+        return self._r2
+
+    @property
+    def mse(self):
+        """ Mean Sum of squares Error"""
+        return self._mse
+
+    @property
+    def ess(self):
+        """ Explained Sum of squares"""
+        return self._ess
 
     def summary(self, kfolds, lovo):
         """ Summarize the Ordinary Least Squares Regression Results.
@@ -214,20 +307,19 @@ class OLSModel(RegressionModel):
             information.
         """
 
-        coefs = self.coefficients()
         _r2 = self.r2
 
-        self.params = coefs
+        self.params = self._beta
 
         # number of observations
-        self.nobs = self.balances.shape[0]
+        self.nobs = self.response_matrix.shape[0]
         self.model = None
 
         # Start filling in summary information
         smry = Summary()
         # Top results
         info = OrderedDict()
-        info["No. Observations"] = self.balances.shape[0]
+        info["No. Observations"] = self.nobs
         info["Model:"] = "OLS"
         info["Rsquared: "] = _r2
 
@@ -237,29 +329,6 @@ class OLSModel(RegressionModel):
         smry.add_df(lovo, align='l')
         smry.add_df(kfolds, align='l')
         return smry
-
-    @property
-    def r2(self):
-        """ Coefficient of determination for overall fit"""
-        # Reason why we wanted to move this out was because not
-        # all types of statsmodels regressions have this property.
-        # See `statsmodels.regression.linear_model.RegressionResults`
-        # for more explanation on `ess` and `ssr`.
-        # sum of squares regression. Also referred to as
-        # explained sum of squares.
-        ssr = sum([r.ess for r in self.results])
-        # sum of squares error.  Also referred to as sum of squares residuals
-        sse = sum([r.ssr for r in self.results])
-        # calculate the overall coefficient of determination (i.e. R2)
-        sst = sse + ssr
-        return 1 - sse / sst
-
-    @property
-    def mse(self):
-        """ Mean Sum of squares Error"""
-        sse = sum([r.ssr for r in self.results])
-        dfe = self.results[0].df_resid
-        return sse / dfe
 
     def kfold(self, num_folds=10, **kwargs):
         """ K-fold cross-validation.
@@ -288,36 +357,37 @@ class OLSModel(RegressionModel):
                Prediction mean sum of squares error for each iteration of
                the cross validation.
         """
-        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
+        # number of observations (i.e. samples)
+        nobs = self.response_matrix.shape[0]
         s = nobs // num_folds
         folds = [np.arange(i*s, ((i*s)+s) % nobs) for i in range(num_folds)]
         results = pd.DataFrame(index=['fold_%d' % i for i in range(num_folds)],
                                columns=['model_mse', 'Rsquared', 'pred_mse'],
                                dtype=np.float64)
-        endog = self.balances
-        exog_names = self.results[0].model.exog_names
-        exog = pd.DataFrame(self.results[0].model.exog,
-                            index=self.balances.index,
-                            columns=exog_names)
-        for k in range(num_folds):
-            train = folds[k]
-            test = np.hstack(folds[:k] + folds[k+1:])
 
-            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train],
-                               **kwargs)
-            res_i = OLSModel(model_i, balances=endog.iloc[train])
-            res_i.fit()
+        for k in range(num_folds):
+            test = folds[k]
+            train = np.hstack(folds[:k] + folds[k+1:])
+
+            res_i = OLSModel(self.response_matrix.iloc[train],
+                             self.design_matrix.iloc[train])
+            res_i.fit(**kwargs)
 
             # model error
-            predicted = res_i.predict()
-            model_resid = ((predicted - endog.iloc[train])**2)
+            p = res_i.predict(X=self.design_matrix.iloc[train]).values
+            r = self.response_matrix.iloc[train].values
+
+            model_resid = ((p - r)**2)
             model_mse = np.mean(model_resid.sum(axis=0))
+
             results.loc['fold_%d' % k, 'model_mse'] = model_mse
             results.loc['fold_%d' % k, 'Rsquared'] = res_i.r2
 
             # prediction error
-            predicted = res_i.predict(exog.iloc[test])
-            pred_resid = ((predicted - endog.iloc[test])**2)
+            p = res_i.predict(X=self.design_matrix.iloc[test]).values
+            r = self.response_matrix.iloc[test].values
+
+            pred_resid = ((p - r)**2)
             pred_mse = np.mean(pred_resid.sum(axis=0))
 
             results.loc['fold_%d' % k, 'pred_mse'] = pred_mse
@@ -351,34 +421,34 @@ class OLSModel(RegressionModel):
         fit
         statsmodels.regression.linear_model.
         """
-
-        nobs = self.balances.shape[0]  # number of observations (i.e. samples)
+        # number of observations (i.e. samples)
+        nobs = self.response_matrix.shape[0]
         cv_iter = LeaveOneOut(nobs)
-        endog = self.balances
-        exog_names = self.results[0].model.exog_names
-        exog = pd.DataFrame(self.results[0].model.exog,
-                            index=self.balances.index,
-                            columns=exog_names)
-        results = pd.DataFrame(index=self.balances.index,
+
+        results = pd.DataFrame(index=self.response_matrix.index,
                                columns=['model_mse', 'pred_mse'],
                                dtype=np.float64)
 
         for i, (train, test) in enumerate(cv_iter):
-            sample_id = self.balances.index[i]
-            model_i = _fit_ols(y=endog.iloc[train], x=exog.iloc[train],
-                               **kwargs)
-            res_i = OLSModel(model_i, balances=endog.iloc[train])
-            res_i.fit()
+            sample_id = self.response_matrix.index[i]
+
+            res_i = OLSModel(self.response_matrix.iloc[train],
+                             self.design_matrix.iloc[train])
+            res_i.fit(**kwargs)
 
             # model error
-            predicted = res_i.predict()
-            model_resid = ((predicted - self.balances.iloc[train])**2)
+            predicted = res_i.predict(X=self.design_matrix.iloc[train])
+            r = self.response_matrix.iloc[train].values
+            p = predicted.values
+            model_resid = ((r - p)**2)
             model_mse = np.mean(model_resid.sum(axis=0))
             results.loc[sample_id, 'model_mse'] = model_mse
 
             # prediction error
-            predicted = res_i.predict(exog.iloc[test])
-            pred_resid = ((predicted - self.balances.iloc[test])**2)
+            predicted = res_i.predict(X=self.design_matrix.iloc[test])
+            r = self.response_matrix.iloc[test].values
+            p = predicted.values
+            pred_resid = ((r - p)**2)
             pred_mse = np.mean(pred_resid.sum(axis=0))
             results.loc[sample_id, 'pred_mse'] = pred_mse
 
@@ -407,42 +477,24 @@ class OLSModel(RegressionModel):
            R2diff : np.array, float
                Decrease in Rsquared for each variable left out.
         """
-        endog = self.balances
-        exog_names = self.results[0].model.exog_names
-        exog = pd.DataFrame(self.results[0].model.exog,
-                            index=self.balances.index,
-                            columns=exog_names)
-        cv_iter = LeaveOneOut(len(exog_names))
-        results = pd.DataFrame(index=exog_names,
+        cv_iter = LeaveOneOut(len(self.design_matrix.columns))
+        results = pd.DataFrame(index=self.design_matrix.columns,
                                columns=['mse', 'Rsquared', 'R2diff'],
                                dtype=np.float64)
-        _r2 = self.r2
         for i, (inidx, outidx) in enumerate(cv_iter):
-            feature_id = exog_names[i]
 
-            model_i = _fit_ols(y=endog, x=exog.loc[:, inidx], **kwargs)
-            res_i = OLSModel(model_i, balances=endog)
-            res_i.fit()
+            feature_id = self.design_matrix.columns[i]
 
-            # See `statsmodels.regression.linear_model.RegressionResults`
-            # for more explanation on `ess` and `ssr`.
-            # sum of squares regression.
-            ssr = sum([r.ess for r in res_i.results])
-            # sum of squares error.
-            sse = sum([r.ssr for r in res_i.results])
-            # calculate the overall coefficient of determination (i.e. R2)
-            sst = sse + ssr
-            r2_left_out = 1 - sse / sst
-            # degrees of freedom for residuals
-            dfe = res_i.results[0].df_resid
-            results.loc[feature_id, 'mse'] = sse / dfe
-            results.loc[feature_id, 'Rsquared'] = r2_left_out
-            results.loc[feature_id, 'R2diff'] = _r2 - r2_left_out
+            res_i = OLSModel(Y=self.response_matrix,
+                             Xs=self.design_matrix.iloc[:, inidx])
+            res_i.fit(**kwargs)
+            predicted = res_i.predict()
+            r = self.response_matrix.values
+            p = predicted.values
+
+            model_resid = ((r - p)**2)
+            model_mse = np.mean(model_resid.sum(axis=0))
+            results.loc[feature_id, 'mse'] = model_mse
+            results.loc[feature_id, 'Rsquared'] = res_i.r2
+            results.loc[feature_id, 'R2diff'] = self.r2 - res_i.r2
         return results
-
-    def percent_explained(self):
-        """ Proportion explained by each principal balance."""
-        # Using sum of squares error calculation (df=1)
-        # instead of population variance (df=0).
-        axis_vars = np.var(self.balances, ddof=1, axis=0)
-        return axis_vars / axis_vars.sum()

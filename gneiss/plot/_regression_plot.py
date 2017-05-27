@@ -49,7 +49,7 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
     pred = model.predict()
     pcvar = model.percent_explained()
     pred['color'] = 'predicted'  # make predictions red
-    raw = model.balances
+    raw = model.response_matrix
     raw['color'] = 'raw'   # make raw values blue
 
     p = figure(plot_width=plot_width, plot_height=plot_height,
@@ -219,20 +219,20 @@ def _decorate_tree(t, series):
 def _deposit_results(model, output_dir):
     """ Store all of the core regression results into a folder. """
     coefficients = model.coefficients()
-    coefficients.to_csv(os.path.join(output_dir, 'coefficients.csv'),
-                        header=True, index=True)
+    coefficients.T.to_csv(os.path.join(output_dir, 'coefficients.csv'),
+                          header=True, index=True)
     residuals = model.residuals()
-    residuals.to_csv(os.path.join(output_dir, 'residuals.csv'),
-                     header=True, index=True)
+    residuals.T.to_csv(os.path.join(output_dir, 'residuals.csv'),
+                       header=True, index=True)
     predicted = model.predict()
-    predicted.to_csv(os.path.join(output_dir, 'predicted.csv'),
-                     header=True, index=True)
+    predicted.T.to_csv(os.path.join(output_dir, 'predicted.csv'),
+                       header=True, index=True)
     pvalues = model.pvalues
-    pvalues.to_csv(os.path.join(output_dir, 'pvalues.csv'),
-                   header=True, index=True)
-    balances = model.balances
-    balances.to_csv(os.path.join(output_dir, 'balances.csv'),
-                    header=True, index=True)
+    pvalues.T.to_csv(os.path.join(output_dir, 'pvalues.csv'),
+                     header=True, index=True)
+    balances = model.response_matrix
+    balances.T.to_csv(os.path.join(output_dir, 'balances.csv'),
+                      header=True, index=True)
 
 
 # OLS summary
@@ -256,8 +256,7 @@ def ols_summary(output_dir: str, model: OLSModel,
     w, h = 500, 300  # plot width and height
 
     # Explained sum of squares
-    ess = pd.Series({r.model.endog_names: r.ess for r in model.results})
-
+    ess = model.ess
     # Summary object
     _k, _l = model.kfold(), model.lovo()
     smry = model.summary(_k, _l)
@@ -273,7 +272,7 @@ def ols_summary(output_dir: str, model: OLSModel,
     # 2D scatter plot for prediction on PB
     p2 = _projected_prediction(model, plot_width=w, plot_height=h)
     p3 = _projected_residuals(model, plot_width=w, plot_height=h)
-    hm_p = _heatmap_summary(model.pvalues, model.coefficients())
+    hm_p = _heatmap_summary(model.pvalues.T, model.coefficients().T)
 
     # combine the cross validation, explained sum of squares tree and
     # residual plots into a single plot
