@@ -39,47 +39,6 @@ class Model(metaclass=abc.ABCMeta):
         """ Print summary results """
         pass
 
-    @classmethod
-    def read_pickle(self, filename):
-        """ Reads Model object from pickle file.
-
-        Parameters
-        ----------
-        filename : str or filehandle
-            Input file to unpickle.
-
-        Returns
-        -------
-        Model
-
-        Notes
-        -----
-        Warning: Loading pickled data received from untrusted
-        sources can be unsafe. See: https://wiki.python.org/moin/UsingPickle
-        """
-
-        if isinstance(filename, str):
-            with open(filename, 'rb') as fh:
-                res = pickle.load(fh)
-        else:
-            res = pickle.load(filename)
-
-        return res
-
-    def write_pickle(self, filename):
-        """ Writes Model object to pickle file.
-
-        Parameters
-        ----------
-        filename : str or filehandle
-            Output file to store pickled object.
-        """
-        if isinstance(filename, str):
-            with open(filename, 'wb') as fh:
-                pickle.dump(self, fh)
-        else:
-            pickle.dump(self, filename)
-
     def percent_explained(self):
         """ Proportion explained by each principal balance."""
         # Using sum of squares error calculation (df=1)

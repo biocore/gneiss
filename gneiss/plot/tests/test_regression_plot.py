@@ -102,7 +102,7 @@ class TestOLS_Summary(unittest.TestCase):
                    11: -5.2212158195661642,
                    12: -5.3731686226401827,
                    13: -5.3276265175104554,
-                   14: -4.942667506421965}})
+                   14: -4.942667506421965}}).T
         npt.assert_allclose(exp_pred.values, pred.values,
                             rtol=1e-2, atol=1e-2)
 
@@ -249,7 +249,7 @@ class TestLME_Summary(unittest.TestCase):
             'x1': {'Y1': 3.9704936434633392e-35,
                    'Y2': 3.9704936434628853e-35},
             'x2': {'Y1': 3.56912071867573e-30,
-                   'Y2': 3.56912071867573e-30}})
+                   'Y2': 3.56912071867573e-30}}).T
         npt.assert_allclose(pvals, exp_pvals, rtol=1e-5)
 
         exp_coefs = pd.DataFrame({
