@@ -31,6 +31,7 @@ import numpy as np
 NUMERATOR = 1
 DENOMINATOR = 0
 
+
 def split_balance(balance, tree):
     """ Splits a balance into its log ratio components.
 
