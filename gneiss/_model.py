@@ -5,7 +5,6 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-import pickle
 import abc
 import numpy as np
 

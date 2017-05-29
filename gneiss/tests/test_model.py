@@ -10,27 +10,20 @@ import statsmodels.formula.api as smf
 from skbio import TreeNode
 from gneiss._model import Model
 import unittest
-import pandas.util.testing as pdt
 import os
-import numpy.testing as npt
+import pandas.util.testing as pdt
 
 
 # create some mock classes for testing
 class submock_ok(Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        results = []
-        submodels = []
 
     def summary(self):
         print("OK!")
 
     def fit(self, **kwargs):
-        """ Fit the model """
-        for s in self.submodels:
-            # assumes that the underlying submodels have implemented `fit`.
-            m = s.fit(**kwargs)
-            self.results.append(m)
+        pass
 
 
 class submock_bad(Model):
@@ -61,7 +54,7 @@ class TestModel(unittest.TestCase):
         self.tree = TreeNode.read(['(x, y)a;'])
         self.balances = pd.DataFrame({'a': [-1, 0, 1]})
         self.metadata = pd.DataFrame(
-            [[1],[3],[2]],
+            [[1], [3], [2]],
             columns=['X'])
 
     def tearDown(self):
@@ -69,8 +62,6 @@ class TestModel(unittest.TestCase):
             os.remove(self.pickle_fname)
 
     def test_init(self):
-        submodels = [None, None]
-
         res = submock_ok(Y=self.balances, Xs=self.metadata)
 
         # check balances
