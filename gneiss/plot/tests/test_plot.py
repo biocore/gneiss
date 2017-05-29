@@ -120,15 +120,11 @@ class TestBalanceTaxonomy(unittest.TestCase):
         self.categorical = MetadataCategory(
             pd.Series(['a', 'a', 'a', 'b', 'b', 'b', 'b'],
                       index=['s1', 's2', 's3', 's4', 's5', 's6', 's7'],
-                      name='categorical'
-            )
-        )
+                      name='categorical'))
         self.continuous = MetadataCategory(
             pd.Series(np.arange(7),
                       index=['s1', 's2', 's3', 's4', 's5', 's6', 's7'],
-                      name='continuous'
-            )
-        )
+                      name='continuous'))
 
     def tearDown(self):
         shutil.rmtree(self.results)
@@ -216,7 +212,6 @@ class TestBalanceTaxonomy(unittest.TestCase):
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='c',
                          taxa_level='genus')
-
         self.assertTrue(os.path.exists(index_fp))
         # test to make sure that the numerator file is there
         num_fp = os.path.join(self.results, 'numerator.csv')
