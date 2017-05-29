@@ -36,6 +36,7 @@ def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,
     taxa_data = list(taxonomy['Taxon'].apply(lambda x: x.split(';')).values)
     taxa_df = pd.DataFrame(taxa_data, columns=_taxa_headers,
                            index=taxonomy.index)
+
     # fill in NAs
     def f(x):
         y = np.array(list(map(lambda k: k is not None, x)))

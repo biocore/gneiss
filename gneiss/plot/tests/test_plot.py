@@ -149,19 +149,19 @@ class TestBalanceTaxonomy(unittest.TestCase):
             self.assertIn('Denominator taxa', html)
 
         # extract csv files and test for contents
-        exp = pd.DataFrame([['nom', 'tu', 'k', 'l', 'm', 't', 'o'],
-                            ['nom', 'tu', 'k', 'l', 'm', 'n', 'o']],
-                           columns=['1', '2', '3', '4', '5', '6', '7'],
-                           index=['q', 'k'])
-        res = pd.read_csv(num_fp, index_col=0)
-        pdt.assert_frame_equal(exp, res)
-
         exp = pd.DataFrame(
             [['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
              ['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
              ['foo', 'bark', 'f', 'g', 'h', 'w', 'j']],
             columns=['1', '2', '3', '4', '5', '6', '7'],
             index=['x', 'y', 'z'])
+        res = pd.read_csv(num_fp, index_col=0)
+        pdt.assert_frame_equal(exp, res.sort_index())
+
+        exp = pd.DataFrame([['nom', 'tu', 'k', 'l', 'm', 't', 'o'],
+                            ['nom', 'tu', 'k', 'l', 'm', 'n', 'o']],
+                           columns=['1', '2', '3', '4', '5', '6', '7'],
+                           index=['q', 'k']).sort_index()
         res = pd.read_csv(denom_fp, index_col=0)
         pdt.assert_frame_equal(exp, res.sort_index())
 
@@ -177,18 +177,17 @@ class TestBalanceTaxonomy(unittest.TestCase):
         denom_fp = os.path.join(self.results, 'denominator.csv')
         self.assertTrue(os.path.exists(denom_fp))
 
-        exp = pd.DataFrame(['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
-                           index=['1', '2', '3', '4', '5', '6', '7'],
-                           columns=['x']).T
-
-        res = pd.read_csv(num_fp, index_col=0)
-        pdt.assert_frame_equal(exp, res)
-
-        res = pd.read_csv(denom_fp, index_col=0)
         exp = pd.DataFrame(['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
                            index=['1', '2', '3', '4',
                                   '5', '6', '7'],
                            columns=['y']).T
+        res = pd.read_csv(num_fp, index_col=0)
+        pdt.assert_frame_equal(exp, res)
+
+        res = pd.read_csv(denom_fp, index_col=0)
+        exp = pd.DataFrame(['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
+                           index=['1', '2', '3', '4', '5', '6', '7'],
+                           columns=['x']).T
         pdt.assert_frame_equal(exp, res)
 
     def test_balance_taxonomy_categorical(self):
@@ -207,7 +206,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
         index_fp = os.path.join(self.results, 'index.html')
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='c',
-                         taxa_level='genus')
+                         taxa_level='6')
         self.assertTrue(os.path.exists(index_fp))
         # test to make sure that the numerator file is there
         num_fp = os.path.join(self.results, 'numerator.csv')

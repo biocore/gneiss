@@ -121,18 +121,19 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     num_clade = st.children[NUMERATOR]
     denom_clade = st.children[DENOMINATOR]
     if num_clade.is_tip():
-
         num_ = pd.DataFrame(
-            {'index': feature_metadata.loc[num_clade.name, header],
-             header: 1}, index=[header])
+            [[feature_metadata.loc[num_clade.name, header], 1]],
+            columns=['index', header],
+            index=[header])
     else:
         num = feature_metadata.loc[list(num_clade.subset())]
         num_ = num[header].value_counts().head(ndim).reset_index()
 
     if denom_clade.is_tip():
         denom_ = pd.DataFrame(
-            {'index': feature_metadata.loc[denom_clade.name, header],
-             header: 1}, index=[header])
+            [[feature_metadata.loc[denom_clade.name, header], 1]],
+            columns=['index', header],
+            index=[header])
     else:
         denom = feature_metadata.loc[list(denom_clade.subset())]
         denom_ = denom[header].value_counts().head(ndim).reset_index()
@@ -141,7 +142,6 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                            color=denom_color)
     ax_denom.set_ylabel(ylabel)
     ax_denom.set_xlabel(xlabel)
-
     ax_denom.set_xlim([0,  max([num_.max().values[1],
                                 denom_.max().values[1]])])
 
