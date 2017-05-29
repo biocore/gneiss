@@ -15,20 +15,15 @@ from skbio.stats.composition import clr, centralize
 from gneiss.plugin_setup import plugin
 from gneiss.plot._heatmap import heatmap
 from gneiss.plot._decompose import balance_barplots, balance_boxplot
-from gneiss.util import (match, _type_cast_to_float, NUMERATOR, DENOMINATOR)
+from gneiss.util import (match, NUMERATOR, DENOMINATOR)
 
 from q2_types.tree import Phylogeny, Rooted
 from q2_composition.plugin_setup import Composition, Balance
 from q2_types.feature_table import FeatureTable
 from q2_types.feature_data import FeatureData, Taxonomy
 from qiime2.plugin import Int, MetadataCategory, Str, Choices
-from bokeh.plotting import figure, ColumnDataSource
-from bokeh.embed import file_html
-from bokeh.resources import CDN
 
-
-_taxa_headers = ['kingdom', 'phyla', 'class', 'order',
-                 'family', 'genus', 'species']
+_taxa_headers = ['1', '2', '3', '4', '5', '6', '7'],
 
 
 def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,

@@ -151,8 +151,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
         # extract csv files and test for contents
         exp = pd.DataFrame([['nom', 'tu', 'k', 'l', 'm', 't', 'o'],
                             ['nom', 'tu', 'k', 'l', 'm', 'n', 'o']],
-                           columns=['kingdom', 'phyla', 'class', 'order',
-                                    'family', 'genus', 'species'],
+                           columns=['1', '2', '3', '4', '5', '6', '7'],
                            index=['q', 'k'])
         res = pd.read_csv(num_fp, index_col=0)
         pdt.assert_frame_equal(exp, res)
@@ -161,8 +160,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
             [['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
              ['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
              ['foo', 'bark', 'f', 'g', 'h', 'w', 'j']],
-            columns=['kingdom', 'phyla', 'class', 'order',
-                     'family', 'genus', 'species'],
+            columns=['1', '2', '3', '4', '5', '6', '7'],
             index=['x', 'y', 'z'])
         res = pd.read_csv(denom_fp, index_col=0)
         pdt.assert_frame_equal(exp, res.sort_index())
@@ -180,8 +178,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
         self.assertTrue(os.path.exists(denom_fp))
 
         exp = pd.DataFrame(['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
-                           index=['kingdom', 'phyla', 'class', 'order',
-                                  'family', 'genus', 'species'],
+                           index=['1', '2', '3', '4', '5', '6', '7'],
                            columns=['x']).T
 
         res = pd.read_csv(num_fp, index_col=0)
@@ -189,8 +186,8 @@ class TestBalanceTaxonomy(unittest.TestCase):
 
         res = pd.read_csv(denom_fp, index_col=0)
         exp = pd.DataFrame(['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
-                           index=['kingdom', 'phyla', 'class', 'order',
-                                  'family', 'genus', 'species'],
+                           index=['1', '2', '3', '4',
+                                  '5', '6', '7'],
                            columns=['y']).T
         pdt.assert_frame_equal(exp, res)
 
@@ -205,7 +202,6 @@ class TestBalanceTaxonomy(unittest.TestCase):
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='a',
                          metadata=self.continuous)
-
 
     def test_balance_taxonomy_genus(self):
         index_fp = os.path.join(self.results, 'index.html')
