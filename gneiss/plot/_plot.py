@@ -23,13 +23,13 @@ from q2_types.feature_table import FeatureTable
 from q2_types.feature_data import FeatureData, Taxonomy
 from qiime2.plugin import Int, MetadataCategory, Str, Choices
 
-_taxa_headers = ['1', '2', '3', '4', '5', '6', '7'],
+_taxa_headers = ['1', '2', '3', '4', '5', '6', '7']
 
 
 def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,
                      taxonomy: pd.DataFrame,
                      balance_name: Str,
-                     taxa_level: Str = 'phyla',
+                     taxa_level: Str = '2',
                      metadata: MetadataCategory = None) -> None:
 
     # parse out headers for taxonomy
