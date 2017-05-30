@@ -10,6 +10,7 @@ import shutil
 import unittest
 
 import pandas as pd
+import pandas.util.testing as pdt
 from skbio.util import get_data_path
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
@@ -37,35 +38,36 @@ class TestOLSPlugin(TestOLS):
         res_coef = pd.read_csv(os.path.join('regression_summary_dir',
                                             'coefficients.csv'),
                                index_col=0)
-        self.assertAlmostEqual(res_coef.loc['y0', 'ph'],
-                               0.356690, places=5)
+        exp_coef = pd.read_csv(get_data_path('coefficients.csv'), index_col=0)
+        pdt.assert_frame_equal(res_coef, exp_coef)
+
         # check pvalue
         res_pvalue = pd.read_csv(os.path.join('regression_summary_dir',
                                               'pvalues.csv'),
                                  index_col=0)
-        self.assertAlmostEqual(res_pvalue.loc['y0', 'ph'],
-                               1.59867977447e-06, places=5)
+        exp_pvalue = pd.read_csv(get_data_path('pvalues.csv'), index_col=0)
+        pdt.assert_frame_equal(res_pvalue, exp_pvalue)
 
         # check balance
         res_balance = pd.read_csv(os.path.join('regression_summary_dir',
                                                'balances.csv'),
                                   index_col=0)
-        self.assertAlmostEqual(res_balance.loc['y0'][0],
-                               -0.756213598577, places=5)
+        exp_balance = pd.read_csv(get_data_path('balances.csv'), index_col=0)
+        pdt.assert_frame_equal(res_balance, exp_balance)
 
         # check residual
         res_resid = pd.read_csv(os.path.join('regression_summary_dir',
                                              'residuals.csv'),
                                 index_col=0)
-        self.assertAlmostEqual(res_resid.loc['y0'][0], -0.164646694173,
-                               places=5)
+        exp_resid = pd.read_csv(get_data_path('residuals.csv'), index_col=0)
+        pdt.assert_frame_equal(res_resid, exp_resid)
 
         # check predicted
         res_pred = pd.read_csv(os.path.join('regression_summary_dir',
                                             'predicted.csv'),
                                index_col=0)
-        self.assertAlmostEqual(res_pred.loc['y0'][0],
-                               -0.591566904404, places=5)
+        exp_pred = pd.read_csv(get_data_path('predicted.csv'), index_col=0)
+        pdt.assert_frame_equal(res_pred, exp_pred)
 
         shutil.rmtree('regression_summary_dir')
 

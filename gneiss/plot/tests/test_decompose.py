@@ -103,16 +103,6 @@ class TestBoxplot(unittest.TestCase):
     def test_basic_barplot(self):
         ax_denom, ax_num = balance_barplots(self.tree, 'y', header='food',
                                             feature_metadata=self.feature_df)
-        res_num = np.vstack([i._xy for i in ax_num.get_lines()])
-        res_denom = np.vstack([i._xy for i in ax_denom.get_lines()])
-        exp_num = np.array([[np.nan, 0.],
-                            [np.nan, 0.]])
-        exp_denom = np.array([[np.nan, 0.],
-                              [np.nan, 0.],
-                              [np.nan, 1.],
-                              [np.nan, 1.]])
-        npt.assert_allclose(res_num, exp_num)
-        npt.assert_allclose(res_denom, exp_denom)
 
 
 if __name__ == '__main__':
