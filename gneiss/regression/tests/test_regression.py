@@ -8,11 +8,10 @@
 import os
 import shutil
 import unittest
-import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
-from gneiss.regression._regression import lme_regression, ols_regression
+from gneiss.regression._regression import ols_regression
 from gneiss.regression.tests.test_ols import TestOLS
 from gneiss.regression.tests.test_mixedlm import TestMixedLM
 from qiime2.metadata import Metadata
