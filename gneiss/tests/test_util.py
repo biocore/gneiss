@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
-from skbio.stats.composition import closure
 from gneiss.util import (match, match_tips, rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
                          split_balance, check_internal_nodes)

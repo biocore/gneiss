@@ -26,6 +26,8 @@ Functions
 # ----------------------------------------------------------------------------
 import warnings
 import numpy as np
+from skbio.stats.composition import closure
+import pandas as pd
 
 # Specifies which child is numberator and denominator
 NUMERATOR = 1

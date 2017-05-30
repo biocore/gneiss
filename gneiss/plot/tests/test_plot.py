@@ -191,13 +191,11 @@ class TestBalanceTaxonomy(unittest.TestCase):
         pdt.assert_frame_equal(exp, res)
 
     def test_balance_taxonomy_categorical(self):
-        index_fp = os.path.join(self.results, 'index.html')
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='a',
                          metadata=self.categorical)
 
     def test_balance_taxonomy_continuous(self):
-        index_fp = os.path.join(self.results, 'index.html')
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='a',
                          metadata=self.continuous)
