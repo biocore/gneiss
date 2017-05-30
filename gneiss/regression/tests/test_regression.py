@@ -45,7 +45,10 @@ class TestOLSPlugin(TestOLS):
         res_pvalue = pd.read_csv(os.path.join('regression_summary_dir',
                                               'pvalues.csv'),
                                  index_col=0)
+        res_pvalue = res_pvalue.reindex_axis(sorted(res_pvalue.columns), axis=1)
         exp_pvalue = pd.read_csv(get_data_path('pvalues.csv'), index_col=0)
+        exp_pvalue = exp_pvalue.reindex_axis(sorted(exp_pvalue.columns), axis=1)
+
         pdt.assert_frame_equal(res_pvalue.sort_index(),
                                exp_pvalue.sort_index())
 
@@ -53,7 +56,9 @@ class TestOLSPlugin(TestOLS):
         res_balance = pd.read_csv(os.path.join('regression_summary_dir',
                                                'balances.csv'),
                                   index_col=0)
+        res_pvalue = res_pvalue.reindex_axis(sorted(res_pvalue.columns), axis=1)
         exp_balance = pd.read_csv(get_data_path('balances.csv'), index_col=0)
+        exp_pvalue = exp_pvalue.reindex_axis(sorted(exp_pvalue.columns), axis=1)
         pdt.assert_frame_equal(res_balance.sort_index(),
                                exp_balance.sort_index())
 
@@ -61,7 +66,9 @@ class TestOLSPlugin(TestOLS):
         res_resid = pd.read_csv(os.path.join('regression_summary_dir',
                                              'residuals.csv'),
                                 index_col=0)
+        res_resid = res_resid.reindex_axis(sorted(res_resid.columns), axis=1)
         exp_resid = pd.read_csv(get_data_path('residuals.csv'), index_col=0)
+        exp_resid = exp_resid.reindex_axis(sorted(exp_resid.columns), axis=1)
         pdt.assert_frame_equal(res_resid.sort_index(),
                                exp_resid.sort_index())
 
@@ -69,7 +76,9 @@ class TestOLSPlugin(TestOLS):
         res_pred = pd.read_csv(os.path.join('regression_summary_dir',
                                             'predicted.csv'),
                                index_col=0)
+        res_pred = res_pred.reindex_axis(sorted(res_pred.columns), axis=1)
         exp_pred = pd.read_csv(get_data_path('predicted.csv'), index_col=0)
+        exp_pred = exp_pred.reindex_axis(sorted(exp_pred.columns), axis=1)
         pdt.assert_frame_equal(res_pred.sort_index(),
                                exp_pred.sort_index())
 
