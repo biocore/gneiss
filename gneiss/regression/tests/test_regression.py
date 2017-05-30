@@ -39,35 +39,39 @@ class TestOLSPlugin(TestOLS):
                                             'coefficients.csv'),
                                index_col=0)
         exp_coef = pd.read_csv(get_data_path('coefficients.csv'), index_col=0)
-        pdt.assert_frame_equal(res_coef, exp_coef)
+        pdt.assert_frame_equal(res_coef.sort_index(), exp_coef.sort_index())
 
         # check pvalue
         res_pvalue = pd.read_csv(os.path.join('regression_summary_dir',
                                               'pvalues.csv'),
                                  index_col=0)
         exp_pvalue = pd.read_csv(get_data_path('pvalues.csv'), index_col=0)
-        pdt.assert_frame_equal(res_pvalue, exp_pvalue)
+        pdt.assert_frame_equal(res_pvalue.sort_index(),
+                               exp_pvalue.sort_index())
 
         # check balance
         res_balance = pd.read_csv(os.path.join('regression_summary_dir',
                                                'balances.csv'),
                                   index_col=0)
         exp_balance = pd.read_csv(get_data_path('balances.csv'), index_col=0)
-        pdt.assert_frame_equal(res_balance, exp_balance)
+        pdt.assert_frame_equal(res_balance.sort_index(),
+                               exp_balance.sort_index())
 
         # check residual
         res_resid = pd.read_csv(os.path.join('regression_summary_dir',
                                              'residuals.csv'),
                                 index_col=0)
         exp_resid = pd.read_csv(get_data_path('residuals.csv'), index_col=0)
-        pdt.assert_frame_equal(res_resid, exp_resid)
+        pdt.assert_frame_equal(res_resid.sort_index(),
+                               exp_resid.sort_index())
 
         # check predicted
         res_pred = pd.read_csv(os.path.join('regression_summary_dir',
                                             'predicted.csv'),
                                index_col=0)
         exp_pred = pd.read_csv(get_data_path('predicted.csv'), index_col=0)
-        pdt.assert_frame_equal(res_pred, exp_pred)
+        pdt.assert_frame_equal(res_pred.sort_index(),
+                               exp_pred.sort_index())
 
         shutil.rmtree('regression_summary_dir')
 
