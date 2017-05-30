@@ -8,7 +8,7 @@
 import os
 import shutil
 import unittest
-
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
@@ -83,7 +83,7 @@ class TestMixedLMPlugin(TestMixedLM):
 
         lme_regression(self.results,
                        formula="x1 + x2", table=self.table,
-                       metadata=Metadata(self.metadata), tree=self.tree,
+                       metadata=Metadata(self.metadata.astype(np.str)), tree=self.tree,
                        groups="groups")
         res_pvalues = pd.read_csv(
             os.path.join(self.results, 'pvalues.csv'),
