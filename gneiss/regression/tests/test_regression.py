@@ -83,8 +83,8 @@ class TestMixedLMPlugin(TestMixedLM):
 
         lme_regression(self.results,
                        formula="x1 + x2", table=self.table,
-                       metadata=Metadata(self.metadata.astype(np.str)), tree=self.tree,
-                       groups="groups")
+                       metadata=Metadata(self.metadata.astype(np.str)),
+                       tree=self.tree, groups="groups")
         res_pvalues = pd.read_csv(
             os.path.join(self.results, 'pvalues.csv'),
             index_col=0)
