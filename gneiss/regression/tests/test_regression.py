@@ -58,11 +58,12 @@ class TestOLSPlugin(TestOLS):
         res_balance = pd.read_csv(os.path.join('regression_summary_dir',
                                                'balances.csv'),
                                   index_col=0)
-        res_pvalue = res_pvalue.reindex_axis(
-            sorted(res_pvalue.columns), axis=1)
+        res_balance = res_balance.reindex_axis(
+            sorted(res_balance.columns), axis=1)
         exp_balance = pd.read_csv(get_data_path('balances.csv'), index_col=0)
-        exp_pvalue = exp_pvalue.reindex_axis(
-            sorted(exp_pvalue.columns), axis=1)
+        exp_balance = exp_balance.reindex_axis(
+            sorted(exp_balance.columns), axis=1)
+
         pdt.assert_frame_equal(res_balance.sort_index(),
                                exp_balance.sort_index())
 
