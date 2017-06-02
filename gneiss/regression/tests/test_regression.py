@@ -54,19 +54,6 @@ class TestOLSPlugin(TestOLS):
         pdt.assert_frame_equal(res_pvalue.sort_index(),
                                exp_pvalue.sort_index())
 
-        # check balance
-        res_balance = pd.read_csv(os.path.join('regression_summary_dir',
-                                               'balances.csv'),
-                                  index_col=0)
-        res_balance = res_balance.reindex_axis(
-            sorted(res_balance.columns), axis=1)
-        exp_balance = pd.read_csv(get_data_path('balances.csv'), index_col=0)
-        exp_balance = exp_balance.reindex_axis(
-            sorted(exp_balance.columns), axis=1)
-
-        pdt.assert_frame_equal(res_balance.sort_index(),
-                               exp_balance.sort_index())
-
         # check residual
         res_resid = pd.read_csv(os.path.join('regression_summary_dir',
                                              'residuals.csv'),

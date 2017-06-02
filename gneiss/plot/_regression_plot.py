@@ -230,10 +230,6 @@ def _deposit_results(model, output_dir):
     pvalues = model.pvalues
     pvalues.T.to_csv(os.path.join(output_dir, 'pvalues.csv'),
                      header=True, index=True)
-    balances = model.response_matrix
-    balances.T.to_csv(os.path.join(output_dir, 'balances.csv'),
-                      header=True, index=True)
-
 
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel,
@@ -290,8 +286,6 @@ def ols_summary(output_dir: str, model: OLSModel,
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
              'Download as CSV</a><br>\n'
-             '<th>Raw Balances</th>\n'
-             '<a href="balances.csv.csv">'
              'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'
@@ -364,8 +358,6 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
              'Download as CSV</a><br>\n'
-             '<th>Raw Balances</th>\n'
-             '<a href="balances.csv.csv">'
              'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'

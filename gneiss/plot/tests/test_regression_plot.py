@@ -81,7 +81,6 @@ class TestOLS_Summary(unittest.TestCase):
             self.assertIn('<h1>Simplicial Linear Regression Summary</h1>',
                           html)
             self.assertIn('<th>Coefficients</th>\n', html)
-            self.assertIn('<th>Raw Balances</th>\n', html)
             self.assertIn('<th>Predicted Balances</th>\n', html)
             self.assertIn('<th>Residuals</th>\n', html)
 
