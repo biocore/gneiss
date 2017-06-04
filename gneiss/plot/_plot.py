@@ -95,9 +95,9 @@ def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,
             index_f.write(('<img src="balance_metadata.svg" '
                            'alt="barplots">\n\n'))
 
-        index_f.write('<h1>Balance Taxonomy</h1>\n')
-        index_f.write('<img src="barplots.svg" alt="barplots">\n\n')
-        index_f.write(('<h3>Numerator taxa</h3>\n'
+        index_f.write(('<h1>Balance Taxonomy</h1>\n'
+                       '<img src="barplots.svg" alt="barplots">\n\n'
+                       '<h3>Numerator taxa</h3>\n'
                        '<a href="numerator.csv">\n'
                        'Download as CSV</a><br>\n'
                        '<h3>Denominator taxa</h3>\n'
