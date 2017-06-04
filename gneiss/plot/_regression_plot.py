@@ -231,6 +231,7 @@ def _deposit_results(model, output_dir):
     pvalues.T.to_csv(os.path.join(output_dir, 'pvalues.csv'),
                      header=True, index=True)
 
+
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel,
                 tree: TreeNode) -> None:
