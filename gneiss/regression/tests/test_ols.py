@@ -58,9 +58,8 @@ class TestOLS(unittest.TestCase):
     def test_ols_immutable(self):
         # test to see if values in table get filtered out.
         # and that the original table doesn't change
-        A = np.array  # aliasing for the sake of pep8
         table = self.Y
-        x = pd.DataFrame(self.X.values,columns=self.X.columns,
+        x = pd.DataFrame(self.X.values, columns=self.X.columns,
                          index=range(100, 100+len(self.X.index)))
         metadata = pd.concat((self.X, x))
 
@@ -72,9 +71,8 @@ class TestOLS(unittest.TestCase):
     def test_ols_missing_metadata(self):
         # test to see if values in table get filtered out.
         # and that the original table doesn't change
-        A = np.array  # aliasing for the sake of pep8
         table = self.Y
-        y = pd.DataFrame(self.Y.values,columns=self.Y.columns,
+        y = pd.DataFrame(self.Y.values, columns=self.Y.columns,
                          index=range(100, 100+len(self.Y.index)))
 
         table = pd.concat((self.Y, y))
