@@ -136,7 +136,6 @@ class RegressionModel(Model):
             the columns are proportions.
 
         """
-        pass
         if not self._fitted:
             ValueError(('Model not fitted - coefficients not calculated.'
                         'See `fit()`'))

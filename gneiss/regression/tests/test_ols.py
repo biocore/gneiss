@@ -55,6 +55,45 @@ class TestOLS(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.results)
 
+    def test_ols_immutable(self):
+        # test to see if values in table get filtered out.
+        # and that the original table doesn't change
+        A = np.array  # aliasing for the sake of pep8
+        table = self.Y
+        x = pd.DataFrame(self.X.values,columns=self.X.columns,
+                         index=range(100, 100+len(self.X.index)))
+        metadata = pd.concat((self.X, x))
+
+        exp_metadata = metadata.copy()
+        model = ols('x1 + x2', self.Y, self.X)
+        self.assertEqual(str(table), str(self.Y))
+        self.assertEqual(str(metadata), str(exp_metadata))
+
+    def test_ols_missing_metadata(self):
+        # test to see if values in table get filtered out.
+        # and that the original table doesn't change
+        A = np.array  # aliasing for the sake of pep8
+        table = self.Y
+        y = pd.DataFrame(self.Y.values,columns=self.Y.columns,
+                         index=range(100, 100+len(self.Y.index)))
+
+        table = pd.concat((self.Y, y))
+        ids = np.arange(100, 100+len(self.X.index))
+        x = pd.DataFrame([[np.nan] * len(self.X.columns)] * len(ids),
+                         columns=self.X.columns, index=ids)
+
+        metadata = pd.concat((self.X, x))
+        model = ols('x1 + x2', table, metadata)
+        model.fit()
+
+        # test prediction
+        exp = pd.DataFrame({'y1': self.r1_.predict(),
+                            'y2': self.r2_.predict()},
+                           index=self.Y.index)
+        res = model.predict()
+
+        pdt.assert_frame_equal(res, exp)
+
     def test_ols_test(self):
 
         model = ols('x1 + x2', self.Y, self.X)

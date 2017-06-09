@@ -179,7 +179,13 @@ class OLSModel(RegressionModel):
         super().__init__(*args, **kwargs)
 
     def fit(self, **kwargs):
-        """ Fit the model.
+        """ Fit the ordinary least squares model.
+
+        Here, the coefficients of the model are estimated.
+        In addition, there are additional summary statistics
+        that are being calculated, such as residuals, t-statistics,
+        pvalues and coefficient of determination.
+
 
         Parameters
         ----------
@@ -188,6 +194,7 @@ class OLSModel(RegressionModel):
         """
         Y = self.response_matrix
         X = self.design_matrices
+
         n, p = X.shape
         inv = np.linalg.pinv(np.dot(X.T, X))
         cross = np.dot(inv, X.T)

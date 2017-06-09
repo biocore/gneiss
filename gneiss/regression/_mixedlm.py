@@ -214,15 +214,9 @@ class LMEModel(RegressionModel):
         # TODO: We need better model statistics
         return smry
 
-    def percent_explained(self):
-        """ Proportion explained by each principal balance."""
-        # Using sum of squares error calculation (df=1)
-        # instead of population variance (df=0).
-        axis_vars = np.var(self.balances, ddof=1, axis=0)
-        return axis_vars / axis_vars.sum()
-
     def coefficients(self, tree=None):
         """ Returns coefficients from fit.
+
         Parameters
         ----------
         tree : skbio.TreeNode, optional
