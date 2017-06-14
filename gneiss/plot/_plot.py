@@ -23,18 +23,16 @@ from q2_types.feature_table import FeatureTable
 from q2_types.feature_data import FeatureData, Taxonomy
 from qiime2.plugin import Int, MetadataCategory, Str, Choices
 
-_taxa_headers = ['1', '2', '3', '4', '5', '6', '7']
-
 
 def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,
                      taxonomy: pd.DataFrame,
                      balance_name: Str,
-                     taxa_level: Str = '2',
+                     taxa_level: Int = 0,
                      metadata: MetadataCategory = None) -> None:
 
     # parse out headers for taxonomy
     taxa_data = list(taxonomy['Taxon'].apply(lambda x: x.split(';')).values)
-    taxa_df = pd.DataFrame(taxa_data, columns=_taxa_headers,
+    taxa_df = pd.DataFrame(taxa_data,
                            index=taxonomy.index)
 
     # fill in NAs
@@ -116,7 +114,7 @@ plugin.visualizers.register_function(
     inputs={'balances': FeatureTable[Balance], 'tree': Phylogeny[Rooted],
             'taxonomy': FeatureData[Taxonomy]},
     parameters={'balance_name': Str,
-                'taxa_level': Str % Choices(_taxa_headers),
+                'taxa_level': Int,
                 'metadata': MetadataCategory},
     input_descriptions={
         'balances': 'The table of balances resulting from the ilr transform.',

@@ -153,14 +153,14 @@ class TestBalanceTaxonomy(unittest.TestCase):
             [['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
              ['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
              ['foo', 'bark', 'f', 'g', 'h', 'w', 'j']],
-            columns=['1', '2', '3', '4', '5', '6', '7'],
+            columns=['0', '1', '2', '3', '4', '5', '6'],
             index=['x', 'y', 'z'])
         res = pd.read_csv(num_fp, index_col=0)
         pdt.assert_frame_equal(exp, res.sort_index())
 
         exp = pd.DataFrame([['nom', 'tu', 'k', 'l', 'm', 't', 'o'],
                             ['nom', 'tu', 'k', 'l', 'm', 'n', 'o']],
-                           columns=['1', '2', '3', '4', '5', '6', '7'],
+                           columns=['0', '1', '2', '3', '4', '5', '6'],
                            index=['q', 'k']).sort_index()
         res = pd.read_csv(denom_fp, index_col=0)
         pdt.assert_frame_equal(exp, res.sort_index())
@@ -178,15 +178,15 @@ class TestBalanceTaxonomy(unittest.TestCase):
         self.assertTrue(os.path.exists(denom_fp))
 
         exp = pd.DataFrame(['foo', 'bark', 'f', 'g', 'h', 'i', 'j'],
-                           index=['1', '2', '3', '4',
-                                  '5', '6', '7'],
+                           index=['0', '1', '2', '3', '4',
+                                  '5', '6'],
                            columns=['y']).T
         res = pd.read_csv(num_fp, index_col=0)
         pdt.assert_frame_equal(exp, res)
 
         res = pd.read_csv(denom_fp, index_col=0)
         exp = pd.DataFrame(['foo', 'barf', 'a', 'b', 'c', 'd', 'e'],
-                           index=['1', '2', '3', '4', '5', '6', '7'],
+                           index=['0', '1', '2', '3', '4', '5', '6'],
                            columns=['x']).T
         pdt.assert_frame_equal(exp, res)
 
@@ -204,7 +204,7 @@ class TestBalanceTaxonomy(unittest.TestCase):
         index_fp = os.path.join(self.results, 'index.html')
         balance_taxonomy(self.results, self.balances, self.tree,
                          self.taxonomy, balance_name='c',
-                         taxa_level='6')
+                         taxa_level=6)
         self.assertTrue(os.path.exists(index_fp))
         # test to make sure that the numerator file is there
         num_fp = os.path.join(self.results, 'numerator.csv')
