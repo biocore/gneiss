@@ -64,7 +64,7 @@ class TestOLS(unittest.TestCase):
         metadata = pd.concat((self.X, x))
 
         exp_metadata = metadata.copy()
-        model = ols('x1 + x2', self.Y, self.X)
+        ols('x1 + x2', self.Y, self.X)
         self.assertEqual(str(table), str(self.Y))
         self.assertEqual(str(metadata), str(exp_metadata))
 
