@@ -87,6 +87,7 @@ class TestMixedLMPlugin(TestMixedLM):
 
         self.assertAlmostEqual(res_coef.loc['y0', 'groups RE'],
                                1.105630e+00, places=5)
+        shutil.rmtree('regression_summary_dir')
 
 
 if __name__ == '__main__':
