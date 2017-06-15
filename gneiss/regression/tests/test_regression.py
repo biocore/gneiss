@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import os
+import shutil
 import unittest
 import pandas as pd
 import pandas.util.testing as pdt
