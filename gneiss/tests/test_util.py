@@ -13,7 +13,7 @@ import pandas.util.testing as pdt
 from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
-                         check_internal_nodes)
+                         split_balance, check_internal_nodes)
 import numpy.testing as npt
 
 
@@ -383,6 +383,21 @@ class TestUtil(unittest.TestCase):
                         [0., 0., 0., 0., 0.33333333, 0.33333333],
                         [0., 0., 0., 0., 0., 0.33333333]])
         npt.assert_allclose(res, exp, rtol=1e-4, atol=1e-4)
+
+
+class TestSplitBalance(unittest.TestCase):
+
+    def setUp(self):
+        self.tree = TreeNode.read(['(x, y)a;'])
+        self.balance = pd.Series([-1, 0, 1])
+        self.balance.name = 'a'
+
+    def test_split_balance(self):
+        exp = pd.DataFrame([[0.19557032, 0.80442968],
+                            [0.5, 0.5],
+                            [0.80442968, 0.19557032]],
+                           columns=['x', 'y'])
+        pdt.assert_frame_equal(exp, split_balance(self.balance, self.tree))
 
 
 if __name__ == '__main__':
