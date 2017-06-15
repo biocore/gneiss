@@ -6,13 +6,11 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import os
-import shutil
 import unittest
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
 from gneiss.regression.tests.test_ols import TestOLS
-from gneiss.regression.tests.test_mixedlm import TestMixedLM
 import qiime2
 
 
