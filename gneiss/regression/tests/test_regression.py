@@ -11,6 +11,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
 from gneiss.regression.tests.test_ols import TestOLS
+from gneiss.regression.tests.test_mixedlm import TestMixedLM
 import qiime2
 
 
@@ -60,6 +61,9 @@ class TestOLSPlugin(TestOLS):
         exp_resid = exp_resid.reindex_axis(sorted(exp_resid.columns), axis=1)
         pdt.assert_frame_equal(res_resid.sort_index(),
                                exp_resid.sort_index())
+
+
+class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_artifact(self):
         from qiime2.plugins.gneiss.visualizers import lme_regression
