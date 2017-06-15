@@ -6,12 +6,13 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 from collections import OrderedDict
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
 from gneiss.util import _type_cast_to_float
 from statsmodels.iolib.summary2 import Summary
+from gneiss.balances import balance_basis
+from skbio.stats.composition import ilr_inv
 
 
 def mixedlm(formula, table, metadata, groups, **kwargs):
@@ -145,7 +146,11 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
                           **kwargs)
         submodels.append(mdf)
 
-    return LMEModel(submodels, balances=table)
+    # ugly hack to get around the statsmodels object
+    model = LMEModel(Y=table, Xs=None)
+    model.submodels = submodels
+    model.balances = table
+    return model
 
 
 class LMEModel(RegressionModel):
@@ -160,19 +165,12 @@ class LMEModel(RegressionModel):
 
     Attributes
     ----------
-    submodels : list of statsmodels objects
-        List of statsmodels result objects.
-    basis : pd.DataFrame
-        Orthonormal basis in the Aitchison simplex.
-        Row names correspond to the leafs of the tree
-        and the column names correspond to the internal nodes
-        in the tree.
-    tree : skbio.TreeNode
-        Bifurcating tree that defines `basis`.
-    balances : pd.DataFrame
+    Y : pd.DataFrame
         A table of balances where samples are rows and
         balances are columns. These balances were calculated
         using `tree`.
+    Xs : pd.DataFrame
+        Design matrix.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -215,9 +213,132 @@ class LMEModel(RegressionModel):
         # TODO: We need better model statistics
         return smry
 
-    def percent_explained(self):
-        """ Proportion explained by each principal balance."""
-        # Using sum of squares error calculation (df=1)
-        # instead of population variance (df=0).
-        axis_vars = np.var(self.balances, ddof=1, axis=0)
-        return axis_vars / axis_vars.sum()
+    def coefficients(self, tree=None):
+        """ Returns coefficients from fit.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented as
+            proportions. Otherwise, if this is not specified, the prediction
+            will be represented as balances. (default: None).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of coefficients where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+        """
+        coef = pd.DataFrame()
+
+        for r in self.results:
+            c = r.params
+            c.name = r.model.endog_names
+            coef = coef.append(c)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            c = ilr_inv(coef.values.T, basis=basis).T
+
+            return pd.DataFrame(c, index=[n.name for n in tree.tips()],
+                                columns=coef.columns)
+        else:
+            return coef.T
+
+    def residuals(self, tree=None):
+        """ Returns calculated residuals from fit.
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates.  If not specified, then the
+            fitted values calculated from training the model will be
+            returned.
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of residuals where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
+        """
+        resid = pd.DataFrame()
+
+        for r in self.results:
+            err = r.resid
+            err.name = r.model.endog_names
+            resid = resid.append(err)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_resid = ilr_inv(resid.values.T, basis=basis).T
+            return pd.DataFrame(proj_resid,
+                                index=[n.name for n in tree.tips()],
+                                columns=resid.columns).T
+        else:
+            return resid.T
+
+    def predict(self, X=None, tree=None, **kwargs):
+        """ Performs a prediction based on model.
+
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates, where columns are covariates, and
+            rows are samples.  If not specified, then the fitted values
+            calculated from training the model will be returned.
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
+        **kwargs : dict
+            Other arguments to be passed into the model prediction.
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of predicted values where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+        """
+        prediction = pd.DataFrame()
+        for m in self.results:
+            # check if X is none.
+            p = pd.Series(m.predict(X, **kwargs))
+            p.name = m.model.endog_names
+            if X is not None:
+                p.index = X.index
+            else:
+                p.index = m.fittedvalues.index
+            prediction = prediction.append(p)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_prediction = ilr_inv(prediction.values.T, basis=basis)
+            return pd.DataFrame(proj_prediction,
+                                columns=[n.name for n in tree.tips()],
+                                index=prediction.columns)
+        else:
+            return prediction.T
+
+    @property
+    def pvalues(self):
+        """ Return pvalues from each of the coefficients in the fit. """
+        pvals = pd.DataFrame()
+        for r in self.results:
+            p = r.pvalues
+            p.name = r.model.endog_names
+            pvals = pvals.append(p)
+        return pvals

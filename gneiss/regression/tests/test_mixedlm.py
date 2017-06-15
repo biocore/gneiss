@@ -140,7 +140,7 @@ class TestMixedLMFunctions(TestMixedLM):
             [[0.211451,  0.0935786, 1.022008, 0.924873],
              [4.211451,  0.0935786, 1.022008, 0.924873]],
             columns=['Intercept', 'groups RE', 'x1', 'x2'],
-            index=['y1', 'y2']).sort_index()
+            index=['y1', 'y2']).sort_index().T
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
@@ -209,20 +209,13 @@ class TestMixedLMFunctions(TestMixedLM):
              [4.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
-            index=['y1', 'y2'])
+            index=['y1', 'y2']).T
 
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
-
-    def test_write(self):
-        res = mixedlm("x1 + x2", self.table, self.metadata,
-                      groups="groups")
-
-        res.fit()
-        res.write_pickle('lme.pickle')
 
     def test_percent_explained(self):
         model = mixedlm("x1 + x2", self.table, self.metadata,
