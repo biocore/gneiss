@@ -353,7 +353,7 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
     # 2D scatter plot for prediction on PB
     p2 = _projected_prediction(model, plot_width=w, plot_height=h)
     p3 = _projected_residuals(model, plot_width=w, plot_height=h)
-    hm_p = _heatmap_summary(model.pvalues, model.coefficients().T,
+    hm_p = _heatmap_summary(model.pvalues.T, model.coefficients().T,
                             plot_width=900, plot_height=400)
 
     # combine the cross validation, explained sum of squares tree and
