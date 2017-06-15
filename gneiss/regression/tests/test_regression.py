@@ -31,6 +31,7 @@ class TestOLSPlugin(TestOLS):
             pd.read_table(metadata_f, index_col=0))
 
         viz = ols_regression(in_table, in_tree, in_metadata, 'ph')
+        os.mkdir('regression_summary_dir')
         viz.visualization.export_data('regression_summary_dir')
 
         # check coefficient
@@ -62,6 +63,8 @@ class TestOLSPlugin(TestOLS):
         exp_resid = exp_resid.reindex_axis(sorted(exp_resid.columns), axis=1)
         pdt.assert_frame_equal(res_resid.sort_index(),
                                exp_resid.sort_index())
+        shutil.rmtree('regression_summary_dir')
+
 
 
 class TestMixedLMPlugin(TestMixedLM):
@@ -80,6 +83,7 @@ class TestMixedLMPlugin(TestMixedLM):
 
         viz = lme_regression(in_table, in_tree, in_metadata,
                              'ph', 'host_subject_id')
+        os.mkdir('regression_summary_dir')
         viz.visualization.export_data('regression_summary_dir')
 
         res_coef = pd.read_csv(os.path.join('regression_summary_dir',
