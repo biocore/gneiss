@@ -87,7 +87,7 @@ setup(name='gneiss',
           'scikit-bio==0.5.1',
           'statsmodels>=0.8.0',
       ],
-      extra_require={
+      extras_require={
           'q2': ['qiime2 >= 2017.2.0', 'biom-format', 'seaborn']
       },
       classifiers=classifiers,
