@@ -66,7 +66,6 @@ class TestOLSPlugin(TestOLS):
         shutil.rmtree('regression_summary_dir')
 
 
-
 class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_artifact(self):
