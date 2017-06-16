@@ -131,7 +131,7 @@ class TestMixedLMFunctions(TestMixedLM):
             [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
              [4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
             index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2']).sort_index()
+            columns=['Intercept', 'groups RE', 'x1', 'x2']).sort_index().T
 
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
@@ -190,11 +190,6 @@ class TestMixedLMFunctions(TestMixedLM):
         res = mixedlm("x1 + x2", table, metadata, groups="groups",
                       re_formula="0+z1+z2")
         res.fit()
-        exp_pvalues = pd.DataFrame(
-            [[9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30],
-             [4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
-            index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'])
 
         exp_pvalues = pd.DataFrame([
             [0.038015, 3.858750e-39, 2.245068e-33,
@@ -203,7 +198,7 @@ class TestMixedLMFunctions(TestMixedLM):
              2.552217e-05, 0.923418, 6.645741e-34]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
-            index=['y1', 'y2'])
+            index=['y1', 'y2']).T
         exp_coefficients = pd.DataFrame(
             [[0.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792],
              [4.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792]],

@@ -22,6 +22,7 @@ from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
                           ResetTool, SaveTool, PanTool,
                           FuncTickFormatter, FixedTicker)
 from bokeh.palettes import RdYlBu11 as palette
+from statsmodels.sandbox.stats.multicomp import multipletests
 
 
 def _projected_prediction(model, plot_width=400, plot_height=400):
@@ -51,7 +52,6 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
     pred['color'] = 'predicted'  # make predictions red
     raw = model.response_matrix
     raw['color'] = 'raw'   # make raw values blue
-
     p = figure(plot_width=plot_width, plot_height=plot_height,
                tools=[hover, BoxZoomTool(), ResetTool(),
                       WheelZoomTool(), SaveTool(), PanTool()])
@@ -132,23 +132,44 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     """
     c = coefs.reset_index()
     c = c.rename(columns={'index': 'balance'})
+
+    # fix alpha in fdr to account for the number of covariates
+    def fdr(x):
+        return multipletests(x, method='fdr_bh',
+                             alpha=0.05 / pvals.shape[1])[1]
+    cpvals = pvals.apply(fdr, axis=0)
+
     # log scale for coloring
-    log_p = -np.log10(pvals+1e-200)
+    log_p = -np.log10(cpvals+1e-200)
     log_p = log_p.reset_index()
     log_p = log_p.rename(columns={'index': 'balance'})
     p = pvals.reset_index()
     p = p.rename(columns={'index': 'balance'})
 
+    cp = cpvals.reset_index()
+    cp = cp.rename(columns={'index': 'balance'})
+
     cm = pd.melt(c, id_vars='balance', var_name='Covariate',
                  value_name='Coefficient')
     pm = pd.melt(p, id_vars='balance', var_name='Covariate',
                  value_name='Pvalue')
+    cpm = pd.melt(cp, id_vars='balance', var_name='Covariate',
+                  value_name='Corrected_Pvalue')
     logpm = pd.melt(log_p, id_vars='balance', var_name='Covariate',
                     value_name='log_Pvalue')
-    m = pd.merge(cm, pm)
-    m = pd.merge(m, logpm)
+    m = pd.merge(cm, pm,
+                 left_on=['balance', 'Covariate'],
+                 right_on=['balance', 'Covariate'])
+    m = pd.merge(m, logpm,
+                 left_on=['balance', 'Covariate'],
+                 right_on=['balance', 'Covariate'])
+    m = pd.merge(m, cpm,
+                 left_on=['balance', 'Covariate'],
+                 right_on=['balance', 'Covariate'])
+
     hover = HoverTool(
         tooltips=[("Pvalue", "@Pvalue"),
+                  ("Corrected Pvalue", "@Corrected_Pvalue"),
                   ("Coefficient", "@Coefficient")]
     )
 
@@ -162,10 +183,8 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     m = m.fillna(0)
     for i in m.index:
         x = m.loc[i, 'log_Pvalue']
-
         ind = int(np.floor((x - _min) / (_max - _min) * (N - 1)))
         m.loc[i, 'color'] = palette[ind]
-
     source = ColumnDataSource(ColumnDataSource.from_df(m))
     hm = figure(title='Regression Coefficients Summary',
                 plot_width=1200, plot_height=400,
@@ -260,7 +279,7 @@ def ols_summary(output_dir: str, model: OLSModel,
     _deposit_results(model, output_dir)
     t = _decorate_tree(tree, ess)
 
-    p1 = radialplot(t, edge_color='color', figsize=(800, 800))
+    p1 = radialplot(t, figsize=(800, 800))
     p1.title.text = 'Explained Sum of Squares'
     p1.title_location = 'above'
     p1.title.align = 'center'
@@ -287,14 +306,12 @@ def ols_summary(output_dir: str, model: OLSModel,
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
              'Download as CSV</a><br>\n'
-             'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'
              'Download as CSV</a><br>\n'
              '<th>Residuals</th>\n'
              '<a href="residuals.csv">'
-             'Download as CSV</a><br>\n'
-             '<th>Tree</th>\n')
+             'Download as CSV</a><br>\n')
         )
 
         plot_html = file_html(p, CDN, 'Diagnostics')
@@ -326,7 +343,8 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
     smry = model.summary()
 
     t = _decorate_tree(tree, -loglike)
-    p1 = radialplot(t, edge_color='color', figsize=(800, 800))
+
+    p1 = radialplot(t, figsize=(800, 800))
     p1.title.text = 'Loglikelihood of submodels'
     p1.title_location = 'above'
     p1.title.align = 'center'
@@ -335,8 +353,7 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
     # 2D scatter plot for prediction on PB
     p2 = _projected_prediction(model, plot_width=w, plot_height=h)
     p3 = _projected_residuals(model, plot_width=w, plot_height=h)
-
-    hm_p = _heatmap_summary(model.pvalues, model.coefficients(),
+    hm_p = _heatmap_summary(model.pvalues.T, model.coefficients().T,
                             plot_width=900, plot_height=400)
 
     # combine the cross validation, explained sum of squares tree and
@@ -359,14 +376,12 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
              'Download as CSV</a><br>\n'
-             'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'
              'Download as CSV</a><br>\n'
              '<th>Residuals</th>\n'
              '<a href="residuals.csv">'
-             'Download as CSV</a><br>\n'
-             '<th>Tree</th>\n')
+             'Download as CSV</a><br>\n')
         )
 
         diag_html = file_html(p, CDN, 'Diagnostic plots')

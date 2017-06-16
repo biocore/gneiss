@@ -6,11 +6,13 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import os
+import shutil
 import unittest
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio.util import get_data_path
 from gneiss.regression.tests.test_ols import TestOLS
+from gneiss.regression.tests.test_mixedlm import TestMixedLM
 import qiime2
 
 
@@ -29,6 +31,7 @@ class TestOLSPlugin(TestOLS):
             pd.read_table(metadata_f, index_col=0))
 
         viz = ols_regression(in_table, in_tree, in_metadata, 'ph')
+        os.mkdir('regression_summary_dir')
         viz.visualization.export_data('regression_summary_dir')
 
         # check coefficient
@@ -60,6 +63,10 @@ class TestOLSPlugin(TestOLS):
         exp_resid = exp_resid.reindex_axis(sorted(exp_resid.columns), axis=1)
         pdt.assert_frame_equal(res_resid.sort_index(),
                                exp_resid.sort_index())
+        shutil.rmtree('regression_summary_dir')
+
+
+class TestMixedLMPlugin(TestMixedLM):
 
     def test_lme_artifact(self):
         from qiime2.plugins.gneiss.visualizers import lme_regression
@@ -75,6 +82,7 @@ class TestOLSPlugin(TestOLS):
 
         viz = lme_regression(in_table, in_tree, in_metadata,
                              'ph', 'host_subject_id')
+        os.mkdir('regression_summary_dir')
         viz.visualization.export_data('regression_summary_dir')
 
         res_coef = pd.read_csv(os.path.join('regression_summary_dir',
@@ -83,6 +91,7 @@ class TestOLSPlugin(TestOLS):
 
         self.assertAlmostEqual(res_coef.loc['y0', 'groups RE'],
                                1.105630e+00, places=5)
+        shutil.rmtree('regression_summary_dir')
 
 
 if __name__ == '__main__':
