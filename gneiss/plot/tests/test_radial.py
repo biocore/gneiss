@@ -6,6 +6,7 @@ from scipy.cluster.hierarchy import ward
 from skbio import TreeNode, DistanceMatrix
 from gneiss.plot._radial import radialplot
 from gneiss.plot._dendrogram import UnrootedDendrogram
+import pandas.util.testing as pdt
 
 
 class TestRadial(unittest.TestCase):
@@ -21,12 +22,13 @@ class TestRadial(unittest.TestCase):
             index=['0', '1', '2', 'y3', 'y4'])
 
     def test_basic_plot(self):
+        self.maxDiff = None
         exp_edges = {'dest_node': ['0', '1', '2', 'y3'],
-                     'edge_alpha': [1, 1, 1, 1],
+                     #'edge_alpha': [1, 1, 1, 1],
                      'edge_color': ['#00FF00', '#00FF00',
                                     '#00FF00', '#FF0000'],
                      'edge_width': [2, 2, 2, 2],
-                     'index': [0, 1, 2, 3],
+                     # 'index': [0, 1, 2, 3],
                      'src_node': ['y3', 'y4', 'y3', 'y4'],
                      'x0': [338.2612593838583,
                             193.1688862557773,
@@ -48,9 +50,9 @@ class TestRadial(unittest.TestCase):
                      'color': ['#1C9099', '#1C9099', '#1C9099',
                                '#FF999F', '#FF999F'],
                      'hover_var': [None, None, None, None, None],
-                     'index': ['0', '1', '2', 'y3', 'y4'],
+                     # 'index': ['0', '1', '2', 'y3', 'y4'],
                      'is_tip': [True, True, True, False, False],
-                     'node_alpha': [1, 1, 1, 1, 1],
+                     # 'node_alpha': [1, 1, 1, 1, 1],
                      'node_size': [10, 10, 10, 10, 10],
                      'x': [487.5,
                            12.499999999999972,
@@ -85,8 +87,17 @@ class TestRadial(unittest.TestCase):
         p = radialplot(t, node_color='color', edge_color='edge_color',
                        node_size='node_size', edge_width='edge_width')
 
-        self.assertDictEqual(p.renderers[0].data_source.data, exp_edges)
-        self.assertDictEqual(p.renderers[1].data_source.data, exp_nodes)
+
+        for e in exp_edges.keys():
+            pdt.assert_series_equal(
+                p.renderers[0].data_source.data[e],
+                pd.Series(exp_edges[e], name=e))
+
+        for e in exp_nodes.keys():
+            self.assertListEqual(
+                list(p.renderers[1].data_source.data[e]),
+                exp_nodes[e])
+
         self.assertTrue(isinstance(t, TreeNode))
 
 
