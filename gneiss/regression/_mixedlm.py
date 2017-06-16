@@ -341,4 +341,4 @@ class LMEModel(RegressionModel):
             p = r.pvalues
             p.name = r.model.endog_names
             pvals = pvals.append(p)
-        return pvals
+        return pvals.T

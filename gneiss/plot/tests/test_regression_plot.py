@@ -151,7 +151,7 @@ class TestLME_Summary(unittest.TestCase):
             'x1': {'Y1': 3.9704936434633392e-35,
                    'Y2': 3.9704936434628853e-35},
             'x2': {'Y1': 3.56912071867573e-30,
-                   'Y2': 3.56912071867573e-30}}).T
+                   'Y2': 3.56912071867573e-30}})
         npt.assert_allclose(pvals, exp_pvals, rtol=1e-5)
 
         exp_coefs = pd.DataFrame({
