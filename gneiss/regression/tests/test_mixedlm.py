@@ -58,7 +58,8 @@ class TestMixedLM(unittest.TestCase):
 
         # for testing the plugins
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
 
     def tearDown(self):
         shutil.rmtree(self.results)

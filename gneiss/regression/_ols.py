@@ -19,18 +19,28 @@ from patsy import dmatrix
 from scipy import stats
 
 
-def ols(formula, table, metadata, **kwargs):
+def ols(formula, table, metadata):
     """ Ordinary Least Squares applied to balances.
 
-    An ordinary least square regression is performed on nonzero relative
-    abundance data given a list of covariates, or explanatory variables
-    such as ph, treatment, etc to test for specific effects. The relative
-    abundance data is transformed into balances using the ILR transformation,
-    using a tree to specify the groupings of the features. The regression
-    is then performed on each balance separately. Only positive data will
-    be accepted, so if there are zeros present, consider using a zero
-    imputation method such as ``multiplicative_replacement`` or add a
-    pseudocount.
+    An ordinary least squares (OLS) regression is a method for estimating
+    parameters in a linear regression model.  OLS is a common statistical
+    technique for fitting and testing the effects of covariates on a response.
+    This implementation is focused on performing a multivariate response
+    regression where the response is a matrix of balances (`table`) and the
+    covariates (`metadata`) are made up of external variables.
+
+    Global statistical tests indicating goodness of fit and contributions
+    from covariates can be accessed from a coefficient of determination (`r2`),
+    leave-one-variable-out cross validation (`lovo`), leave-one-out
+    cross validation (`loo`) and k-fold cross validation (`kfold`).
+    In addition residuals (`residuals`) can be accessed for diagnostic
+    purposes.
+
+    T-statistics (`tvalues`) and p-values (`pvalues`) can be obtained to
+    investigate to evaluate statistical significance for a covariate for a
+    given balance.  Predictions on the resulting model can be made using
+    (`predict`), and these results can be interpreted as either balances or
+    proportions.
 
     Parameters
     ----------
@@ -47,8 +57,6 @@ def ols(formula, table, metadata, **kwargs):
         Metadata table that contains information about the samples contained
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
-    **kwargs : dict
-        Other arguments accepted into `statsmodels.regression.linear_model.OLS`
 
     Returns
     -------
@@ -59,94 +67,61 @@ def ols(formula, table, metadata, **kwargs):
 
     Example
     -------
-    >>> from gneiss.regression import ols
-    >>> from skbio import TreeNode
+    >>> import numpy as np
     >>> import pandas as pd
+    >>> from skbio import TreeNode
+    >>> from gneiss.regression import ols
 
-    Here, we will define a table of proportions with 3 features
-    `a`, `b`, and `c` across 5 samples.
+    Here, we will define a table of balances as follows
 
-    >>> proportions = pd.DataFrame(
-    ...     [[0.720463, 0.175157, 0.104380],
-    ...      [0.777794, 0.189095, 0.033111],
-    ...      [0.796416, 0.193622, 0.009962],
-    ...      [0.802058, 0.194994, 0.002948],
-    ...      [0.803731, 0.195401, 0.000868]],
-    ...     columns=['a', 'b', 'c'],
-    ...     index=['s1', 's2', 's3', 's4', 's5'])
+    >>> np.random.seed(0)
+    >>> n = 100
+    >>> g1 = np.linspace(0, 15, n)
+    >>> y1 = g1 + 5
+    >>> y2 = -g1 - 2
+    >>> Y = pd.DataFrame({'y1': y1, 'y2': y2})
+
+    Once we have the balances defined, we will add some errors
+
+    >>> e = np.random.normal(loc=1, scale=0.1, size=(n, 2))
+    >>> Y = Y + e
 
     Now we will define the environment variables that we want to
-    regress against the proportions.
+    regress against the balances.
 
-    >>> env_vars = pd.DataFrame({
-    ...     'temp': [20, 20, 20, 20, 21],
-    ...     'ph': [1, 2, 3, 4, 5]},
-    ...     index=['s1', 's2', 's3', 's4', 's5'])
+    >>> X = pd.DataFrame({'g1': g1})
 
-    Finally, we need to define a bifurcating tree used to convert the
-    proportions to balances.  If the internal nodes aren't labels,
-    a default labeling will be applied (i.e. `y1`, `y2`, ...)
-
-    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-
-    Once these 3 variables are defined, a regression can be performed.
+    Once these variables are defined, a regression can be performed.
     These proportions will be converted to balances according to the
     tree specified.  And the regression formula is specified to run
     `temp` and `ph` against the proportions in a single model.
 
-    >>> res = ols('temp + ph', proportions, env_vars, tree)
+    >>> res = ols('g1', Y, X)
+    >>> res.fit()
 
     From the summary results of the `ols` function, we can view the
     pvalues according to how well each individual balance fitted in the
     regression model.
 
     >>> res.pvalues
-           Intercept            ph      temp
-    Y1  2.479592e-01  1.990984e-11  0.243161
-    Y2  6.089193e-10  5.052733e-01  0.279805
+                          y1             y2
+    Intercept  8.826379e-148   7.842085e-71
+    g1         1.923597e-163  1.277152e-163
 
     We can also view the balance coefficients estimated in the regression
     model. These coefficients can also be viewed as proportions by passing
     `project=True` as an argument in `res.coefficients()`.
 
     >>> res.coefficients()
-        Intercept            ph      temp
-    Y1  -0.000499  9.999911e-01  0.000026
-    Y2   1.000035  2.865312e-07 -0.000002
-
-    The balance residuals from the model can be viewed as follows.  Again,
-    these residuals can be viewed as proportions by passing `project=True`
-    into `res.residuals()`
-
-    >>> res.residuals()
-                  Y1            Y2
-    s1 -4.121647e-06 -2.998793e-07
-    s2  6.226749e-07 -1.602904e-09
-    s3  1.111959e-05  9.028437e-07
-    s4 -7.620619e-06 -6.013615e-07
-    s5 -1.332268e-14 -2.375877e-14
-
-    The predicted balances can be obtained as follows.  Note that the predicted
-    proportions can also be obtained by passing `project=True` into
-    `res.predict()`
-
-    >>> res.predict()
-              Y1        Y2
-    s1  1.000009  0.999999
-    s2  2.000000  0.999999
-    s3  2.999991  0.999999
-    s4  3.999982  1.000000
-    s5  4.999999  0.999998
+                     y1        y2
+    Intercept  6.016459 -0.983476
+    g1         0.997793 -1.000299
 
     The overall model fit can be obtained as follows
 
     >>> res.r2
-    0.99999999997996369
+    0.99945903186495066
 
-    See Also
-    --------
-    statsmodels.regression.linear_model.OLS
-    skbio.stats.composition.multiplicative_replacement
     """
 
     # one-time creation of exogenous data matrix allows for faster run-time

@@ -62,7 +62,14 @@ def correlation_linkage(X, method='ward'):
     ...                      columns=['s1', 's2', 's3', 's4', 's5'],
     ...                      index=['o1', 'o2', 'o3', 'o4']).T
     >>> tree = correlation_linkage(table+0.1)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     dm = variation_matrix(X)
     lm = linkage(dm.condensed_form(), method=method)
@@ -104,7 +111,14 @@ def rank_linkage(r, method='average'):
     >>> ranks = pd.Series([1, 2, 4, 5],
     ...                   index=['o1', 'o2', 'o3', 'o4'])
     >>> tree = rank_linkage(ranks)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     dm = DistanceMatrix.from_iterable(r, euclidean)
     lm = linkage(dm.condensed_form(), method)
@@ -172,7 +186,14 @@ def gradient_linkage(X, y, method='average'):
     >>> gradient = pd.Series([1, 2, 3, 4, 5],
     ...                      index=['s1', 's2', 's3', 's4', 's5'])
     >>> tree = gradient_linkage(table, gradient)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     _X, _y = match(X, y)
     mean_X = mean_niche_estimator(_X, gradient=_y)

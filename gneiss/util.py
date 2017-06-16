@@ -16,6 +16,8 @@ Functions
    match
    match_tips
    rename_internal_nodes
+   block_diagonal
+   band_diagonal
 """
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.

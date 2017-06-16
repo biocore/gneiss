@@ -124,7 +124,8 @@ class TestLME_Summary(unittest.TestCase):
         self.metadata = df[['x1', 'x2', 'groups']]
 
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
 
     def tearDown(self):
         shutil.rmtree(self.results)

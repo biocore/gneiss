@@ -23,7 +23,8 @@ class TestHeatmap(unittest.TestCase):
 
     def setUp(self):
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
 
     def tearDown(self):
         shutil.rmtree(self.results)
@@ -92,7 +93,8 @@ class TestBalanceTaxonomy(unittest.TestCase):
 
     def setUp(self):
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
         self.balances = pd.DataFrame(
             {'a': [-2, -1, 0, 1, 2],
              'b': [-2, 0, 0, 0, 0]},
