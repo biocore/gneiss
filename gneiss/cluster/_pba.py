@@ -31,7 +31,7 @@ def correlation_linkage(X, method='ward'):
     are said to be highly correlation. A hierarchical clustering is
     then performed using this correlation as a distance metric.
 
-    This can be useful for constructing principal balances.
+    This can be useful for constructing principal balances [1]_.
 
     Parameters
     ----------
@@ -215,7 +215,7 @@ def random_linkage(n):
     Returns
     -------
     skbio.TreeNode
-        Random tree for constructing principal balances.
+    Random tree for constructing principal balances.
 
     Examples
     --------
