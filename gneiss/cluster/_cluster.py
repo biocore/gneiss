@@ -12,7 +12,7 @@ import skbio
 
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
-from q2_types.tree import Phylogeny, Rooted
+from q2_types.tree import Hierarchy, Phylogeny, Rooted
 from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import correlation_linkage, gradient_linkage
@@ -41,7 +41,7 @@ def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
 plugin.methods.register_function(
     function=correlation_clustering,
     inputs={'table': FeatureTable[Composition]},
-    outputs=[('clustering', Phylogeny[Rooted])],
+    outputs=[('clustering', Hierarchy)],
     name='Hierarchical clustering using feature correlation.',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -97,7 +97,7 @@ plugin.methods.register_function(
     function=gradient_clustering,
     inputs={
         'table': FeatureTable[Frequency | RelativeFrequency | Composition]},
-    outputs=[('clustering', Phylogeny[Rooted])],
+    outputs=[('clustering', Hierarchy)],
     name='Hierarchical clustering using gradient information.',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -139,7 +139,7 @@ def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
 plugin.methods.register_function(
     function=assign_ids,
     inputs={'tree': Phylogeny[Rooted]},
-    outputs=[('tree', Phylogeny[Rooted])],
+    outputs=[('tree', Hierarchy)],
     name='Assigns ids on internal nodes in the tree.',
     input_descriptions={
         'tree': ('The input tree with potential missing ids.')},
