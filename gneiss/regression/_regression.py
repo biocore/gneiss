@@ -12,7 +12,7 @@ from ._mixedlm import mixedlm
 
 from q2_composition.plugin_setup import Balance
 from q2_types.feature_table import FeatureTable
-from q2_types.tree import Phylogeny, Rooted
+from q2_types.tree import Hierarchy
 from qiime2.plugin import Str, Metadata
 from gneiss.plugin_setup import plugin
 from gneiss.plot._regression_plot import ols_summary, lme_summary
@@ -31,7 +31,7 @@ def ols_regression(output_dir: str,
 plugin.visualizers.register_function(
     function=ols_regression,
     inputs={'table': FeatureTable[Balance],
-            'tree': Phylogeny[Rooted]},
+            'tree': Hierarchy},
     parameters={'formula': Str, 'metadata': Metadata},
     name='Simplicial Ordinary Least Squares Regression',
     input_descriptions={
@@ -65,7 +65,7 @@ def lme_regression(output_dir: str,
 plugin.visualizers.register_function(
     function=lme_regression,
     inputs={'table': FeatureTable[Balance],
-            'tree': Phylogeny[Rooted]},
+            'tree': Hierarchy},
     parameters={'metadata': Metadata, 'formula': Str, 'groups': Str},
     name='Simplicial Linear mixed effects regression',
     input_descriptions={
