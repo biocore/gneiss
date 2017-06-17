@@ -62,8 +62,8 @@ class TestClusteringPlugin(unittest.TestCase):
         from qiime2.plugins.gneiss.methods import assign_ids
         tree_f = get_data_path("tree.qza")
         tree = qiime2.Artifact.load(tree_f)
-        out_tree = assign_ids(tree)
-        res_t = out_tree.tree._view(TreeNode)
+        out_tree = assign_ids(input_tree=tree)
+        res_t = out_tree.output_tree._view(TreeNode)
         for n in res_t.levelorder(include_self=True):
             self.assertTrue(n.name is not None)
 
@@ -71,8 +71,8 @@ class TestClusteringPlugin(unittest.TestCase):
         from qiime2.plugins.gneiss.methods import assign_ids
         tree_f = get_data_path("polytomy.qza")
         tree = qiime2.Artifact.load(tree_f)
-        out_tree = assign_ids(tree)
-        res_t = out_tree.tree._view(TreeNode)
+        out_tree = assign_ids(input_tree=tree)
+        res_t = out_tree.output_tree._view(TreeNode)
         res_nontips = []
         for n in res_t.levelorder(include_self=True):
             self.assertTrue(n.name is not None)
