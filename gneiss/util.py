@@ -281,6 +281,13 @@ def block_diagonal(ncols, nrows, nblocks):
     nblocks : int
         Number of blocks
 
+    Returns
+    -------
+    np.array
+        Table with a block diagonal where the rows represent samples
+        and the columns represent features.  The values within the blocks
+        are uniformly distributed between 0 and 1.
+
     Note
     ----
     The number of blocks specified by `nblocks` needs to be greater than 1.
@@ -341,7 +348,9 @@ def band_diagonal(n, b):
     Returns
     -------
     np.array
-        Table of
+        Table with a dense band diagonal where the rows represent samples
+        and the columns represent features.  The values within the
+        diagonal are marked with a constant `1/b`.
     """
     p = n - b + 1  # samples
     y = [1./b] * b + [0] * (n-b)
