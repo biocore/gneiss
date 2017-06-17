@@ -19,6 +19,8 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
 
     Parameters
     ----------
+    x, y, hue: str
+        Variable names to be passed into the seaborn plots for plotting.
     balance_name : str
         Name of balance to plot.
     data : pd.DataFrame
@@ -81,7 +83,8 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                      ndim=5, num_color="#0000FF", denom_color="#0000FF",
                      xlabel="", ylabel="",
                      axes=(None, None)):
-    """
+    """ Plots barplots of counts of features found in the balance.
+
     Parameters
     ----------
     tree : skbio.TreeNode

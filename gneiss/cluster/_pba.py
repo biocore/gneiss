@@ -18,8 +18,7 @@ from scipy.cluster.hierarchy import linkage
 
 def correlation_linkage(X, method='ward'):
     r"""
-    Principal Balance Analysis using Hierarchical Clustering
-    based on correlationity.
+    Hierarchical Clustering based on proportionality.
 
     The hierarchy is built based on the correlationity between
     any two pairs of features.  Specifically the correlation between
@@ -32,6 +31,8 @@ def correlation_linkage(X, method='ward'):
     are said to be highly correlation. A hierarchical clustering is
     then performed using this correlation as a distance metric.
 
+    This can be useful for constructing principal balances [1]_.
+
     Parameters
     ----------
     X : pd.DataFrame
@@ -43,7 +44,7 @@ def correlation_linkage(X, method='ward'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principal balance analysis.
+        Tree for constructing principal balances.
 
     References
     ----------
@@ -62,7 +63,14 @@ def correlation_linkage(X, method='ward'):
     ...                      columns=['s1', 's2', 's3', 's4', 's5'],
     ...                      index=['o1', 'o2', 'o3', 'o4']).T
     >>> tree = correlation_linkage(table+0.1)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     dm = variation_matrix(X)
     lm = linkage(dm.condensed_form(), method=method)
@@ -72,8 +80,7 @@ def correlation_linkage(X, method='ward'):
 
 
 def rank_linkage(r, method='average'):
-    r""" Principal Balance Analysis using Hierchical Clustering on
-    feature ranks.
+    r""" Hierchical Clustering on feature ranks.
 
     The hierarchy is built based on the rank values of the features given
     an input vector `r` of ranks. The distance between two features :math:`x`
@@ -85,6 +92,8 @@ def rank_linkage(r, method='average'):
     Where :math:`r(x)` is the rank of the features.  Hierarchical clustering is
     then performed using :math:`d(x, y)` as the distance metric.
 
+    This can be useful for constructing principal balances.
+
     Parameters
     ----------
     r : pd.Series
@@ -95,7 +104,7 @@ def rank_linkage(r, method='average'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principal balance analysis.
+        Tree for constructing principal balances.
 
     Examples
     --------
@@ -104,7 +113,14 @@ def rank_linkage(r, method='average'):
     >>> ranks = pd.Series([1, 2, 4, 5],
     ...                   index=['o1', 'o2', 'o3', 'o4'])
     >>> tree = rank_linkage(ranks)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     dm = DistanceMatrix.from_iterable(r, euclidean)
     lm = linkage(dm.condensed_form(), method)
@@ -115,8 +131,7 @@ def rank_linkage(r, method='average'):
 
 def gradient_linkage(X, y, method='average'):
     r"""
-    Principal Balance Analysis using Hierarchical Clustering
-    on known gradient.
+    Hierarchical Clustering on known gradient.
 
     The hierarchy is built based on the values of the samples
     located along a gradient.  Given a feature :math:`x`, the mean gradient
@@ -140,6 +155,8 @@ def gradient_linkage(X, y, method='average'):
     A hierarchical clustering is then performed using :math:`d(x, y)` as
     the distance metric.
 
+    This can be useful for constructing principal balances.
+
     Parameters
     ----------
     X : pd.DataFrame
@@ -153,7 +170,7 @@ def gradient_linkage(X, y, method='average'):
     Returns
     -------
     skbio.TreeNode
-        Tree generated from principal balance analysis.
+        Tree for constructing principal balances.
 
     See Also
     --------
@@ -172,7 +189,14 @@ def gradient_linkage(X, y, method='average'):
     >>> gradient = pd.Series([1, 2, 3, 4, 5],
     ...                      index=['s1', 's2', 's3', 's4', 's5'])
     >>> tree = gradient_linkage(table, gradient)
-
+    >>> print(tree.ascii_art())
+                        /-o1
+              /y1------|
+             |          \-o2
+    -y0------|
+             |          /-o3
+              \y2------|
+                        \-o4
     """
     _X, _y = match(X, y)
     mean_X = mean_niche_estimator(_X, gradient=_y)
@@ -191,13 +215,12 @@ def random_linkage(n):
     Returns
     -------
     skbio.TreeNode
-        Random tree
+    Random tree for constructing principal balances.
 
     Examples
     --------
     >>> from gneiss.cluster import random_linkage
     >>> tree = random_linkage(10)
-
 
     Notes
     -----

@@ -18,15 +18,20 @@ from skbio.stats.composition import ilr_inv
 def mixedlm(formula, table, metadata, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
-    A linear mixed effects model is performed on nonzero relative abundance
-    data given a list of covariates, or explanatory variables such as pH,
-    treatment, etc to test for specific effects. The relative abundance data
-    is transformed into balances using the ILR transformation, using a tree to
-    specify the groupings of the features. The linear mixed effects model is
-    applied to each balance separately. Only positive data will be accepted,
-    so if there are zeros present, consider using a zero imputation method
-    such as ``skbio.stats.composition.multiplicative_replacement`` or
-    add a pseudocount.
+    Linear mixed effects (LME) models is a method for estimating
+    parameters in a linear regression model with mixed effects.
+    LME models are commonly used for repeated measures, where multiple
+    samples are collected from a single source.  This implementation is
+    focused on performing a multivariate response regression with mixed
+    effects where the response is a matrix of balances (`table`), the
+    covariates (`metadata`) are made up of external variables and the
+    samples sources are specified by `groups`.
+
+    T-statistics (`tvalues`) and p-values (`pvalues`) can be obtained to
+    investigate to evaluate statistical significance for a covariate for a
+    given balance.  Predictions on the resulting model can be made using
+    (`predict`), and these results can be interpreted as either balances or
+    proportions.
 
     Parameters
     ----------
@@ -44,7 +49,7 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
     groups : str
-        Column names in `metadata` that specifies the groups.  These groups are
+        Column name in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
         longitudinally.
     **kwargs : dict
@@ -66,27 +71,25 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     --------
     >>> import pandas as pd
     >>> import numpy as np
-    >>> from skbio.stats.composition import ilr_inv
-    >>> from skbio import TreeNode
     >>> from gneiss.regression import mixedlm
 
-    Here, we will define a table of proportions with 3 features
-    `a`, `b`, and `c` across 12 samples.
+    Here, we will define a table of balances with features `Y1`, `Y2`
+    across 12 samples.
 
     >>> table = pd.DataFrame({
-    ...         'u1':  [0.804248, 0.195526, 0.000226],
-    ...         'u2':  [0.804369, 0.195556, 0.000075],
-    ...         'u3':  [0.825711, 0.174271, 0.000019],
-    ...         'x1':  [0.751606, 0.158631, 0.089763],
-    ...         'x2':  [0.777794, 0.189095, 0.033111],
-    ...         'x3':  [0.817855, 0.172613, 0.009532],
-    ...         'y1':  [0.780774, 0.189819, 0.029406],
-    ...         'y2':  [0.797332, 0.193845, 0.008824],
-    ...         'y3':  [0.802058, 0.194994, 0.002948],
-    ...         'z1':  [0.825041, 0.174129, 0.000830],
-    ...         'z2':  [0.804248, 0.195526, 0.000226],
-    ...         'z3':  [0.825667, 0.174261, 0.000072]}
-    ...         index=['a', 'b', 'c']).T
+    ...   'u1': [ 1.00000053,  6.09924644],
+    ...   'u2': [ 0.99999843,  7.0000045 ],
+    ...   'u3': [ 1.09999884,  8.08474053],
+    ...   'x1': [ 1.09999758,  1.10000349],
+    ...   'x2': [ 0.99999902,  2.00000027],
+    ...   'x3': [ 1.09999862,  2.99998318],
+    ...   'y1': [ 1.00000084,  2.10001257],
+    ...   'y2': [ 0.9999991 ,  3.09998418],
+    ...   'y3': [ 0.99999899,  3.9999742 ],
+    ...   'z1': [ 1.10000124,  5.0001796 ],
+    ...   'z2': [ 1.00000053,  6.09924644],
+    ...   'z3': [ 1.10000173,  6.99693644]},
+    ..     index=['Y1', 'Y2']).T
 
     Now we are going to define some of the external variables to
     test for in the model.  Here we will be testing a hypothetical
@@ -101,19 +104,7 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     ...     }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
     ...               'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
 
-    Finally, we need to define a bifurcating tree used to convert the
-    proportions to balances.  If the internal nodes aren't labels,
-    a default labeling will be applied (i.e. `y1`, `y2`, ...)
-
-    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-    >>> print(tree.ascii_art())
-              /-c
-    -Y1------|
-             |          /-b
-              \Y2------|
-                        \-a
-
-    Now we can run the linear mixed effects model on the proportions.
+    Now we can run the linear mixed effects model on the balances.
     Underneath the hood, the proportions will be transformed into balances,
     so that the linear mixed effects models can be run directly on balances.
     Since each patient was sampled repeatedly, we'll specify them separately
@@ -126,7 +117,6 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     See Also
     --------
     statsmodels.regression.linear_model.MixedLM
-    skbio.stats.composition.multiplicative_replacement
     ols
 
     """
@@ -249,6 +239,7 @@ class LMEModel(RegressionModel):
 
     def residuals(self, tree=None):
         """ Returns calculated residuals from fit.
+
         Parameters
         ----------
         X : pd.DataFrame, optional

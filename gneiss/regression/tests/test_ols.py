@@ -50,7 +50,8 @@ class TestOLS(unittest.TestCase):
         self.tree = TreeNode.read(['(c, (b,a)y2)y1;'])
 
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
 
     def tearDown(self):
         shutil.rmtree(self.results)
