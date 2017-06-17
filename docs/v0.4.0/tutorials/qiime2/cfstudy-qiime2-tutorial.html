@@ -11802,40 +11802,6 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime feature-table filter-samples <span class="err">\</span>
-    <span class="o">--</span><span class="n">i</span><span class="o">-</span><span class="n">table</span> <span class="n">cfstudy</span><span class="o">.</span><span class="n">biom</span><span class="o">.</span><span class="n">qza</span> \
-    <span class="o">--</span><span class="n">m</span><span class="o">-</span><span class="n">sample</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">file</span> <span class="n">cfstudy_modified_metadata</span><span class="o">.</span><span class="n">txt</span> \
-    <span class="o">--</span><span class="n">o</span><span class="o">-</span><span class="n">filtered</span><span class="o">-</span><span class="n">table</span> <span class="n">cfstudy_common</span><span class="o">.</span><span class="n">biom</span><span class="o">.</span><span class="n">qza</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Error: no such option: --m-sample-metadata-file
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
@@ -11847,7 +11813,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime feature-table filter-features <span class="err">\</span>
@@ -11890,7 +11856,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime gneiss gradient-clustering <span class="err">\</span>
@@ -11915,7 +11881,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre><span class="ansi-green-fg">Saved Phylogeny[Rooted] to: ph_tree.nwk.qza</span>
+<pre><span class="ansi-green-fg">Saved Hierarchy to: ph_tree.nwk.qza</span>
 </pre>
 </div>
 </div>
@@ -11935,7 +11901,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime composition add-pseudocount <span class="err">\</span>
@@ -11969,7 +11935,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime gneiss ilr-transform <span class="err">\</span>
@@ -12012,7 +11978,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime gneiss lme-regression <span class="err">\</span>
@@ -12059,7 +12025,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">!</span>qiime gneiss balance-taxonomy <span class="err">\</span>
