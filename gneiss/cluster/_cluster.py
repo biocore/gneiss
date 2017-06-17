@@ -12,7 +12,7 @@ import skbio
 
 from q2_composition.plugin_setup import Composition
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
-from q2_types.tree import Phylogeny, Rooted
+from q2_types.tree import Hierarchy, Phylogeny, Rooted
 from qiime2.plugin import MetadataCategory, Bool
 from gneiss.plugin_setup import plugin
 from gneiss.cluster._pba import correlation_linkage, gradient_linkage
@@ -41,7 +41,7 @@ def correlation_clustering(table: pd.DataFrame) -> skbio.TreeNode:
 plugin.methods.register_function(
     function=correlation_clustering,
     inputs={'table': FeatureTable[Composition]},
-    outputs=[('clustering', Phylogeny[Rooted])],
+    outputs=[('clustering', Hierarchy)],
     name='Hierarchical clustering using feature correlation.',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -97,7 +97,7 @@ plugin.methods.register_function(
     function=gradient_clustering,
     inputs={
         'table': FeatureTable[Frequency | RelativeFrequency | Composition]},
-    outputs=[('clustering', Phylogeny[Rooted])],
+    outputs=[('clustering', Hierarchy)],
     name='Hierarchical clustering using gradient information.',
     input_descriptions={
         'table': ('The feature table containing the samples in which '
@@ -125,9 +125,9 @@ plugin.methods.register_function(
 )
 
 
-def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
+def assign_ids(input_tree: skbio.TreeNode) -> skbio.TreeNode:
 
-    t = tree.copy()
+    t = input_tree.copy()
     t.bifurcate()
     ids = ['%sL-%s' % (i, uuid.uuid4())
            for i, n in enumerate(t.levelorder(include_self=True))
@@ -138,14 +138,14 @@ def assign_ids(tree: skbio.TreeNode) -> skbio.TreeNode:
 
 plugin.methods.register_function(
     function=assign_ids,
-    inputs={'tree': Phylogeny[Rooted]},
-    outputs=[('tree', Phylogeny[Rooted])],
+    inputs={'input_tree': Phylogeny[Rooted]},
+    outputs=[('output_tree', Hierarchy)],
     name='Assigns ids on internal nodes in the tree.',
     input_descriptions={
-        'tree': ('The input tree with potential missing ids.')},
+        'input_tree': ('The input tree with potential missing ids.')},
     parameters={},
     output_descriptions={
-        'tree': ('A tree with uniquely identifying ids.')},
+        'output_tree': ('A tree with uniquely identifying ids.')},
     description=('Assigns UUIDs to uniquely identify internal nodes '
                  'in the tree.  Also corrects for polytomies to create '
                  'strictly bifurcating trees.')
