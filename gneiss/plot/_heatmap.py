@@ -145,7 +145,7 @@ def _tree_coordinates(t):
             n._k = 0
             n._t = 0
         else:
-            if n is n.parent.children[NUMERATOR]:
+            if n is n.parent.children[DENOMINATOR]:
                 n._k = n.parent._k + n.parent._r
                 n._t = n.parent._t
             else:
@@ -154,8 +154,8 @@ def _tree_coordinates(t):
 
         if n.is_tip():
             continue
-        n._l = n.children[NUMERATOR]._n_tips
-        n._r = n.children[DENOMINATOR]._n_tips
+        n._r = n.children[NUMERATOR]._n_tips
+        n._l = n.children[DENOMINATOR]._n_tips
     return t
 
 
