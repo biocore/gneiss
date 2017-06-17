@@ -17,7 +17,7 @@ from gneiss.plot._heatmap import heatmap
 from gneiss.plot._decompose import balance_barplots, balance_boxplot
 from gneiss.util import (match, NUMERATOR, DENOMINATOR)
 
-from q2_types.tree import Phylogeny, Rooted
+from q2_types.tree import Hierarchy
 from q2_composition.plugin_setup import Composition, Balance
 from q2_types.feature_table import FeatureTable
 from q2_types.feature_data import FeatureData, Taxonomy
@@ -111,7 +111,7 @@ def balance_taxonomy(output_dir: str, balances: pd.DataFrame, tree: TreeNode,
 
 plugin.visualizers.register_function(
     function=balance_taxonomy,
-    inputs={'balances': FeatureTable[Balance], 'tree': Phylogeny[Rooted],
+    inputs={'balances': FeatureTable[Balance], 'tree': Hierarchy,
             'taxonomy': FeatureData[Taxonomy]},
     parameters={'balance_name': Str,
                 'taxa_level': Int,
@@ -188,7 +188,7 @@ def dendrogram_heatmap(output_dir: str, table: pd.DataFrame,
 plugin.visualizers.register_function(
     function=dendrogram_heatmap,
     inputs={'table': FeatureTable[Composition],
-            'tree': Phylogeny[Rooted]},
+            'tree': Hierarchy},
     parameters={'metadata': MetadataCategory, 'ndim': Int,
                 'method': Str % Choices(_transform_methods),
                 'color_map': Str % Choices(_mpl_colormaps)},
