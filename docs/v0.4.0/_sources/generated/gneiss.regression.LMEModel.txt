@@ -1,0 +1,37 @@
+gneiss.regression.LMEModel
+==========================
+
+.. currentmodule:: gneiss.regression
+
+.. autoclass:: LMEModel
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LMEModel.__init__
+      ~LMEModel.coefficients
+      ~LMEModel.fit
+      ~LMEModel.percent_explained
+      ~LMEModel.predict
+      ~LMEModel.read_pickle
+      ~LMEModel.residuals
+      ~LMEModel.split_balance
+      ~LMEModel.summary
+      ~LMEModel.write_pickle
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LMEModel.pvalues
+   
+   

@@ -1,0 +1,6 @@
+gneiss\.plot\.balance\_boxplot
+==============================
+
+.. currentmodule:: gneiss.plot
+
+.. autofunction:: balance_boxplot

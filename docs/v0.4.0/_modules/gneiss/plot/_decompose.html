@@ -1,0 +1,245 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot._decompose &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.plot._decompose</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="n">NUMERATOR</span><span class="p">,</span> <span class="n">DENOMINATOR</span>
+
+
+<div class="viewcode-block" id="balance_boxplot"><a class="viewcode-back" href="../../../generated/gneiss.plot.balance_boxplot.html#gneiss.plot.balance_boxplot">[docs]</a><span class="k">def</span> <span class="nf">balance_boxplot</span><span class="p">(</span><span class="n">balance_name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_color</span><span class="o">=</span><span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span>
+                    <span class="n">denom_color</span><span class="o">=</span><span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots a boxplot for a given balance and the associated metadata.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x, y, hue: str</span>
+<span class="sd">        Variable names to be passed into the seaborn plots for plotting.</span>
+<span class="sd">    balance_name : str</span>
+<span class="sd">        Name of balance to plot.</span>
+<span class="sd">    data : pd.DataFrame</span>
+<span class="sd">        Merged dataframe of balances and metadata.</span>
+<span class="sd">    num_color : str</span>
+<span class="sd">        Hex for background colors of values above zero.</span>
+<span class="sd">    denom_color : str</span>
+<span class="sd">        Hex for background colors of values below zero.</span>
+<span class="sd">    xlabel : str</span>
+<span class="sd">        x-axis label.</span>
+<span class="sd">    ylabel : str</span>
+<span class="sd">        y-axis label.</span>
+<span class="sd">    linewidth : str</span>
+<span class="sd">        Width of the grid lines.</span>
+<span class="sd">    ax : matplotlib axes object</span>
+<span class="sd">        Axes object to render boxplots in.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Values to pass in to customize seaborn boxplot.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    a : matplotlib axes object</span>
+<span class="sd">        Matplotlit axes object with rendered boxplots.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    seaborn.boxplot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+    <span class="c1"># the number 20 is pretty arbitrary - we are just</span>
+    <span class="c1"># resizing to make sure that there is separation between the</span>
+    <span class="c1"># edges of the plot, and the boxplot</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="mi">20</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">-</span><span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="n">facecolor</span><span class="o">=</span><span class="n">num_color</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="n">pad</span><span class="p">,</span>
+               <span class="n">facecolor</span><span class="o">=</span><span class="n">denom_color</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;hue&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">hue</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;hue&#39;</span><span class="p">]</span>
+        <span class="n">num_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">hue</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">num_groups</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">balance_name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">minorticks_on</span><span class="p">()</span>
+    <span class="n">minorLocator</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">ticker</span><span class="o">.</span><span class="n">AutoMinorLocator</span><span class="p">(</span><span class="n">num_groups</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">minorLocator</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">balance_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">pad</span><span class="p">])</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="balance_barplots"><a class="viewcode-back" href="../../../generated/gneiss.plot.balance_barplots.html#gneiss.plot.balance_barplots">[docs]</a><span class="k">def</span> <span class="nf">balance_barplots</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">balance_name</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">feature_metadata</span><span class="p">,</span>
+                     <span class="n">ndim</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_color</span><span class="o">=</span><span class="s2">&quot;#0000FF&quot;</span><span class="p">,</span> <span class="n">denom_color</span><span class="o">=</span><span class="s2">&quot;#0000FF&quot;</span><span class="p">,</span>
+                     <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                     <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot; Plots barplots of counts of features found in the balance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Reference tree for balances.</span>
+<span class="sd">    balance_name : str</span>
+<span class="sd">        Name of balance to plot.</span>
+<span class="sd">    header : str</span>
+<span class="sd">        Header name for the feature metadata column to summarize</span>
+<span class="sd">    feature_metadata : pd.DataFrame</span>
+<span class="sd">        Contains information about the features.</span>
+<span class="sd">    ndim : int</span>
+<span class="sd">        Number of bars to display at a given time (default=5)</span>
+<span class="sd">    num_color : str</span>
+<span class="sd">        Hex for background colors of values above zero.</span>
+<span class="sd">    denom_color : str</span>
+<span class="sd">        Hex for background colors of values below zero.</span>
+<span class="sd">    xlabel : str</span>
+<span class="sd">        x-axis label.</span>
+<span class="sd">    ylabel : str</span>
+<span class="sd">        y-axis label.</span>
+<span class="sd">    axes : tuple of matplotlib axes objects</span>
+<span class="sd">        Specifies where the barplots should be rendered.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ax_num : matplotlib axes object</span>
+<span class="sd">        Barplot of the features in the numerator of the balance.</span>
+<span class="sd">    ax_denom : matplotlib axes object</span>
+<span class="sd">        Barplot of the features in the denominator of the balance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="n">ax_num</span><span class="p">,</span> <span class="n">ax_denom</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax_num</span><span class="p">,</span> <span class="n">ax_denom</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">balance_name</span><span class="p">)</span>
+    <span class="n">num_clade</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">NUMERATOR</span><span class="p">]</span>
+    <span class="n">denom_clade</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">DENOMINATOR</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">num_clade</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+        <span class="n">num_</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[[</span><span class="n">feature_metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">num_clade</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">header</span><span class="p">],</span> <span class="mi">1</span><span class="p">]],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">header</span><span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">header</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">feature_metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">num_clade</span><span class="o">.</span><span class="n">subset</span><span class="p">())]</span>
+        <span class="n">num_</span> <span class="o">=</span> <span class="n">num</span><span class="p">[</span><span class="n">header</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">denom_clade</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+        <span class="n">denom_</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[[</span><span class="n">feature_metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">denom_clade</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">header</span><span class="p">],</span> <span class="mi">1</span><span class="p">]],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">header</span><span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">header</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">feature_metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">denom_clade</span><span class="o">.</span><span class="n">subset</span><span class="p">())]</span>
+        <span class="n">denom_</span> <span class="o">=</span> <span class="n">denom</span><span class="p">[</span><span class="n">header</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="n">ax_denom</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">denom_</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax_denom</span><span class="p">,</span>
+                           <span class="n">color</span><span class="o">=</span><span class="n">denom_color</span><span class="p">)</span>
+    <span class="n">ax_denom</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+    <span class="n">ax_denom</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">ax_denom</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span>  <span class="nb">max</span><span class="p">([</span><span class="n">num_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                <span class="n">denom_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]])])</span>
+
+    <span class="n">ax_num</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">num_</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax_num</span><span class="p">,</span>
+                         <span class="n">color</span><span class="o">=</span><span class="n">num_color</span><span class="p">)</span>
+    <span class="n">ax_num</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+    <span class="n">ax_num</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">ax_num</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span>  <span class="nb">max</span><span class="p">([</span><span class="n">num_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                              <span class="n">denom_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]])])</span>
+    <span class="k">return</span> <span class="n">ax_num</span><span class="p">,</span> <span class="n">ax_denom</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

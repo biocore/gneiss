@@ -1,0 +1,216 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.regression.mixedlm &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.regression.OLSModel" href="gneiss.regression.OLSModel.html" />
+    <link rel="prev" title="gneiss.regression.ols" href="gneiss.regression.ols.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-regression-mixedlm">
+<h1>gneiss.regression.mixedlm<a class="headerlink" href="#gneiss-regression-mixedlm" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.regression.mixedlm">
+<code class="descclassname">gneiss.regression.</code><code class="descname">mixedlm</code><span class="sig-paren">(</span><em>formula</em>, <em>table</em>, <em>metadata</em>, <em>groups</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/regression/_mixedlm.html#mixedlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.regression.mixedlm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linear Mixed Effects Models applied to balances.</p>
+<p>Linear mixed effects (LME) models is a method for estimating
+parameters in a linear regression model with mixed effects.
+LME models are commonly used for repeated measures, where multiple
+samples are collected from a single source.  This implementation is
+focused on performing a multivariate response regression with mixed
+effects where the response is a matrix of balances (<cite>table</cite>), the
+covariates (<cite>metadata</cite>) are made up of external variables and the
+samples sources are specified by <cite>groups</cite>.</p>
+<p>T-statistics (<cite>tvalues</cite>) and p-values (<cite>pvalues</cite>) can be obtained to
+investigate to evaluate statistical significance for a covariate for a
+given balance.  Predictions on the resulting model can be made using
+(<cite>predict</cite>), and these results can be interpreted as either balances or
+proportions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>formula</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Formula representing the statistical equation to be evaluated.
+These strings are similar to how equations are handled in R.
+Note that the dependent variable in this string should not be
+specified, since this method will be run on each of the individual
+balances. See <cite>patsy</cite> <a class="footnote-reference" href="#id2" id="id1">[1]</a> for more details.</li>
+<li><strong>table</strong> (<em>pd.DataFrame</em>) – Contingency table where samples correspond to rows and
+balances correspond to columns.</li>
+<li><strong>metadata</strong> (<em>pd.DataFrame</em>) – Metadata table that contains information about the samples contained
+in the <cite>table</cite> object.  Samples correspond to rows and covariates
+correspond to columns.</li>
+<li><strong>groups</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Column name in <cite>metadata</cite> that specifies the groups.  These groups are
+often associated with individuals repeatedly sampled, typically
+longitudinally.</li>
+<li><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Other arguments accepted into
+<cite>statsmodels.regression.linear_model.MixedLM</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Container object that holds information about the overall fit.
+This includes information about coefficients, pvalues and
+residuals from the resulting regression.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="gneiss.regression.LMEModel.html#gneiss.regression.LMEModel" title="gneiss.regression.LMEModel">LMEModel</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="https://patsy.readthedocs.io/en/latest/">https://patsy.readthedocs.io/en/latest/</a></td></tr>
+</tbody>
+</table>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gneiss.regression</span> <span class="k">import</span> <span class="n">mixedlm</span>
+</pre></div>
+</div>
+<p>Here, we will define a table of balances with features <cite>Y1</cite>, <cite>Y2</cite>
+across 12 samples.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>  <span class="s1">&#39;u1&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.00000053</span><span class="p">,</span>  <span class="mf">6.09924644</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;u2&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">0.99999843</span><span class="p">,</span>  <span class="mf">7.0000045</span> <span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;u3&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.09999884</span><span class="p">,</span>  <span class="mf">8.08474053</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.09999758</span><span class="p">,</span>  <span class="mf">1.10000349</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">0.99999902</span><span class="p">,</span>  <span class="mf">2.00000027</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;x3&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.09999862</span><span class="p">,</span>  <span class="mf">2.99998318</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;y1&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.00000084</span><span class="p">,</span>  <span class="mf">2.10001257</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;y2&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">0.9999991</span> <span class="p">,</span>  <span class="mf">3.09998418</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;y3&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">0.99999899</span><span class="p">,</span>  <span class="mf">3.9999742</span> <span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;z1&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.10000124</span><span class="p">,</span>  <span class="mf">5.0001796</span> <span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;z2&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.00000053</span><span class="p">,</span>  <span class="mf">6.09924644</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s1">&#39;z3&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">1.10000173</span><span class="p">,</span>  <span class="mf">6.99693644</span><span class="p">]},</span>
+<span class="go">..     index=[&#39;Y1&#39;, &#39;Y2&#39;]).T</span>
+</pre></div>
+</div>
+<p>Now we are going to define some of the external variables to
+test for in the model.  Here we will be testing a hypothetical
+longitudinal study across 3 time points, with 4 patients
+<cite>x</cite>, <cite>y</cite>, <cite>z</cite> and <cite>u</cite>, where <cite>x</cite> and <cite>y</cite> were given treatment <cite>1</cite>
+and <cite>z</cite> and <cite>u</cite> were given treatment <cite>2</cite>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>        <span class="s1">&#39;patient&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;treatment&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="s1">&#39;x3&#39;</span><span class="p">,</span> <span class="s1">&#39;y1&#39;</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">,</span> <span class="s1">&#39;y3&#39;</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="s1">&#39;z1&#39;</span><span class="p">,</span> <span class="s1">&#39;z2&#39;</span><span class="p">,</span> <span class="s1">&#39;z3&#39;</span><span class="p">,</span> <span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">,</span> <span class="s1">&#39;u3&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Now we can run the linear mixed effects model on the balances.
+Underneath the hood, the proportions will be transformed into balances,
+so that the linear mixed effects models can be run directly on balances.
+Since each patient was sampled repeatedly, we’ll specify them separately
+in the groups.  In the linear mixed effects model <cite>time</cite> and <cite>treatment</cite>
+will be simultaneously tested for with respect to the balances.</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">mixedlm</span><span class="p">(</span><span class="s1">&#39;time + treatment&#39;</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="n">groups</span><span class="o">=</span><span class="s1">&#39;patient&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-func docutils literal"><span class="pre">statsmodels.regression.linear_model.MixedLM()</span></code>, <a class="reference internal" href="gneiss.regression.ols.html#gneiss.regression.ols" title="gneiss.regression.ols"><code class="xref py py-func docutils literal"><span class="pre">ols()</span></code></a></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../regression.html">Regression functions (<code class="docutils literal"><span class="pre">gneiss.regression</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.regression.ols.html" title="previous chapter">gneiss.regression.ols</a></li>
+      <li>Next: <a href="gneiss.regression.OLSModel.html" title="next chapter">gneiss.regression.OLSModel</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.regression.mixedlm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.regression.mixedlm.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

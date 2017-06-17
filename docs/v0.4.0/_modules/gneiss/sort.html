@@ -1,0 +1,350 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.sort &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.sort</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Sort functions (:mod:`gneiss.sort`)</span>
+<span class="sd">===================================</span>
+
+<span class="sd">.. currentmodule:: gneiss.sort</span>
+
+<span class="sd">This module contains sorting functions that sort contingency tables</span>
+<span class="sd">in addition to trees.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :toctree: generated/</span>
+
+<span class="sd">   mean_niche_estimator</span>
+<span class="sd">   niche_sort</span>
+<span class="sd">   ladderize</span>
+<span class="sd">   gradient_sort</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="n">match</span>
+
+
+<div class="viewcode-block" id="mean_niche_estimator"><a class="viewcode-back" href="../../generated/gneiss.sort.mean_niche_estimator.html#gneiss.sort.mean_niche_estimator">[docs]</a><span class="k">def</span> <span class="nf">mean_niche_estimator</span><span class="p">(</span><span class="n">abundances</span><span class="p">,</span> <span class="n">gradient</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Estimates the mean niche along a gradient of an organism.</span>
+
+<span class="sd">    Calculates the mean niche of an organism along a gradient.</span>
+<span class="sd">    This is done by calculating the mean gradient values that</span>
+<span class="sd">    an organism is observed in.</span>
+
+<span class="sd">    Specifically, this module calculates the following</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        f(g , x) =</span>
+<span class="sd">         \sum\limits_{i=1}^N g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}</span>
+
+
+<span class="sd">    Where :math:`N` is the number of samples, :math:`x_i` is the proportion of</span>
+<span class="sd">    species :math:`x` in sample :math:`i`, :math:`g_i` is the gradient value</span>
+<span class="sd">    at sample `i`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    abundances : pd.DataFrame or pd.Series, np.float</span>
+<span class="sd">        Vector of fraction abundances of an organism over a list of samples.</span>
+<span class="sd">    gradient : pd.Series, np.float</span>
+<span class="sd">        Vector of numerical gradient values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series or np.float :</span>
+<span class="sd">        The mean gradient that the feature is observed in.</span>
+<span class="sd">        If `abundances` is a `pd.DataFrame` containing the mean gradient</span>
+<span class="sd">        values for each feature.  Otherwise a float is returned.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        If the length of `abundances` is not the same length as `gradient`.</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        If the length of `gradient` contains nans.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">len_abundances</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">abundances</span><span class="p">)</span>
+    <span class="n">len_gradient</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gradient</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">len_abundances</span> <span class="o">!=</span> <span class="n">len_gradient</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Length of `abundances` (</span><span class="si">%d</span><span class="s2">) doesn&#39;t match the length&quot;</span>
+                         <span class="s2">&quot; of the `gradient` (</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">len_abundances</span><span class="p">,</span>
+                                                      <span class="n">len_gradient</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">gradient</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`gradient` cannot have any nans.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># normalizes the proportions of the organism across all of the</span>
+    <span class="c1"># samples to add to 1.</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">abundances</span> <span class="o">/</span> <span class="n">abundances</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">abundances</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">abundances</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span></div>
+
+
+<div class="viewcode-block" id="niche_sort"><a class="viewcode-back" href="../../generated/gneiss.sort.niche_sort.html#gneiss.sort.niche_sort">[docs]</a><span class="k">def</span> <span class="nf">niche_sort</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">niche_estimator</span><span class="o">=</span><span class="n">mean_niche_estimator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sort the table according to estimated niches.</span>
+
+<span class="sd">    Sorts the table by samples along the gradient</span>
+<span class="sd">    and otus by their estimated niche along the gradient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contingency table where samples are rows and features (i.e. OTUs)</span>
+<span class="sd">        are columns.</span>
+<span class="sd">    gradient : pd.Series</span>
+<span class="sd">        Vector of numerical gradient values.</span>
+<span class="sd">    niche_estimator : function, optional</span>
+<span class="sd">        A function that takes in two pandas series and returns an ordered</span>
+<span class="sd">        object. The ability for the object to be ordered is critical, since</span>
+<span class="sd">        this will allow the table to be sorted according to this ordering.</span>
+<span class="sd">        By default, `mean_niche_estimator` will be used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame :</span>
+<span class="sd">        Sorted table according to the gradient of the samples, and the niches</span>
+<span class="sd">        of the organisms along that gradient.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        Raised if `niche_estimator` is not a function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">niche_estimator</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`niche_estimator` is not a function.&quot;</span><span class="p">)</span>
+
+    <span class="n">table</span><span class="p">,</span> <span class="n">gradient</span> <span class="o">=</span> <span class="n">match</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">gradient</span><span class="p">)</span>
+    <span class="n">niche_estimator</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">niche_estimator</span><span class="p">,</span> <span class="n">gradient</span><span class="o">=</span><span class="n">gradient</span><span class="p">)</span>
+
+    <span class="c1"># normalizes feature abundances to sum to 1, for each sample.</span>
+    <span class="c1"># (i.e. scales values in each row to sum to 1).</span>
+    <span class="n">normtable</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># calculates estimated niche for each feature</span>
+    <span class="n">est_niche</span> <span class="o">=</span> <span class="n">normtable</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">niche_estimator</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">gradient</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+    <span class="n">est_niche</span> <span class="o">=</span> <span class="n">est_niche</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">gradient</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                          <span class="n">columns</span><span class="o">=</span><span class="n">est_niche</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span></div>
+
+
+<span class="k">def</span> <span class="nf">_cache_ntips</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">postorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_n_tips</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_n_tips</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_n_tips</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tree</span>
+
+
+<div class="viewcode-block" id="ladderize"><a class="viewcode-back" href="../../generated/gneiss.sort.ladderize.html#gneiss.sort.ladderize">[docs]</a><span class="k">def</span> <span class="nf">ladderize</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorts tree according to the size of the subtrees.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">       Input tree where leafs correspond to features.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    skbio.TreeNode</span>
+<span class="sd">       A tree whose tips are sorted according to subtree size.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; tree = TreeNode.read([u&#39;((a,b)c, ((g,h)e,f)d)r;&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; print(tree.ascii_art())</span>
+<span class="sd">                        /-a</span>
+<span class="sd">              /c-------|</span>
+<span class="sd">             |          \-b</span>
+<span class="sd">    -r-------|</span>
+<span class="sd">             |                    /-g</span>
+<span class="sd">             |          /e-------|</span>
+<span class="sd">              \d-------|          \-h</span>
+<span class="sd">                       |</span>
+<span class="sd">                        \-f</span>
+<span class="sd">    &gt;&gt;&gt; sorted_tree = ladderize(tree)</span>
+<span class="sd">    &gt;&gt;&gt; print(sorted_tree.ascii_art())</span>
+<span class="sd">                        /-a</span>
+<span class="sd">              /c-------|</span>
+<span class="sd">             |          \-b</span>
+<span class="sd">    -r-------|</span>
+<span class="sd">             |          /-f</span>
+<span class="sd">              \d-------|</span>
+<span class="sd">                       |          /-g</span>
+<span class="sd">                        \e-------|</span>
+<span class="sd">                                  \-h</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sorted_tree</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">sorted_tree</span> <span class="o">=</span> <span class="n">_cache_ntips</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sorted_tree</span><span class="o">.</span><span class="n">postorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">_n_tips</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ascending</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">n</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sorted_tree</span></div>
+
+
+<div class="viewcode-block" id="gradient_sort"><a class="viewcode-back" href="../../generated/gneiss.sort.gradient_sort.html#gneiss.sort.gradient_sort">[docs]</a><span class="k">def</span> <span class="nf">gradient_sort</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorts tree according to ordering in gradient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">       Input tree where leafs correspond to features</span>
+<span class="sd">       contained in the index in `gradient`.</span>
+<span class="sd">    gradient : pd.Series, numeric</span>
+<span class="sd">       Gradient where the index correspond to feature names.</span>
+<span class="sd">       The index in the gradient must be consistent with</span>
+<span class="sd">       names of the tips in the `tree`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    skbio.TreeNode</span>
+<span class="sd">       A tree whose tips are sorted along the gradient.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; tree = TreeNode.read([u&#39;((a,b)c, ((g,h)e,f)d)r;&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; x = pd.Series({&#39;f&#39;:3, &#39;g&#39;:1, &#39;h&#39;:2, &#39;a&#39;:4, &#39;b&#39;:5})</span>
+<span class="sd">    &gt;&gt;&gt; print(tree.ascii_art())</span>
+<span class="sd">                        /-a</span>
+<span class="sd">              /c-------|</span>
+<span class="sd">             |          \-b</span>
+<span class="sd">    -r-------|</span>
+<span class="sd">             |                    /-g</span>
+<span class="sd">             |          /e-------|</span>
+<span class="sd">              \d-------|          \-h</span>
+<span class="sd">                       |</span>
+<span class="sd">                        \-f</span>
+<span class="sd">    &gt;&gt;&gt; res = gradient_sort(tree, x)</span>
+<span class="sd">    &gt;&gt;&gt; print(res.ascii_art())</span>
+<span class="sd">                                  /-g</span>
+<span class="sd">                        /e-------|</span>
+<span class="sd">              /d-------|          \-h</span>
+<span class="sd">             |         |</span>
+<span class="sd">    -r-------|          \-f</span>
+<span class="sd">             |</span>
+<span class="sd">             |          /-a</span>
+<span class="sd">              \c-------|</span>
+<span class="sd">                        \-b</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sorted_tree</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`gradient` needs to be numeric, not </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                         <span class="n">gradient</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="c1"># Note that this operation is not optimal</span>
+    <span class="c1"># See https://github.com/biocore/gneiss/issues/58</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sorted_tree</span><span class="o">.</span><span class="n">postorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="p">[</span><span class="n">gradient</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">subset</span><span class="p">())]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ascending</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">n</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sorted_tree</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+gneiss.plot.diamondtree
+=======================
+
+.. currentmodule:: gneiss.plot
+
+.. autofunction:: diamondtree

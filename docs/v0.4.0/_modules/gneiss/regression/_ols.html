@@ -1,0 +1,570 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.regression._ols &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.regression._ols</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">gneiss.regression._model</span> <span class="k">import</span> <span class="n">RegressionModel</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="n">_type_cast_to_float</span>
+<span class="kn">from</span> <span class="nn">gneiss.balances</span> <span class="k">import</span> <span class="n">balance_basis</span>
+<span class="kn">from</span> <span class="nn">skbio.stats.composition</span> <span class="k">import</span> <span class="n">ilr_inv</span>
+
+<span class="kn">from</span> <span class="nn">statsmodels.iolib.summary2</span> <span class="k">import</span> <span class="n">Summary</span>
+<span class="kn">from</span> <span class="nn">statsmodels.sandbox.tools.cross_val</span> <span class="k">import</span> <span class="n">LeaveOneOut</span>
+<span class="kn">from</span> <span class="nn">patsy</span> <span class="k">import</span> <span class="n">dmatrix</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+
+
+<div class="viewcode-block" id="ols"><a class="viewcode-back" href="../../../generated/gneiss.regression.ols.html#gneiss.regression.ols">[docs]</a><span class="k">def</span> <span class="nf">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Ordinary Least Squares applied to balances.</span>
+
+<span class="sd">    An ordinary least squares (OLS) regression is a method for estimating</span>
+<span class="sd">    parameters in a linear regression model.  OLS is a common statistical</span>
+<span class="sd">    technique for fitting and testing the effects of covariates on a response.</span>
+<span class="sd">    This implementation is focused on performing a multivariate response</span>
+<span class="sd">    regression where the response is a matrix of balances (`table`) and the</span>
+<span class="sd">    covariates (`metadata`) are made up of external variables.</span>
+
+<span class="sd">    Global statistical tests indicating goodness of fit and contributions</span>
+<span class="sd">    from covariates can be accessed from a coefficient of determination (`r2`),</span>
+<span class="sd">    leave-one-variable-out cross validation (`lovo`), leave-one-out</span>
+<span class="sd">    cross validation (`loo`) and k-fold cross validation (`kfold`).</span>
+<span class="sd">    In addition residuals (`residuals`) can be accessed for diagnostic</span>
+<span class="sd">    purposes.</span>
+
+<span class="sd">    T-statistics (`tvalues`) and p-values (`pvalues`) can be obtained to</span>
+<span class="sd">    investigate to evaluate statistical significance for a covariate for a</span>
+<span class="sd">    given balance.  Predictions on the resulting model can be made using</span>
+<span class="sd">    (`predict`), and these results can be interpreted as either balances or</span>
+<span class="sd">    proportions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    formula : str</span>
+<span class="sd">        Formula representing the statistical equation to be evaluated.</span>
+<span class="sd">        These strings are similar to how equations are handled in R and</span>
+<span class="sd">        statsmodels. Note that the dependent variable in this string should</span>
+<span class="sd">        not be specified, since this method will be run on each of the</span>
+<span class="sd">        individual balances. See `patsy` for more details.</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contingency table where samples correspond to rows and</span>
+<span class="sd">        balances correspond to columns.</span>
+<span class="sd">    metadata: pd.DataFrame</span>
+<span class="sd">        Metadata table that contains information about the samples contained</span>
+<span class="sd">        in the `table` object.  Samples correspond to rows and covariates</span>
+<span class="sd">        correspond to columns.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    OLSModel</span>
+<span class="sd">        Container object that holds information about the overall fit.</span>
+<span class="sd">        This includes information about coefficients, pvalues, residuals</span>
+<span class="sd">        and coefficient of determination from the resulting regression.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; from skbio import TreeNode</span>
+<span class="sd">    &gt;&gt;&gt; from gneiss.regression import ols</span>
+
+<span class="sd">    Here, we will define a table of balances as follows</span>
+
+<span class="sd">    &gt;&gt;&gt; np.random.seed(0)</span>
+<span class="sd">    &gt;&gt;&gt; n = 100</span>
+<span class="sd">    &gt;&gt;&gt; g1 = np.linspace(0, 15, n)</span>
+<span class="sd">    &gt;&gt;&gt; y1 = g1 + 5</span>
+<span class="sd">    &gt;&gt;&gt; y2 = -g1 - 2</span>
+<span class="sd">    &gt;&gt;&gt; Y = pd.DataFrame({&#39;y1&#39;: y1, &#39;y2&#39;: y2})</span>
+
+<span class="sd">    Once we have the balances defined, we will add some errors</span>
+
+<span class="sd">    &gt;&gt;&gt; e = np.random.normal(loc=1, scale=0.1, size=(n, 2))</span>
+<span class="sd">    &gt;&gt;&gt; Y = Y + e</span>
+
+<span class="sd">    Now we will define the environment variables that we want to</span>
+<span class="sd">    regress against the balances.</span>
+
+<span class="sd">    &gt;&gt;&gt; X = pd.DataFrame({&#39;g1&#39;: g1})</span>
+
+<span class="sd">    Once these variables are defined, a regression can be performed.</span>
+<span class="sd">    These proportions will be converted to balances according to the</span>
+<span class="sd">    tree specified.  And the regression formula is specified to run</span>
+<span class="sd">    `temp` and `ph` against the proportions in a single model.</span>
+
+<span class="sd">    &gt;&gt;&gt; res = ols(&#39;g1&#39;, Y, X)</span>
+<span class="sd">    &gt;&gt;&gt; res.fit()</span>
+
+<span class="sd">    From the summary results of the `ols` function, we can view the</span>
+<span class="sd">    pvalues according to how well each individual balance fitted in the</span>
+<span class="sd">    regression model.</span>
+
+<span class="sd">    &gt;&gt;&gt; res.pvalues</span>
+<span class="sd">                          y1             y2</span>
+<span class="sd">    Intercept  8.826379e-148   7.842085e-71</span>
+<span class="sd">    g1         1.923597e-163  1.277152e-163</span>
+
+<span class="sd">    We can also view the balance coefficients estimated in the regression</span>
+<span class="sd">    model. These coefficients can also be viewed as proportions by passing</span>
+<span class="sd">    `project=True` as an argument in `res.coefficients()`.</span>
+
+<span class="sd">    &gt;&gt;&gt; res.coefficients()</span>
+<span class="sd">                     y1        y2</span>
+<span class="sd">    Intercept  6.016459 -0.983476</span>
+<span class="sd">    g1         0.997793 -1.000299</span>
+
+<span class="sd">    The overall model fit can be obtained as follows</span>
+
+<span class="sd">    &gt;&gt;&gt; res.r2</span>
+<span class="sd">    0.99945903186495066</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># one-time creation of exogenous data matrix allows for faster run-time</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">_type_cast_to_float</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">dmatrix</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;dataframe&#39;</span><span class="p">)</span>
+    <span class="n">ilr_table</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">OLSModel</span><span class="p">(</span><span class="n">Y</span><span class="o">=</span><span class="n">ilr_table</span><span class="p">,</span> <span class="n">Xs</span><span class="o">=</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OLSModel"><a class="viewcode-back" href="../../../generated/gneiss.regression.OLSModel.html#gneiss.regression.OLSModel">[docs]</a><span class="k">class</span> <span class="nc">OLSModel</span><span class="p">(</span><span class="n">RegressionModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Summary object for storing ordinary least squares results.</span>
+
+<span class="sd">    A `OLSModel` object stores information about the</span>
+<span class="sd">    individual balances used in the regression, the coefficients,</span>
+<span class="sd">    residuals. This object can be used to perform predictions.</span>
+<span class="sd">    In addition, summary statistics such as the coefficient</span>
+<span class="sd">    of determination for the overall fit can be calculated.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    submodels : list of statsmodels objects</span>
+<span class="sd">        List of statsmodels result objects.</span>
+<span class="sd">    balances : pd.DataFrame</span>
+<span class="sd">        A table of balances where samples are rows and</span>
+<span class="sd">        balances are columns.  These balances were calculated</span>
+<span class="sd">        using `tree`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="OLSModel.__init__"><a class="viewcode-back" href="../../../generated/gneiss.regression.OLSModel.html#gneiss.regression.OLSModel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Fit the ordinary least squares model.</span>
+
+<span class="sd">        Here, the coefficients of the model are estimated.</span>
+<span class="sd">        In addition, there are additional summary statistics</span>
+<span class="sd">        that are being calculated, such as residuals, t-statistics,</span>
+<span class="sd">        pvalues and coefficient of determination.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">           Keyword arguments used to tune the parameter estimation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_matrices</span>
+
+        <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span>
+        <span class="n">cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inv</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cross</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="n">pX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+        <span class="n">resid</span> <span class="o">=</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="n">pX</span><span class="p">)</span>
+        <span class="n">sst</span> <span class="o">=</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="n">Y</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">sse</span> <span class="o">=</span> <span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">sst_balance</span> <span class="o">=</span> <span class="p">((</span><span class="n">Y</span> <span class="o">-</span> <span class="n">Y</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">sse_balance</span> <span class="o">=</span> <span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">ssr_balance</span> <span class="o">=</span> <span class="p">(</span><span class="n">sst_balance</span> <span class="o">-</span> <span class="n">sse_balance</span><span class="p">)</span>
+
+        <span class="n">df_resid</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">sse</span> <span class="o">/</span> <span class="n">df_resid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mse</span> <span class="o">=</span> <span class="n">mse</span>
+        <span class="c1"># t tests</span>
+        <span class="c1"># TODO: Look into more robust ways to calculate cov</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span>
+        <span class="n">bse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">cov</span><span class="p">),</span> <span class="n">mse</span><span class="p">))</span>
+        <span class="n">tvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">bse</span><span class="p">)</span>
+        <span class="n">pvals</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">tvalues</span><span class="p">),</span> <span class="n">df_resid</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tvalues</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tvalues</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                     <span class="n">columns</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pvalues</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pvals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                     <span class="n">columns</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beta</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                  <span class="n">columns</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resid</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">resid</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                   <span class="n">columns</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fitted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ess</span> <span class="o">=</span> <span class="n">ssr_balance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_r2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">((</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">sst</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Performs a prediction based on model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame, optional</span>
+<span class="sd">            Input table of covariates, where columns are covariates, and</span>
+<span class="sd">            rows are samples.  If not specified, then the fitted values</span>
+<span class="sd">            calculated from training the model will be returned.</span>
+<span class="sd">        tree : skbio.TreeNode, optional</span>
+<span class="sd">            The tree used to perform the ilr transformation.  If this</span>
+<span class="sd">            is specified, then the prediction will be represented</span>
+<span class="sd">            as proportions. Otherwise, if this is not specified,</span>
+<span class="sd">            the prediction will be represented as balances. (default: None).</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Other arguments to be passed into the model prediction.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A table of predicted values where columns are coefficients,</span>
+<span class="sd">            and the rows are balances. If `tree` is specified, then</span>
+<span class="sd">            the rows are proportions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitted</span><span class="p">:</span>
+            <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;Model not fitted - coefficients not calculated.&#39;</span>
+                        <span class="s1">&#39;See `fit()`&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_matrices</span>
+
+        <span class="n">prediction</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_beta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">basis</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">balance_basis</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+            <span class="n">proj_prediction</span> <span class="o">=</span> <span class="n">ilr_inv</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">)</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">tips</span><span class="p">()]</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">proj_prediction</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span>
+                                <span class="n">index</span><span class="o">=</span><span class="n">prediction</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">prediction</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return pvalues from each of the coefficients in the fit. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pvalues</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return t-statistics from each of the coefficients in the fit. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tvalues</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">r2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Coefficient of determination for overall fit&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Mean Sum of squares Error&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mse</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ess</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Explained Sum of squares&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ess</span>
+
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kfolds</span><span class="p">,</span> <span class="n">lovo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Summarize the Ordinary Least Squares Regression Results.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kfold : pd.DataFrame</span>
+<span class="sd">            Results from kfold cross-validation</span>
+<span class="sd">        lovo : pd.DataFrame</span>
+<span class="sd">            Results from leave-one-variable-out cross-validation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str :</span>
+<span class="sd">            This holds the summary of regression coefficients and fit</span>
+<span class="sd">            information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beta</span>
+
+        <span class="c1"># number of observations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Start filling in summary information</span>
+        <span class="n">smry</span> <span class="o">=</span> <span class="n">Summary</span><span class="p">()</span>
+        <span class="c1"># Top results</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;No. Observations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nobs</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Model:&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;OLS&quot;</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Rsquared: &quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_r2</span>
+
+        <span class="c1"># TODO: Investigate how to properly resize the tables</span>
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_dict</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_title</span><span class="p">(</span><span class="s2">&quot;Simplicial Least Squares Results&quot;</span><span class="p">)</span>
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_df</span><span class="p">(</span><span class="n">lovo</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="n">smry</span><span class="o">.</span><span class="n">add_df</span><span class="p">(</span><span class="n">kfolds</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">smry</span>
+
+    <span class="k">def</span> <span class="nf">kfold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_folds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; K-fold cross-validation.</span>
+
+<span class="sd">        Performs k-fold cross-validation by spliting the data</span>
+<span class="sd">        into k partitions, building a model on k-1 partitions and</span>
+<span class="sd">        evaluating the predictions on the remaining partition.</span>
+<span class="sd">        This process is performed k times.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_folds: int, optional</span>
+<span class="sd">            The number of partitions used for the cross validation.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">           Keyword arguments used to tune the parameter estimation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">           model_mse : np.array, float</span>
+<span class="sd">               The within model mean sum of squares error for each iteration of</span>
+<span class="sd">               the cross validation.</span>
+<span class="sd">           Rsquared : np.array, float</span>
+<span class="sd">               The Rsquared of the model fitted on training data.</span>
+<span class="sd">           pred_mse : np.array, float</span>
+<span class="sd">               Prediction mean sum of squares error for each iteration of</span>
+<span class="sd">               the cross validation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># number of observations (i.e. samples)</span>
+        <span class="n">nobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">nobs</span> <span class="o">//</span> <span class="n">num_folds</span>
+        <span class="n">folds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="p">((</span><span class="n">i</span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="n">nobs</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_folds</span><span class="p">)]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fold_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_folds</span><span class="p">)],</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;model_mse&#39;</span><span class="p">,</span> <span class="s1">&#39;Rsquared&#39;</span><span class="p">,</span> <span class="s1">&#39;pred_mse&#39;</span><span class="p">],</span>
+                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_folds</span><span class="p">):</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">folds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">folds</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">folds</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span>
+
+            <span class="n">res_i</span> <span class="o">=</span> <span class="n">OLSModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">],</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">])</span>
+            <span class="n">res_i</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># model error</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">])</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="n">model_resid</span> <span class="o">=</span> <span class="p">((</span><span class="n">p</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">model_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model_resid</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;fold_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;model_mse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_mse</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;fold_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;Rsquared&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">r2</span>
+
+            <span class="c1"># prediction error</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test</span><span class="p">])</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="n">pred_resid</span> <span class="o">=</span> <span class="p">((</span><span class="n">p</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">pred_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pred_resid</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;fold_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;pred_mse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_mse</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span> <span class="nf">loo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Leave one out cross-validation.</span>
+
+<span class="sd">        Calculates summary statistics for each iteraction of</span>
+<span class="sd">        leave one out cross-validation, specially `mse` on entire model</span>
+<span class="sd">        and `pred_err` to measure prediction error.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">           Keyword arguments used to tune the parameter estimation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">           model_mse : np.array, float</span>
+<span class="sd">               Mean sum of squares error for each iteration of</span>
+<span class="sd">               the cross validation.</span>
+<span class="sd">           pred_mse : np.array, float</span>
+<span class="sd">               Prediction mean sum of squares error for each iteration of</span>
+<span class="sd">               the cross validation.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        fit</span>
+<span class="sd">        statsmodels.regression.linear_model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># number of observations (i.e. samples)</span>
+        <span class="n">nobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cv_iter</span> <span class="o">=</span> <span class="n">LeaveOneOut</span><span class="p">(</span><span class="n">nobs</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;model_mse&#39;</span><span class="p">,</span> <span class="s1">&#39;pred_mse&#39;</span><span class="p">],</span>
+                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cv_iter</span><span class="p">):</span>
+            <span class="n">sample_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">res_i</span> <span class="o">=</span> <span class="n">OLSModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">],</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">])</span>
+            <span class="n">res_i</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># model error</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">predicted</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">model_resid</span> <span class="o">=</span> <span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">model_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model_resid</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sample_id</span><span class="p">,</span> <span class="s1">&#39;model_mse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_mse</span>
+
+            <span class="c1"># prediction error</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">predicted</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">pred_resid</span> <span class="o">=</span> <span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">pred_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pred_resid</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sample_id</span><span class="p">,</span> <span class="s1">&#39;pred_mse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_mse</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span> <span class="nf">lovo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Leave one variable out cross-validation.</span>
+
+<span class="sd">        Calculates summary statistics for each iteraction of leave one variable</span>
+<span class="sd">        out cross-validation, specially `r2` and `mse` on entire model.</span>
+<span class="sd">        This technique is particularly useful for feature selection.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">           Keyword arguments used to tune the parameter estimation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">           mse : np.array, float</span>
+<span class="sd">               Mean sum of squares error for each iteration of</span>
+<span class="sd">               the cross validation.</span>
+<span class="sd">           Rsquared : np.array, float</span>
+<span class="sd">               Coefficient of determination for each variable left out.</span>
+<span class="sd">           R2diff : np.array, float</span>
+<span class="sd">               Decrease in Rsquared for each variable left out.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cv_iter</span> <span class="o">=</span> <span class="n">LeaveOneOut</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                               <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="s1">&#39;Rsquared&#39;</span><span class="p">,</span> <span class="s1">&#39;R2diff&#39;</span><span class="p">],</span>
+                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">inidx</span><span class="p">,</span> <span class="n">outidx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cv_iter</span><span class="p">):</span>
+
+            <span class="n">feature_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">res_i</span> <span class="o">=</span> <span class="n">OLSModel</span><span class="p">(</span><span class="n">Y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="p">,</span>
+                             <span class="n">Xs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">inidx</span><span class="p">])</span>
+            <span class="n">res_i</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">predict</span><span class="p">()</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_matrix</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">predicted</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="n">model_resid</span> <span class="o">=</span> <span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">model_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model_resid</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">feature_id</span><span class="p">,</span> <span class="s1">&#39;mse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_mse</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">feature_id</span><span class="p">,</span> <span class="s1">&#39;Rsquared&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_i</span><span class="o">.</span><span class="n">r2</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">feature_id</span><span class="p">,</span> <span class="s1">&#39;R2diff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r2</span> <span class="o">-</span> <span class="n">res_i</span><span class="o">.</span><span class="n">r2</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,137 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot.balance_barplots &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sort functions (gneiss.sort)" href="../sort.html" />
+    <link rel="prev" title="gneiss.plot.balance_boxplot" href="gneiss.plot.balance_boxplot.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-plot-balance-barplots">
+<h1>gneiss.plot.balance_barplots<a class="headerlink" href="#gneiss-plot-balance-barplots" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.plot.balance_barplots">
+<code class="descclassname">gneiss.plot.</code><code class="descname">balance_barplots</code><span class="sig-paren">(</span><em>tree</em>, <em>balance_name</em>, <em>header</em>, <em>feature_metadata</em>, <em>ndim=5</em>, <em>num_color=’#0000FF’</em>, <em>denom_color=’#0000FF’</em>, <em>xlabel=”</em>, <em>ylabel=”</em>, <em>axes=(None</em>, <em>None)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/plot/_decompose.html#balance_barplots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.plot.balance_barplots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots barplots of counts of features found in the balance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tree</strong> (<em>skbio.TreeNode</em>) – Reference tree for balances.</li>
+<li><strong>balance_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of balance to plot.</li>
+<li><strong>header</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Header name for the feature metadata column to summarize</li>
+<li><strong>feature_metadata</strong> (<em>pd.DataFrame</em>) – Contains information about the features.</li>
+<li><strong>ndim</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of bars to display at a given time (default=5)</li>
+<li><strong>num_color</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Hex for background colors of values above zero.</li>
+<li><strong>denom_color</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Hex for background colors of values below zero.</li>
+<li><strong>xlabel</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – x-axis label.</li>
+<li><strong>ylabel</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – y-axis label.</li>
+<li><strong>axes</strong> (<em>tuple of matplotlib axes objects</em>) – Specifies where the barplots should be rendered.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax_num</strong> (<em>matplotlib axes object</em>) – Barplot of the features in the numerator of the balance.</li>
+<li><strong>ax_denom</strong> (<em>matplotlib axes object</em>) – Barplot of the features in the denominator of the balance.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../plot.html">Plotting functions (<code class="docutils literal"><span class="pre">gneiss.plot</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.plot.balance_boxplot.html" title="previous chapter">gneiss.plot.balance_boxplot</a></li>
+      <li>Next: <a href="../sort.html" title="next chapter">Sort functions (<code class="docutils literal"><span class="pre">gneiss.sort</span></code>)</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.plot.balance_barplots.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.plot.balance_barplots.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

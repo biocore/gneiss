@@ -1,0 +1,6 @@
+gneiss.sort.gradient_sort
+=========================
+
+.. currentmodule:: gneiss.sort
+
+.. autofunction:: gradient_sort

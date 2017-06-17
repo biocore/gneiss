@@ -1,0 +1,218 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot._radial &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.plot._radial</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">gneiss.plot._dendrogram</span> <span class="k">import</span> <span class="n">UnrootedDendrogram</span>
+<span class="kn">from</span> <span class="nn">bokeh.models.glyphs</span> <span class="k">import</span> <span class="n">Circle</span><span class="p">,</span> <span class="n">Segment</span>
+<span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="k">import</span> <span class="n">ColumnDataSource</span><span class="p">,</span> <span class="n">DataRange1d</span><span class="p">,</span> <span class="n">Plot</span>
+<span class="kn">from</span> <span class="nn">bokeh.models</span> <span class="k">import</span> <span class="p">(</span><span class="n">HoverTool</span><span class="p">,</span> <span class="n">BoxZoomTool</span><span class="p">,</span> <span class="n">ResetTool</span><span class="p">,</span>
+                          <span class="n">WheelZoomTool</span><span class="p">,</span> <span class="n">SaveTool</span><span class="p">,</span> <span class="n">PanTool</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="radialplot"><a class="viewcode-back" href="../../../generated/gneiss.plot.radialplot.html#gneiss.plot.radialplot">[docs]</a><span class="k">def</span> <span class="nf">radialplot</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="s1">&#39;node_color&#39;</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="s1">&#39;node_size&#39;</span><span class="p">,</span>
+               <span class="n">node_alpha</span><span class="o">=</span><span class="s1">&#39;node_alpha&#39;</span><span class="p">,</span> <span class="n">edge_color</span><span class="o">=</span><span class="s1">&#39;edge_color&#39;</span><span class="p">,</span>
+               <span class="n">edge_alpha</span><span class="o">=</span><span class="s1">&#39;edge_alpha&#39;</span><span class="p">,</span> <span class="n">edge_width</span><span class="o">=</span><span class="s1">&#39;edge_width&#39;</span><span class="p">,</span>
+               <span class="n">hover_var</span><span class="o">=</span><span class="s1">&#39;hover_var&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">500</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots unrooted radial tree.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : instance of skbio.TreeNode</span>
+<span class="sd">       Input tree for plotting.</span>
+<span class="sd">    node_color : str</span>
+<span class="sd">       Name of variable in `tree` to color nodes.</span>
+<span class="sd">    node_size : str</span>
+<span class="sd">       Name of variable in `tree` that specifies the radius of nodes.</span>
+<span class="sd">    node_alpha : str</span>
+<span class="sd">       Name of variable in `tree` to specify node transparency.</span>
+<span class="sd">    edge_color : str</span>
+<span class="sd">       Name of variable in `tree` to color edges.</span>
+<span class="sd">    edge_alpha : str</span>
+<span class="sd">       Name of variable in `tree` to specify edge transparency.</span>
+<span class="sd">    edge_width : str</span>
+<span class="sd">       Name of variable in `tree` to specify edge width.</span>
+<span class="sd">    hover_var : str</span>
+<span class="sd">       Name of variable in `tree` to display in the hover menu.</span>
+<span class="sd">    figsize : tuple, int</span>
+<span class="sd">       Size of resulting figure.  default: (500, 500)</span>
+<span class="sd">    **kwargs: dict</span>
+<span class="sd">       Plotting options to pass into bokeh.models.Plot</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bokeh.models.Plot</span>
+<span class="sd">       Interactive plotting instance.</span>
+
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This assumes that the tree is strictly bifurcating.</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    bifurcate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Add in example doc string</span>
+
+    <span class="c1"># This entire function was motivated by</span>
+    <span class="c1"># http://chuckpr.github.io/blog/trees2.html</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">UnrootedDendrogram</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">coords</span><span class="p">(</span><span class="n">figsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">figsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># fill in all of the node attributes</span>
+    <span class="k">def</span> <span class="nf">_retreive</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">levelorder</span><span class="p">()})</span>
+
+    <span class="c1"># default node color to light grey</span>
+    <span class="n">nodes</span><span class="p">[</span><span class="n">node_color</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">node_color</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;#D3D3D3&#39;</span><span class="p">)</span>
+    <span class="n">nodes</span><span class="p">[</span><span class="n">node_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">node_size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">nodes</span><span class="p">[</span><span class="n">node_alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">node_alpha</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">nodes</span><span class="p">[</span><span class="n">hover_var</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">hover_var</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[[</span><span class="s1">&#39;child0&#39;</span><span class="p">,</span> <span class="s1">&#39;child1&#39;</span><span class="p">]]</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;child0&#39;</span><span class="p">,</span> <span class="s1">&#39;child1&#39;</span><span class="p">])</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;src_node&#39;</span><span class="p">:</span> <span class="n">edges</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+                          <span class="s1">&#39;dest_node&#39;</span><span class="p">:</span> <span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
+    <span class="n">edges</span><span class="p">[</span><span class="s1">&#39;x0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">src_node</span><span class="p">]</span>
+    <span class="n">edges</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">dest_node</span><span class="p">]</span>
+    <span class="n">edges</span><span class="p">[</span><span class="s1">&#39;y0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">src_node</span><span class="p">]</span>
+    <span class="n">edges</span><span class="p">[</span><span class="s1">&#39;y1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">dest_node</span><span class="p">]</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">levelorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+    <span class="n">attrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ns</span><span class="p">)</span>
+
+    <span class="c1"># default edge color to black</span>
+    <span class="n">attrs</span><span class="p">[</span><span class="n">edge_color</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">edge_color</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;#000000&#39;</span><span class="p">)</span>
+    <span class="n">attrs</span><span class="p">[</span><span class="n">edge_width</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">edge_width</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">attrs</span><span class="p">[</span><span class="n">edge_alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">_retreive</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">edge_alpha</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;dest_node&#39;</span><span class="p">,</span>
+                     <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;src_node&#39;</span><span class="p">])</span>
+
+    <span class="n">node_glyph</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span>
+                        <span class="n">radius</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+                        <span class="n">fill_color</span><span class="o">=</span><span class="n">node_color</span><span class="p">,</span>
+                        <span class="n">fill_alpha</span><span class="o">=</span><span class="n">node_alpha</span><span class="p">)</span>
+
+    <span class="n">edge_glyph</span> <span class="o">=</span> <span class="n">Segment</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="s2">&quot;x0&quot;</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="s2">&quot;y0&quot;</span><span class="p">,</span>
+                         <span class="n">x1</span><span class="o">=</span><span class="s2">&quot;x1&quot;</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="s2">&quot;y1&quot;</span><span class="p">,</span>
+                         <span class="n">line_color</span><span class="o">=</span><span class="n">edge_color</span><span class="p">,</span>
+                         <span class="n">line_alpha</span><span class="o">=</span><span class="n">edge_alpha</span><span class="p">,</span>
+                         <span class="n">line_width</span><span class="o">=</span><span class="n">edge_width</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">df2ds</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ColumnDataSource</span><span class="p">(</span><span class="n">ColumnDataSource</span><span class="o">.</span><span class="n">from_df</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+
+    <span class="n">ydr</span> <span class="o">=</span> <span class="n">DataRange1d</span><span class="p">(</span><span class="n">range_padding</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">xdr</span> <span class="o">=</span> <span class="n">DataRange1d</span><span class="p">(</span><span class="n">range_padding</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+    <span class="n">plot</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span><span class="n">x_range</span><span class="o">=</span><span class="n">xdr</span><span class="p">,</span> <span class="n">y_range</span><span class="o">=</span><span class="n">ydr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">plot</span><span class="o">.</span><span class="n">add_glyph</span><span class="p">(</span><span class="n">df2ds</span><span class="p">(</span><span class="n">edges</span><span class="p">),</span> <span class="n">edge_glyph</span><span class="p">)</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">add_glyph</span><span class="p">(</span><span class="n">df2ds</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="n">node_glyph</span><span class="p">)</span>
+
+    <span class="n">tooltip</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Feature ID&quot;</span><span class="p">,</span> <span class="s2">&quot;@index&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">hover_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tooltip</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">hover_var</span><span class="p">,</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">hover_var</span><span class="p">)]</span>
+
+    <span class="n">hover</span> <span class="o">=</span> <span class="n">HoverTool</span><span class="p">(</span><span class="n">renderers</span><span class="o">=</span><span class="p">[</span><span class="n">ns</span><span class="p">],</span> <span class="n">tooltips</span><span class="o">=</span><span class="n">tooltip</span><span class="p">)</span>
+    <span class="n">plot</span><span class="o">.</span><span class="n">add_tools</span><span class="p">(</span><span class="n">hover</span><span class="p">,</span> <span class="n">BoxZoomTool</span><span class="p">(),</span> <span class="n">ResetTool</span><span class="p">(),</span>
+                   <span class="n">WheelZoomTool</span><span class="p">(),</span> <span class="n">SaveTool</span><span class="p">(),</span> <span class="n">PanTool</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">plot</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+gneiss\.util\.rename\_internal\_nodes
+=====================================
+
+.. currentmodule:: gneiss.util
+
+.. autofunction:: rename_internal_nodes

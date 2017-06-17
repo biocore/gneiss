@@ -1,0 +1,6 @@
+gneiss\.cluster\.correlation\_linkage
+=====================================
+
+.. currentmodule:: gneiss.cluster
+
+.. autofunction:: correlation_linkage

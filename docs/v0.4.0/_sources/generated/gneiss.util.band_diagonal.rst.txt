@@ -1,0 +1,6 @@
+gneiss\.util\.band\_diagonal
+============================
+
+.. currentmodule:: gneiss.util
+
+.. autofunction:: band_diagonal

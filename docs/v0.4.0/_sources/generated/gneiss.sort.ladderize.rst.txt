@@ -1,0 +1,6 @@
+gneiss\.sort\.ladderize
+=======================
+
+.. currentmodule:: gneiss.sort
+
+.. autofunction:: ladderize

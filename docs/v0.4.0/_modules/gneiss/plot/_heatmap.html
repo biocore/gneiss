@@ -1,0 +1,377 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot._heatmap &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.plot._heatmap</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">gneiss.plot._dendrogram</span> <span class="k">import</span> <span class="n">SquareDendrogram</span>
+<span class="kn">from</span> <span class="nn">gneiss.util</span> <span class="k">import</span> <span class="n">match_tips</span><span class="p">,</span> <span class="n">NUMERATOR</span><span class="p">,</span> <span class="n">DENOMINATOR</span>
+
+
+<div class="viewcode-block" id="heatmap"><a class="viewcode-back" href="../../../generated/gneiss.plot.heatmap.html#gneiss.plot.heatmap">[docs]</a><span class="k">def</span> <span class="nf">heatmap</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mdvar</span><span class="p">,</span> <span class="n">highlights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">grid_col</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">grid_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">highlight_width</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+            <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot; Creates heatmap plotting object</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contain sample/feature labels along with table of values.</span>
+<span class="sd">        Rows correspond to samples, and columns correspond to features.</span>
+<span class="sd">    tree: skbio.TreeNode</span>
+<span class="sd">        Tree representing the feature hierarchy.</span>
+<span class="sd">    highlights: pd.DataFrame or dict of tuple of str</span>
+<span class="sd">        List of internal nodes in the tree to highlight.</span>
+<span class="sd">        Each internal node must contain two colors, one for the left</span>
+<span class="sd">        subtree and the other for the right subtree highlight.</span>
+<span class="sd">        The first color will always correspond to the left subtree,</span>
+<span class="sd">        and the second color will always correspond to the right subtree.</span>
+<span class="sd">    cmap : str</span>
+<span class="sd">        Specifies the matplotlib colormap for the heatmap (default=&#39;viridis&#39;)</span>
+<span class="sd">    linewidth : int</span>
+<span class="sd">        Width of dendrogram lines.</span>
+<span class="sd">    mdvar: pd.Series</span>
+<span class="sd">        Metadata values for samples.  The index must correspond to the</span>
+<span class="sd">        index of `table`.</span>
+<span class="sd">    highlight_width : int</span>
+<span class="sd">        Width of highlights. (default=0.02)</span>
+<span class="sd">    grid_col: str</span>
+<span class="sd">        Color of vertical lines for highlighting sample metadata.</span>
+<span class="sd">        (default=&#39;w&#39;)</span>
+<span class="sd">    grid_width: int</span>
+<span class="sd">        Width of vertical lines for highlighting sample metadata.</span>
+<span class="sd">        (default=2)</span>
+<span class="sd">    figsize: tuple of int</span>
+<span class="sd">        Species (width, height) for figure. (default=(5, 5))</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matplotlib.pyplot.figure</span>
+<span class="sd">        Matplotlib figure object</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The highlights parameter assumes that the tree is bifurcating.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># match the tips</span>
+    <span class="n">dendrogram_width</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="n">table</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">match_tips</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">T</span>
+    <span class="c1"># get edges from tree</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">SquareDendrogram</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">_tree_coordinates</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">coords</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">dendrogram_width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[[</span><span class="s1">&#39;child0&#39;</span><span class="p">,</span> <span class="s1">&#39;child1&#39;</span><span class="p">]]</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;child0&#39;</span><span class="p">,</span> <span class="s1">&#39;child1&#39;</span><span class="p">])</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;src_node&#39;</span><span class="p">:</span> <span class="n">edges</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+                          <span class="s1">&#39;dest_node&#39;</span><span class="p">:</span> <span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
+
+    <span class="n">edge_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;src_node&#39;</span><span class="p">]</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;dest_node&#39;</span><span class="p">]</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">src</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">src</span><span class="p">]</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dest</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dest</span><span class="p">]</span><span class="o">.</span><span class="n">y</span>
+
+        <span class="n">edge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">sx</span><span class="p">,</span> <span class="s1">&#39;y0&#39;</span><span class="p">:</span> <span class="n">sy</span><span class="p">,</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="n">sx</span><span class="p">,</span> <span class="s1">&#39;y1&#39;</span><span class="p">:</span> <span class="n">dy</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">edge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">sx</span><span class="p">,</span> <span class="s1">&#39;y0&#39;</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span> <span class="s1">&#39;y1&#39;</span><span class="p">:</span> <span class="n">dy</span><span class="p">}</span>
+        <span class="p">)</span>
+    <span class="n">edge_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span>
+
+    <span class="c1"># now plot the stuff</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.facecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span>
+    <span class="n">xwidth</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="n">top_buffer</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+    <span class="c1"># heatmap axes</span>
+    <span class="p">[</span><span class="n">axm_x</span><span class="p">,</span> <span class="n">axm_y</span><span class="p">,</span> <span class="n">axm_w</span><span class="p">,</span> <span class="n">axm_h</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">top_buffer</span><span class="p">,</span> <span class="n">xwidth</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+
+    <span class="c1"># create a split for the highlights</span>
+    <span class="k">if</span> <span class="n">highlights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">highlights</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">hwidth</span> <span class="o">=</span> <span class="n">highlight_width</span>
+    <span class="p">[</span><span class="n">axs_x</span><span class="p">,</span> <span class="n">axs_y</span><span class="p">,</span> <span class="n">axs_w</span><span class="p">,</span> <span class="n">axs_h</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">xwidth</span><span class="p">,</span> <span class="n">top_buffer</span><span class="p">,</span> <span class="n">hwidth</span> <span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+
+    <span class="c1"># dendrogram axes on the right side</span>
+    <span class="n">hstart</span> <span class="o">=</span> <span class="n">xwidth</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">hwidth</span><span class="p">)</span>  <span class="c1"># beginning of heatmap</span>
+    <span class="p">[</span><span class="n">ax1_x</span><span class="p">,</span> <span class="n">ax1_y</span><span class="p">,</span> <span class="n">ax1_w</span><span class="p">,</span> <span class="n">ax1_h</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hstart</span><span class="p">,</span> <span class="n">top_buffer</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">hstart</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+
+    <span class="c1"># plot heatmap</span>
+    <span class="n">ax_heatmap</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="n">ax1_x</span><span class="p">,</span> <span class="n">ax1_y</span><span class="p">,</span> <span class="n">ax1_w</span><span class="p">,</span> <span class="n">ax1_h</span><span class="p">],</span> <span class="n">frame_on</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_plot_heatmap</span><span class="p">(</span><span class="n">ax_heatmap</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span><span class="p">,</span> <span class="n">grid_col</span><span class="p">,</span> <span class="n">grid_width</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
+
+    <span class="c1"># plot dendrogram</span>
+    <span class="n">ax_dendrogram</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="n">axm_x</span><span class="p">,</span> <span class="n">axm_y</span><span class="p">,</span> <span class="n">axm_w</span><span class="p">,</span> <span class="n">axm_h</span><span class="p">],</span>
+                                 <span class="n">frame_on</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax_heatmap</span><span class="p">)</span>
+    <span class="n">_plot_dendrogram</span><span class="p">(</span><span class="n">ax_dendrogram</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">edge_list</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">)</span>
+
+    <span class="c1"># plot highlights for dendrogram</span>
+    <span class="k">if</span> <span class="n">highlights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax_highlights</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="n">axs_x</span><span class="p">,</span> <span class="n">axs_y</span><span class="p">,</span> <span class="n">axs_w</span><span class="p">,</span> <span class="n">axs_h</span><span class="p">],</span>
+                                     <span class="n">frame_on</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax_heatmap</span><span class="p">)</span>
+        <span class="n">_plot_highlights_dendrogram</span><span class="p">(</span><span class="n">ax_highlights</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">highlights</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<span class="c1"># TODO: Refactor and place in utils.  This can be also</span>
+<span class="c1"># be used for the balance_basis calculations</span>
+<span class="k">def</span> <span class="nf">_tree_coordinates</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Builds a matrix to link tree positions to matrix&quot;&quot;&quot;</span>
+    <span class="c1"># first traverse the tree to count the children</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">postorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_n_tips</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_n_tips</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_n_tips</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">levelorder</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">NUMERATOR</span><span class="p">]:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_k</span> <span class="o">+</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_r</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_t</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_k</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_t</span> <span class="o">+</span> <span class="n">n</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_l</span>
+
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="n">n</span><span class="o">.</span><span class="n">_l</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">NUMERATOR</span><span class="p">]</span><span class="o">.</span><span class="n">_n_tips</span>
+        <span class="n">n</span><span class="o">.</span><span class="n">_r</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="n">DENOMINATOR</span><span class="p">]</span><span class="o">.</span><span class="n">_n_tips</span>
+    <span class="k">return</span> <span class="n">t</span>
+
+
+<span class="k">def</span> <span class="nf">_plot_highlights_dendrogram</span><span class="p">(</span><span class="n">ax_highlights</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">highlights</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots highlights for subtrees in the dendrograms.</span>
+
+<span class="sd">    Note that this assumes that the dendrograms are strictly bifurcating</span>
+<span class="sd">    and the highlights only specify the children for a given subtree.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+    <span class="n">num_h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">highlights</span><span class="p">)</span>
+    <span class="n">hcoords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">highlights</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">_k</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">_l</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">_r</span>
+
+        <span class="n">ax_highlights</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span>
+            <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">num_h</span><span class="p">,</span> <span class="n">k</span><span class="o">-</span><span class="n">offset</span><span class="p">),</span>  <span class="c1"># x, y</span>
+                <span class="mi">1</span><span class="o">/</span><span class="n">num_h</span><span class="p">,</span>  <span class="c1"># width</span>
+                <span class="n">r</span><span class="p">,</span>  <span class="c1"># height</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">highlights</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="p">))</span>
+
+        <span class="n">ax_highlights</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span>
+            <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">num_h</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="n">r</span><span class="o">-</span><span class="n">offset</span><span class="p">),</span>  <span class="c1"># x, y</span>
+                <span class="mi">1</span><span class="o">/</span><span class="n">num_h</span><span class="p">,</span>  <span class="c1"># width</span>
+                <span class="n">l</span><span class="p">,</span>  <span class="c1"># height</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">highlights</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="p">))</span>
+        <span class="n">hcoords</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="n">offset</span><span class="p">)</span><span class="o">/</span><span class="n">num_h</span><span class="p">)</span>
+    <span class="n">ax_highlights</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">offset</span><span class="p">])</span>
+    <span class="n">ax_highlights</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">ax_highlights</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">hcoords</span><span class="p">)</span>
+    <span class="n">ax_highlights</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">highlights</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_plot_dendrogram</span><span class="p">(</span><span class="n">ax_dendrogram</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots the actual dendrogram.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax_dendrogram : matplotlib axes object</span>
+<span class="sd">        Contains the matplotlib axes in which the dendrogram will be plotted.</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contain sample/feature labels along with table of values.</span>
+<span class="sd">        Rows correspond to samples, and columns correspond to features.</span>
+<span class="sd">    edges : pd.DataFrame</span>
+<span class="sd">        (x,y) coordinates for edges in the heatmap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">ax_dendrogram</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">row</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">x1</span><span class="p">],</span>
+                           <span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">y0</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">y1</span><span class="o">-</span><span class="n">offset</span><span class="p">],</span> <span class="s1">&#39;-k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">linewidth</span><span class="p">)</span>
+    <span class="n">ax_dendrogram</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="o">-</span><span class="n">offset</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">offset</span><span class="p">])</span>
+    <span class="n">ax_dendrogram</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">ax_dendrogram</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+    <span class="n">ax_dendrogram</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_sort_table</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sorts metadata category and aligns with table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contain sample/feature labels along with table of values.</span>
+<span class="sd">        Rows correspond to samples, and columns correspond to features.</span>
+<span class="sd">    mdvar : pd.Series</span>
+<span class="sd">        Metadata values for samples.  The index must correspond to the</span>
+<span class="sd">        index of `table`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Aligned feature table.</span>
+<span class="sd">    pd.Series</span>
+<span class="sd">        Aligned metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mdvar</span> <span class="o">=</span> <span class="n">mdvar</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">mdvar</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span>
+
+
+<span class="k">def</span> <span class="nf">_plot_heatmap</span><span class="p">(</span><span class="n">ax_heatmap</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span><span class="p">,</span> <span class="n">grid_col</span><span class="p">,</span> <span class="n">grid_width</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sorts metadata category and aligns with table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax_heatmap : matplotlib axes object</span>
+<span class="sd">        Contains the matplotlib axes in which the heatmap will be plotted.</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contain sample/feature labels along with table of values.</span>
+<span class="sd">        Rows correspond to samples, and columns correspond to features.</span>
+<span class="sd">    mdvar : pd.Series</span>
+<span class="sd">        Metadata values for samples.  The index must correspond to the</span>
+<span class="sd">        index of `table`.</span>
+<span class="sd">    grid_col: str</span>
+<span class="sd">        Color of vertical lines for highlighting sample metadata.</span>
+<span class="sd">        (default=&#39;w&#39;)</span>
+<span class="sd">    grid_width: int</span>
+<span class="sd">        Width of vertical lines for highlighting sample metadata.</span>
+<span class="sd">        (default=2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO add explicit test for this, since matplotlib orientation</span>
+    <span class="c1"># is from top to down (i.e. is backwards)</span>
+    <span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span> <span class="o">=</span> <span class="n">_sort_table</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">mdvar</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
+                      <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">vcounts</span> <span class="o">=</span> <span class="n">mdvar</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+
+    <span class="c1"># ensure that the ordering is the same</span>
+    <span class="n">vcounts</span> <span class="o">=</span> <span class="n">vcounts</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+    <span class="n">ticks</span> <span class="o">=</span> <span class="n">vcounts</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">midpoints</span> <span class="o">=</span> <span class="n">ticks</span> <span class="o">-</span> <span class="p">(</span><span class="n">ticks</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ticks</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="o">.</span><span class="n">values</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([],</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">grid_col</span><span class="p">,</span>
+                          <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">grid_width</span><span class="p">)</span>
+
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">midpoints</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">vcounts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax_heatmap</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">mdvar</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

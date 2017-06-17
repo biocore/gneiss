@@ -1,0 +1,175 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.cluster.gradient_linkage &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.cluster.rank_linkage" href="gneiss.cluster.rank_linkage.html" />
+    <link rel="prev" title="gneiss.cluster.correlation_linkage" href="gneiss.cluster.correlation_linkage.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-cluster-gradient-linkage">
+<h1>gneiss.cluster.gradient_linkage<a class="headerlink" href="#gneiss-cluster-gradient-linkage" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.cluster.gradient_linkage">
+<code class="descclassname">gneiss.cluster.</code><code class="descname">gradient_linkage</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>method=’average’</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/cluster/_pba.html#gradient_linkage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.cluster.gradient_linkage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hierarchical Clustering on known gradient.</p>
+<p>The hierarchy is built based on the values of the samples
+located along a gradient.  Given a feature <span class="math">\(x\)</span>, the mean gradient
+values that <span class="math">\(x\)</span> was observed in is calculated by</p>
+<div class="math">
+\[f(g , x) =
+ \sum\limits_{i=1}^N g_i \frac{x_i}{\sum\limits_{j=1}^N x_j}\]</div>
+<p>Where <span class="math">\(N\)</span> is the number of samples, <span class="math">\(x_i\)</span> is the proportion of
+feature <span class="math">\(x\)</span> in sample <span class="math">\(i\)</span>, <span class="math">\(g_i\)</span> is the gradient value
+at sample <cite>i</cite>.</p>
+<p>The distance between two features <span class="math">\(x\)</span> and <span class="math">\(y\)</span> can be defined as</p>
+<div class="math">
+\[d(x, y) = (f(g, x) - f(g, y))^2\]</div>
+<p>If <span class="math">\(d(x, y)\)</span> is very small, then <span class="math">\(x\)</span> and <span class="math">\(y\)</span>
+are expected to live in very similar positions across the gradient.
+A hierarchical clustering is then performed using <span class="math">\(d(x, y)\)</span> as
+the distance metric.</p>
+<p>This can be useful for constructing principal balances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>pd.DataFrame</em>) – Contingency table where the samples are rows and the features
+are columns.</li>
+<li><strong>y</strong> (<em>pd.Series</em>) – Continuous vector representing some ordering of the samples in X.</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Clustering method.  (default=’average’)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tree for constructing principal balances.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">skbio.TreeNode</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-func docutils literal"><span class="pre">mean_niche_estimator()</span></code></p>
+</div>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gneiss.cluster</span> <span class="k">import</span> <span class="n">gradient_linkage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+<span class="gp">... </span>                     <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="s1">&#39;s4&#39;</span><span class="p">,</span> <span class="s1">&#39;s5&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;o1&#39;</span><span class="p">,</span> <span class="s1">&#39;o2&#39;</span><span class="p">,</span> <span class="s1">&#39;o3&#39;</span><span class="p">,</span> <span class="s1">&#39;o4&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gradient</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="s1">&#39;s4&#39;</span><span class="p">,</span> <span class="s1">&#39;s5&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">gradient_linkage</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">gradient</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">ascii_art</span><span class="p">())</span>
+<span class="go">                    /-o1</span>
+<span class="go">          /y1------|</span>
+<span class="go">         |          \-o2</span>
+<span class="go">-y0------|</span>
+<span class="go">         |          /-o3</span>
+<span class="go">          \y2------|</span>
+<span class="go">                    \-o4</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../cluster.html">Clustering functions (<code class="docutils literal"><span class="pre">gneiss.cluster</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.cluster.correlation_linkage.html" title="previous chapter">gneiss.cluster.correlation_linkage</a></li>
+      <li>Next: <a href="gneiss.cluster.rank_linkage.html" title="next chapter">gneiss.cluster.rank_linkage</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.cluster.gradient_linkage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.cluster.gradient_linkage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

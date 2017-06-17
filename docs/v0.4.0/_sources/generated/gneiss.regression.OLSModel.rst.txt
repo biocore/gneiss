@@ -1,0 +1,16 @@
+gneiss\.regression\.OLSModel
+============================
+
+.. currentmodule:: gneiss.regression
+
+.. autoclass:: OLSModel
+
+   
+   .. automethod:: __init__
+
+   
+   
+
+   
+   
+   

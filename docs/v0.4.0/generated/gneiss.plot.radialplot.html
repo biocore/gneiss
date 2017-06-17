@@ -1,0 +1,144 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.plot.radialplot &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.plot.balance_boxplot" href="gneiss.plot.balance_boxplot.html" />
+    <link rel="prev" title="gneiss.plot.heatmap" href="gneiss.plot.heatmap.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-plot-radialplot">
+<h1>gneiss.plot.radialplot<a class="headerlink" href="#gneiss-plot-radialplot" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.plot.radialplot">
+<code class="descclassname">gneiss.plot.</code><code class="descname">radialplot</code><span class="sig-paren">(</span><em>tree</em>, <em>node_color=’node_color’</em>, <em>node_size=’node_size’</em>, <em>node_alpha=’node_alpha’</em>, <em>edge_color=’edge_color’</em>, <em>edge_alpha=’edge_alpha’</em>, <em>edge_width=’edge_width’</em>, <em>hover_var=’hover_var’</em>, <em>figsize=(500</em>, <em>500)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/plot/_radial.html#radialplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.plot.radialplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots unrooted radial tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tree</strong> (<em>instance of skbio.TreeNode</em>) – Input tree for plotting.</li>
+<li><strong>node_color</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to color nodes.</li>
+<li><strong>node_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> that specifies the radius of nodes.</li>
+<li><strong>node_alpha</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to specify node transparency.</li>
+<li><strong>edge_color</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to color edges.</li>
+<li><strong>edge_alpha</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to specify edge transparency.</li>
+<li><strong>edge_width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to specify edge width.</li>
+<li><strong>hover_var</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of variable in <cite>tree</cite> to display in the hover menu.</li>
+<li><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#tuple" title="(in Python v2.7)"><em>tuple</em></a><em>, </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Size of resulting figure.  default: (500, 500)</li>
+<li><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Plotting options to pass into bokeh.models.Plot</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Interactive plotting instance.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bokeh.models.Plot</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-notes admonition">
+<p class="first admonition-title">Notes</p>
+<p class="last">This assumes that the tree is strictly bifurcating.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-func docutils literal"><span class="pre">bifurcate()</span></code></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../plot.html">Plotting functions (<code class="docutils literal"><span class="pre">gneiss.plot</span></code>)</a><ul>
+      <li>Previous: <a href="gneiss.plot.heatmap.html" title="previous chapter">gneiss.plot.heatmap</a></li>
+      <li>Next: <a href="gneiss.plot.balance_boxplot.html" title="next chapter">gneiss.plot.balance_boxplot</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.plot.radialplot.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.plot.radialplot.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

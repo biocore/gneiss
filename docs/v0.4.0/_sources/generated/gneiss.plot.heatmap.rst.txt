@@ -1,0 +1,6 @@
+gneiss\.plot\.heatmap
+=====================
+
+.. currentmodule:: gneiss.plot
+
+.. autofunction:: heatmap

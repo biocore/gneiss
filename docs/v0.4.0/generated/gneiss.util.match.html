@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.util.match &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.util.match_tips" href="gneiss.util.match_tips.html" />
+    <link rel="prev" title="Utility functions (gneiss.util)" href="../util.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-util-match">
+<h1>gneiss.util.match<a class="headerlink" href="#gneiss-util-match" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.util.match">
+<code class="descclassname">gneiss.util.</code><code class="descname">match</code><span class="sig-paren">(</span><em>table</em>, <em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/util.html#match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.util.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches samples between a contingency table and a metadata table.</p>
+<p>Sorts samples in metadata and contingency table in the same order.
+If there are sames contained in the contigency table, but not in metadata
+or vice versa, the intersection of samples in the contingency table and the
+metadata table will returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>table</strong> (<em>pd.DataFrame</em>) – Contingency table where samples correspond to rows and
+features correspond to columns.</li>
+<li><strong>metadata</strong> (<em>pd.DataFrame</em>) – Metadata table where samples correspond to rows and
+explanatory metadata variables correspond to columns.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><ul class="simple">
+<li><em>pd.DataFrame</em> – Filtered contingency table.</li>
+<li><em>pd.DataFrame</em> – Filtered metadata table</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li>ValueError: – Raised if duplicate sample ids are present in <cite>table</cite>.</li>
+<li>ValueError: – Raised if duplicate sample ids are present in <cite>metadata</cite>.</li>
+<li>ValueError: – Raised if <cite>table</cite> and <cite>metadata</cite> have incompatible sizes.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../util.html">Utility functions (<code class="docutils literal"><span class="pre">gneiss.util</span></code>)</a><ul>
+      <li>Previous: <a href="../util.html" title="previous chapter">Utility functions (<code class="docutils literal"><span class="pre">gneiss.util</span></code>)</a></li>
+      <li>Next: <a href="gneiss.util.match_tips.html" title="next chapter">gneiss.util.match_tips</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.util.match.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.util.match.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

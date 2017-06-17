@@ -1,0 +1,168 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.cluster.correlation_linkage &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.cluster.gradient_linkage" href="gneiss.cluster.gradient_linkage.html" />
+    <link rel="prev" title="Clustering functions (gneiss.cluster)" href="../cluster.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-cluster-correlation-linkage">
+<h1>gneiss.cluster.correlation_linkage<a class="headerlink" href="#gneiss-cluster-correlation-linkage" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.cluster.correlation_linkage">
+<code class="descclassname">gneiss.cluster.</code><code class="descname">correlation_linkage</code><span class="sig-paren">(</span><em>X</em>, <em>method=’ward’</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/cluster/_pba.html#correlation_linkage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.cluster.correlation_linkage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hierarchical Clustering based on proportionality.</p>
+<p>The hierarchy is built based on the correlationity between
+any two pairs of features.  Specifically the correlation between
+two features <span class="math">\(x\)</span> and <span class="math">\(y\)</span> is measured by</p>
+<div class="math">
+\[p(x, y) = var (\ln \frac{x}{y})\]</div>
+<p>If <span class="math">\(p(x, y)\)</span> is very small, then <span class="math">\(x\)</span> and <span class="math">\(y\)</span>
+are said to be highly correlation. A hierarchical clustering is
+then performed using this correlation as a distance metric.</p>
+<p>This can be useful for constructing principal balances <a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>pd.DataFrame</em>) – Contingency table where the samples are rows and the features
+are columns.</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Clustering method.  (default=’ward’)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tree for constructing principal balances.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">skbio.TreeNode</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Pawlowsky-Glahn V, Egozcue JJ, and Tolosana-Delgado R.
+Principal Balances (2011).</td></tr>
+</tbody>
+</table>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gneiss.cluster</span> <span class="k">import</span> <span class="n">correlation_linkage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+<span class="gp">... </span>                     <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="s1">&#39;s4&#39;</span><span class="p">,</span> <span class="s1">&#39;s5&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;o1&#39;</span><span class="p">,</span> <span class="s1">&#39;o2&#39;</span><span class="p">,</span> <span class="s1">&#39;o3&#39;</span><span class="p">,</span> <span class="s1">&#39;o4&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">correlation_linkage</span><span class="p">(</span><span class="n">table</span><span class="o">+</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">ascii_art</span><span class="p">())</span>
+<span class="go">                    /-o1</span>
+<span class="go">          /y1------|</span>
+<span class="go">         |          \-o2</span>
+<span class="go">-y0------|</span>
+<span class="go">         |          /-o3</span>
+<span class="go">          \y2------|</span>
+<span class="go">                    \-o4</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../cluster.html">Clustering functions (<code class="docutils literal"><span class="pre">gneiss.cluster</span></code>)</a><ul>
+      <li>Previous: <a href="../cluster.html" title="previous chapter">Clustering functions (<code class="docutils literal"><span class="pre">gneiss.cluster</span></code>)</a></li>
+      <li>Next: <a href="gneiss.cluster.gradient_linkage.html" title="next chapter">gneiss.cluster.gradient_linkage</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.cluster.correlation_linkage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.cluster.correlation_linkage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

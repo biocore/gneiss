@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.regression.ols &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gneiss.regression.mixedlm" href="gneiss.regression.mixedlm.html" />
+    <link rel="prev" title="Regression functions (gneiss.regression)" href="../regression.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gneiss-regression-ols">
+<h1>gneiss.regression.ols<a class="headerlink" href="#gneiss-regression-ols" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gneiss.regression.ols">
+<code class="descclassname">gneiss.regression.</code><code class="descname">ols</code><span class="sig-paren">(</span><em>formula</em>, <em>table</em>, <em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gneiss/regression/_ols.html#ols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gneiss.regression.ols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ordinary Least Squares applied to balances.</p>
+<p>An ordinary least squares (OLS) regression is a method for estimating
+parameters in a linear regression model.  OLS is a common statistical
+technique for fitting and testing the effects of covariates on a response.
+This implementation is focused on performing a multivariate response
+regression where the response is a matrix of balances (<cite>table</cite>) and the
+covariates (<cite>metadata</cite>) are made up of external variables.</p>
+<p>Global statistical tests indicating goodness of fit and contributions
+from covariates can be accessed from a coefficient of determination (<cite>r2</cite>),
+leave-one-variable-out cross validation (<cite>lovo</cite>), leave-one-out
+cross validation (<cite>loo</cite>) and k-fold cross validation (<cite>kfold</cite>).
+In addition residuals (<cite>residuals</cite>) can be accessed for diagnostic
+purposes.</p>
+<p>T-statistics (<cite>tvalues</cite>) and p-values (<cite>pvalues</cite>) can be obtained to
+investigate to evaluate statistical significance for a covariate for a
+given balance.  Predictions on the resulting model can be made using
+(<cite>predict</cite>), and these results can be interpreted as either balances or
+proportions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>formula</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Formula representing the statistical equation to be evaluated.
+These strings are similar to how equations are handled in R and
+statsmodels. Note that the dependent variable in this string should
+not be specified, since this method will be run on each of the
+individual balances. See <cite>patsy</cite> for more details.</li>
+<li><strong>table</strong> (<em>pd.DataFrame</em>) – Contingency table where samples correspond to rows and
+balances correspond to columns.</li>
+<li><strong>metadata</strong> (<em>pd.DataFrame</em>) – Metadata table that contains information about the samples contained
+in the <cite>table</cite> object.  Samples correspond to rows and covariates
+correspond to columns.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Container object that holds information about the overall fit.
+This includes information about coefficients, pvalues, residuals
+and coefficient of determination from the resulting regression.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="gneiss.regression.OLSModel.html#gneiss.regression.OLSModel" title="gneiss.regression.OLSModel">OLSModel</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-example admonition">
+<p class="first admonition-title">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skbio</span> <span class="k">import</span> <span class="n">TreeNode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gneiss.regression</span> <span class="k">import</span> <span class="n">ols</span>
+</pre></div>
+</div>
+<p>Here, we will define a table of balances as follows</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y1</span> <span class="o">=</span> <span class="n">g1</span> <span class="o">+</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y2</span> <span class="o">=</span> <span class="o">-</span><span class="n">g1</span> <span class="o">-</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;y1&#39;</span><span class="p">:</span> <span class="n">y1</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">:</span> <span class="n">y2</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Once we have the balances defined, we will add some errors</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">+</span> <span class="n">e</span>
+</pre></div>
+</div>
+<p>Now we will define the environment variables that we want to
+regress against the balances.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;g1&#39;</span><span class="p">:</span> <span class="n">g1</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Once these variables are defined, a regression can be performed.
+These proportions will be converted to balances according to the
+tree specified.  And the regression formula is specified to run
+<cite>temp</cite> and <cite>ph</cite> against the proportions in a single model.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">ols</span><span class="p">(</span><span class="s1">&#39;g1&#39;</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>From the summary results of the <cite>ols</cite> function, we can view the
+pvalues according to how well each individual balance fitted in the
+regression model.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">pvalues</span>
+<span class="go">                      y1             y2</span>
+<span class="go">Intercept  8.826379e-148   7.842085e-71</span>
+<span class="go">g1         1.923597e-163  1.277152e-163</span>
+</pre></div>
+</div>
+<p>We can also view the balance coefficients estimated in the regression
+model. These coefficients can also be viewed as proportions by passing
+<cite>project=True</cite> as an argument in <cite>res.coefficients()</cite>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">coefficients</span><span class="p">()</span>
+<span class="go">                 y1        y2</span>
+<span class="go">Intercept  6.016459 -0.983476</span>
+<span class="go">g1         0.997793 -1.000299</span>
+</pre></div>
+</div>
+<p>The overall model fit can be obtained as follows</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">r2</span>
+<span class="go">0.99945903186495066</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../regression.html">Regression functions (<code class="docutils literal"><span class="pre">gneiss.regression</span></code>)</a><ul>
+      <li>Previous: <a href="../regression.html" title="previous chapter">Regression functions (<code class="docutils literal"><span class="pre">gneiss.regression</span></code>)</a></li>
+      <li>Next: <a href="gneiss.regression.mixedlm.html" title="next chapter">gneiss.regression.mixedlm</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/gneiss.regression.ols.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/generated/gneiss.regression.ols.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

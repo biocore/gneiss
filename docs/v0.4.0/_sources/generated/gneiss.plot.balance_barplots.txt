@@ -1,0 +1,6 @@
+gneiss.plot.balance_barplots
+============================
+
+.. currentmodule:: gneiss.plot
+
+.. autofunction:: balance_barplots

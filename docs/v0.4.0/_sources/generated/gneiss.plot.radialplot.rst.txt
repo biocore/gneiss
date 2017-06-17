@@ -1,0 +1,6 @@
+gneiss\.plot\.radialplot
+========================
+
+.. currentmodule:: gneiss.plot
+
+.. autofunction:: radialplot

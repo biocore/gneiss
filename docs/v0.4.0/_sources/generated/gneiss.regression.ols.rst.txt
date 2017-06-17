@@ -1,0 +1,6 @@
+gneiss\.regression\.ols
+=======================
+
+.. currentmodule:: gneiss.regression
+
+.. autofunction:: ols

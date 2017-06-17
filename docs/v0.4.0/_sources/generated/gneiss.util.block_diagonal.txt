@@ -1,0 +1,6 @@
+gneiss.util.block_diagonal
+==========================
+
+.. currentmodule:: gneiss.util
+
+.. autofunction:: block_diagonal

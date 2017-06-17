@@ -1,0 +1,41 @@
+gneiss.regression.OLSModel
+==========================
+
+.. currentmodule:: gneiss.regression
+
+.. autoclass:: OLSModel
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~OLSModel.__init__
+      ~OLSModel.coefficients
+      ~OLSModel.fit
+      ~OLSModel.loo
+      ~OLSModel.lovo
+      ~OLSModel.percent_explained
+      ~OLSModel.predict
+      ~OLSModel.read_pickle
+      ~OLSModel.residuals
+      ~OLSModel.split_balance
+      ~OLSModel.summary
+      ~OLSModel.write_pickle
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~OLSModel.mse
+      ~OLSModel.pvalues
+      ~OLSModel.r2
+   
+   

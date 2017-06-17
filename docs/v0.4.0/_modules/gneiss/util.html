@@ -1,0 +1,439 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gneiss.util &#8212; gneiss 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gneiss.util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility functions (:mod:`gneiss.util`)</span>
+<span class="sd">======================================</span>
+
+<span class="sd">.. currentmodule:: gneiss.util</span>
+
+<span class="sd">This module contains helper functions for aligning metadata tables,</span>
+<span class="sd">contingency tables and trees.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :toctree: generated/</span>
+
+<span class="sd">   match</span>
+<span class="sd">   match_tips</span>
+<span class="sd">   rename_internal_nodes</span>
+<span class="sd">   block_diagonal</span>
+<span class="sd">   band_diagonal</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2016--, gneiss development team.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the Modified BSD License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the file COPYING.txt, distributed with this software.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skbio.stats.composition</span> <span class="k">import</span> <span class="n">closure</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># Specifies which child is numberator and denominator</span>
+<span class="n">NUMERATOR</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">DENOMINATOR</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<span class="k">def</span> <span class="nf">split_balance</span><span class="p">(</span><span class="n">balance</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Splits a balance into its log ratio components.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    balance : pd.Series</span>
+<span class="sd">        A vector corresponding to a single balance.  These values</span>
+<span class="sd">        that will be split into its numberator and denominator</span>
+<span class="sd">        components.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Dataframe where the first column contains the numerator and the</span>
+<span class="sd">        second column contains the denominator of the balance.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The balance must have a name associated with it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">balance</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a balance.&quot;</span> <span class="o">%</span> <span class="n">balance</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">left</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">left</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">left</span><span class="o">.</span><span class="n">tips</span><span class="p">()])</span>
+    <span class="k">if</span> <span class="n">right</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">right</span><span class="o">.</span><span class="n">tips</span><span class="p">()])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">balance</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># need to scale down by the number of children in subtrees</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">b</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">L</span><span class="o">*</span><span class="n">R</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">L</span> <span class="o">+</span> <span class="n">R</span><span class="p">))))</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">b</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">closure</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">left</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">right</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                        <span class="n">index</span><span class="o">=</span><span class="n">balance</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="match"><a class="viewcode-back" href="../../generated/gneiss.util.match.html#gneiss.util.match">[docs]</a><span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Matches samples between a contingency table and a metadata table.</span>
+
+<span class="sd">    Sorts samples in metadata and contingency table in the same order.</span>
+<span class="sd">    If there are sames contained in the contigency table, but not in metadata</span>
+<span class="sd">    or vice versa, the intersection of samples in the contingency table and the</span>
+<span class="sd">    metadata table will returned.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contingency table where samples correspond to rows and</span>
+<span class="sd">        features correspond to columns.</span>
+<span class="sd">    metadata: pd.DataFrame</span>
+<span class="sd">        Metadata table where samples correspond to rows and</span>
+<span class="sd">        explanatory metadata variables correspond to columns.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame :</span>
+<span class="sd">        Filtered contingency table.</span>
+<span class="sd">    pd.DataFrame :</span>
+<span class="sd">        Filtered metadata table</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        Raised if duplicate sample ids are present in `table`.</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        Raised if duplicate sample ids are present in `metadata`.</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        Raised if `table` and `metadata` have incompatible sizes.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">subtableids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">submetadataids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subtableids</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`table` has duplicate sample ids.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">submetadataids</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`metadata` has duplicate sample ids.&quot;</span><span class="p">)</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">subtableids</span> <span class="o">&amp;</span> <span class="n">submetadataids</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;No more samples left.  Check to make sure that &quot;</span>
+                          <span class="s2">&quot;the sample names between `metadata` and `table` &quot;</span>
+                          <span class="s2">&quot;are consistent&quot;</span><span class="p">))</span>
+
+    <span class="n">subtable</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">submetadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">subtable</span><span class="p">,</span> <span class="n">submetadata</span></div>
+
+
+<div class="viewcode-block" id="match_tips"><a class="viewcode-back" href="../../generated/gneiss.util.match_tips.html#gneiss.util.match_tips">[docs]</a><span class="k">def</span> <span class="nf">match_tips</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns the contingency table and tree with matched tips.</span>
+
+<span class="sd">    Sorts the columns of the contingency table to match the tips in</span>
+<span class="sd">    the tree.  The ordering of the tips is in post-traversal order.</span>
+
+<span class="sd">    If the tree is multi-furcating, then the tree is reduced to a</span>
+<span class="sd">    bifurcating tree by randomly inserting internal nodes.</span>
+
+<span class="sd">    The intersection of samples in the contingency table and the</span>
+<span class="sd">    tree will returned.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table : pd.DataFrame</span>
+<span class="sd">        Contingency table where samples correspond to rows and</span>
+<span class="sd">        features correspond to columns.</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Tree object where the leafs correspond to the features.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame :</span>
+<span class="sd">        Subset of the original contingency table with the common features.</span>
+<span class="sd">    skbio.TreeNode :</span>
+<span class="sd">        Sub-tree with the common features.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        Raised if `table` and `tree` have incompatible sizes.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    skbio.TreeNode.bifurcate</span>
+<span class="sd">    skbio.TreeNode.tips</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tips</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">tips</span><span class="p">()]</span>
+    <span class="n">common_tips</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tips</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+    <span class="n">_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">common_tips</span><span class="p">]</span>
+    <span class="n">_tree</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="n">common_tips</span><span class="p">)</span>
+
+    <span class="n">_tree</span><span class="o">.</span><span class="n">bifurcate</span><span class="p">()</span>
+    <span class="n">_tree</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+    <span class="n">sorted_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_tree</span><span class="o">.</span><span class="n">tips</span><span class="p">()]</span>
+    <span class="n">_table</span> <span class="o">=</span> <span class="n">_table</span><span class="o">.</span><span class="n">reindex_axis</span><span class="p">(</span><span class="n">sorted_features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_table</span><span class="p">,</span> <span class="n">_tree</span></div>
+
+
+<span class="k">def</span> <span class="nf">check_internal_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">levelorder</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;TreeNode has no name.&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="rename_internal_nodes"><a class="viewcode-back" href="../../generated/gneiss.util.rename_internal_nodes.html#gneiss.util.rename_internal_nodes">[docs]</a><span class="k">def</span> <span class="nf">rename_internal_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Names the internal according to level ordering.</span>
+
+<span class="sd">    The tree will be traversed in level order (i.e. top-down, left to right).</span>
+<span class="sd">    If `names` is not specified, the node with the smallest label (y0)</span>
+<span class="sd">    will be located at the root of the tree, and the node with the largest</span>
+<span class="sd">    label will be located at bottom right corner of the tree.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree : skbio.TreeNode</span>
+<span class="sd">        Tree object where the leafs correspond to the features.</span>
+<span class="sd">    names : list, optional</span>
+<span class="sd">        List of labels to rename the tip names.  It is assumed that the</span>
+<span class="sd">        names are listed in level ordering, and the length of the list</span>
+<span class="sd">        is at least as long as the number of internal nodes.</span>
+<span class="sd">    inplace : bool, optional</span>
+<span class="sd">        Specifies if the operation should be done on the original tree or not.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    skbio.TreeNode</span>
+<span class="sd">       Tree with renamed internal nodes.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        Raised if `tree` and `name` have incompatible sizes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+        <span class="n">_tree</span> <span class="o">=</span> <span class="n">tree</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_tree</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">non_tips</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_tree</span><span class="o">.</span><span class="n">levelorder</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_tips</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`_tree` and `names` have incompatible sizes, &quot;</span>
+                         <span class="s2">&quot;`_tree` has </span><span class="si">%d</span><span class="s2"> tips, `names` has </span><span class="si">%d</span><span class="s2"> elements.&quot;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">non_tips</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)))</span>
+
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_tree</span><span class="o">.</span><span class="n">levelorder</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">is_tip</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;y</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">label</span> <span class="o">==</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Warning. Internal node (</span><span class="si">%s</span><span class="s2">) has been replaced &quot;</span>
+                              <span class="s2">&quot;with (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
+            <span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">_tree</span></div>
+
+
+<span class="k">def</span> <span class="nf">_type_cast_to_float</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Attempt to cast all of the values in dataframe to float.</span>
+
+<span class="sd">    This will try to type cast all of the series within the</span>
+<span class="sd">    dataframe into floats.  If a column cannot be type casted,</span>
+<span class="sd">    it will be kept as is.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Will need to improve this, as this is a very hacky solution.</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">df</span>
+
+
+<div class="viewcode-block" id="block_diagonal"><a class="viewcode-back" href="../../generated/gneiss.util.block_diagonal.html#gneiss.util.block_diagonal">[docs]</a><span class="k">def</span> <span class="nf">block_diagonal</span><span class="p">(</span><span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">nblocks</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generate block diagonal with uniformly distributed values within blocks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ncol : int</span>
+<span class="sd">        Number of columns</span>
+<span class="sd">    nrows : int</span>
+<span class="sd">        Number of rows</span>
+<span class="sd">    nblocks : int</span>
+<span class="sd">        Number of blocks</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The number of blocks specified by `nblocks` needs to be greater than 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nblocks</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`nblocks` needs to be greater than 1.&#39;</span><span class="p">)</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
+    <span class="n">block_cols</span> <span class="o">=</span> <span class="n">ncols</span> <span class="o">//</span> <span class="n">nblocks</span>
+    <span class="n">block_rows</span> <span class="o">=</span> <span class="n">nrows</span> <span class="o">//</span> <span class="n">nblocks</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nblocks</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">block_rows</span><span class="p">,</span> <span class="n">block_cols</span><span class="p">))</span>
+        <span class="n">lower_row</span> <span class="o">=</span> <span class="n">block_rows</span> <span class="o">*</span> <span class="n">b</span>
+        <span class="n">upper_row</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">block_rows</span><span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="n">lower_col</span> <span class="o">=</span> <span class="n">block_cols</span> <span class="o">*</span> <span class="n">b</span>
+        <span class="n">upper_col</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">block_cols</span><span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">ncols</span><span class="p">)</span>
+
+        <span class="n">mat</span><span class="p">[</span><span class="n">lower_row</span><span class="p">:</span><span class="n">upper_row</span><span class="p">,</span> <span class="n">lower_col</span><span class="p">:</span><span class="n">upper_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span>
+
+    <span class="c1"># Make last block fill in the remainder</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">nrows</span><span class="o">-</span><span class="n">upper_row</span><span class="p">,</span> <span class="n">ncols</span><span class="o">-</span><span class="n">upper_col</span><span class="p">))</span>
+    <span class="n">mat</span><span class="p">[</span><span class="n">upper_row</span><span class="p">:,</span> <span class="n">upper_col</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B</span>
+    <span class="k">return</span> <span class="n">mat</span></div>
+
+
+<span class="k">def</span> <span class="nf">_shift</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the band table by iteratively shifting a single vector.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    l : array</span>
+<span class="sd">       Vector to be shifted</span>
+<span class="sd">    n : int</span>
+<span class="sd">       Max number of shifts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sl</span> <span class="o">=</span> <span class="n">l</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">table</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">sl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">sl</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sl</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span>
+
+
+<div class="viewcode-block" id="band_diagonal"><a class="viewcode-back" href="../../generated/gneiss.util.band_diagonal.html#gneiss.util.band_diagonal">[docs]</a><span class="k">def</span> <span class="nf">band_diagonal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates band table with dense diagonal, sparse corners.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Number of features</span>
+<span class="sd">    b : int</span>
+<span class="sd">        Length of band</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.array</span>
+<span class="sd">        Table of</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># samples</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="o">/</span><span class="n">b</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">_shift</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, gneiss development team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

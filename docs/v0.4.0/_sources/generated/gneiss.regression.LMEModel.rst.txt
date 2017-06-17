@@ -1,0 +1,16 @@
+gneiss\.regression\.LMEModel
+============================
+
+.. currentmodule:: gneiss.regression
+
+.. autoclass:: LMEModel
+
+   
+   .. automethod:: __init__
+
+   
+   
+
+   
+   
+   

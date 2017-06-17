@@ -1,0 +1,6 @@
+gneiss\.cluster\.gradient\_linkage
+==================================
+
+.. currentmodule:: gneiss.cluster
+
+.. autofunction:: gradient_linkage

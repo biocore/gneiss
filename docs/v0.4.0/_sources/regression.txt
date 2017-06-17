@@ -1,0 +1,3 @@
+.. automodule:: gneiss.regression
+
+

@@ -1,0 +1,6 @@
+gneiss\.cluster\.random\_linkage
+================================
+
+.. currentmodule:: gneiss.cluster
+
+.. autofunction:: random_linkage

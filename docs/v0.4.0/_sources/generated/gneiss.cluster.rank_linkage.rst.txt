@@ -1,0 +1,6 @@
+gneiss\.cluster\.rank\_linkage
+==============================
+
+.. currentmodule:: gneiss.cluster
+
+.. autofunction:: rank_linkage
