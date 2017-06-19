@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>gneiss</title>
-        <link rel="stylesheet" type="text/css" href="assets/style.css">
+	<title>gneiss</title>
+	<link rel="stylesheet" type="text/css" href="assets/style.css">
     </head>
     <body>
-        <div id="nav">
-            <ul>
-                <li class="dropdown">
-                    <a href="#">Docs <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
+	<div id="nav">
+	    <ul>
+		<li class="dropdown">
+		    <a href="#">Docs <b class="caret"></b></a>
+		    <ul class="dropdown-menu">
 		      	  <li><a href="docs/v0.4.0/index.html">0.4.0</a></li>
 		      	  <li><a href="docs/v0.3.1/index.html">0.3.1</a></li>
 		      	  <li><a href="docs/v0.1.0/index.html">0.1.1</a></li>
-                        <li></li>
-                    </ul>
+			<li></li>
+		    </ul>
 
-                </li>
+		</li>
 	    </ul>
 	</div>
     <a href="https://github.com/biocore/gneiss"
@@ -37,24 +37,31 @@
 	<div id="heading">
 	  <img id="gneiss" src="assets/logo.svg" width="30%"
 	       style="top: 100px">
-	    <div id="pitch"> Compositional Statistics and Visualization Toolbox </div>
+	    <div id="pitch"> Compositional Data Analysis and Visualization Toolbox </div>
 	</div>
-   
-        <div id="content">
-          <article class="markdown-body entry-content" itemprop="text">
+
+	<div id="content">
+	  <article class="markdown-body entry-content" itemprop="text">
 	    <br>
 	    Balances are an alternative technique to investigate relationships between proportions.  Rather than focusing on proportions, log ratios or <i>balances</i> are investigated in analyses.   This technique has many beneficial theoretical properties, while avoiding issues associated with compositionality in differential abundance, correlations and regression.  More details on balances can be found <a href="https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb">here.</a>
 
 	    <p><strong>Installation:</strong></p>
-	    To install this package, it is recommended to use conda. An environment can installed as follows
+	    To install this package, it is recommended to use conda. First make sure that the appropriate channels are configured.
 	    <pre>
-	      conda create -n gneiss_env python=3.5 gneiss -c biocore -c qiime2
+	      conda config --add channels https://conda.anaconda.org/bioconda
+	      conda config --add channels https://conda.anaconda.org/biocore
+	      conda config --add channels https://conda.anaconda.org/qiime2
+	      conda config --add channels https://conda.anaconda.org/qiime2/label/r2017.6
+	    </pre>
+	    Then gneiss can be installed in a conda environment as follows
+	    <pre>
+	      conda create -n gneiss_env gneiss
 	    </pre>
 	    If you find this package useful please cite us at
 	    <pre>
-	      Morton JT, Sanders J, Quinn RA, McDonald D, Gonzalez A, Vázquez-Baeza Y, 
-	      Navas-Molina JA, Song SJ, Metcalf JL, Hyde ER, Lladser M, Dorrestein PC, 
-	      Knight R. 2017. Balance trees reveal microbial niche differentiation. 
+	      Morton JT, Sanders J, Quinn RA, McDonald D, Gonzalez A, Vázquez-Baeza Y,
+	      Navas-Molina JA, Song SJ, Metcalf JL, Hyde ER, Lladser M, Dorrestein PC,
+	      Knight R. 2017. Balance trees reveal microbial niche differentiation.
 	      mSystems 2:e00162-16. https://doi.org/10.1128/mSystems.00162-16.
 	    </pre>
 
