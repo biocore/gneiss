@@ -14,10 +14,23 @@ gneiss is currently in alpha.  We are actively developing it, and __backward-inc
 
 # Installation
 
-To install this package, it is recommended to use conda.  An environment can installed as follows
+To install this package, it is recommended to use conda.  First make sure that the appropriate channels are configured.
 
 ```
-conda create -n gneiss_env gneiss python=3.5 -c biocore -c qiime2
+conda config --add channels https://conda.anaconda.org/bioconda
+conda config --add channels https://conda.anaconda.org/biocore
+conda config --add channels https://conda.anaconda.org/qiime2
+conda config --add channels https://conda.anaconda.org/qiime2/label/r2017.6
+```
+
+Then gneiss can be installed in a conda environment as follows
+```
+conda create -n gneiss_env gneiss
+```
+To install the most up to date version of gneiss, run the following command
+
+```
+pip install git+https://github.com/biocore/gneiss.git
 ```
 
 # Examples
