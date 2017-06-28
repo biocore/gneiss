@@ -38,8 +38,9 @@ pip install git+https://github.com/biocore/gneiss.git
 IPython notebooks demonstrating some of the modules in gneiss can be found as follows
 
 * [What are balances](https://github.com/biocore/gneiss/blob/master/ipynb/balance_trees.ipynb)
-* [Linear regression on balances in the 88 soils](https://github.com/biocore/gneiss/blob/master/ipynb/88soils/88soils.ipynb)
-* [Linear mixed effects models on balances in a CF study](https://github.com/biocore/gneiss/blob/master/ipynb/cfstudy/cfstudy.ipynb)
+* [Linear regression on balances in the 88 soils](https://biocore.github.io/gneiss/docs/v0.4.0/tutorials/qiime2/88soils-qiime2-tutorial.html)
+* [Linear mixed effects models on balances in a CF study](https://biocore.github.io/gneiss/docs/v0.4.0/tutorials/qiime2/cfstudy-qiime2-tutorial.html)
+* [Linear regression on balances in the Chronic Fatigue Syndrome](https://biocore.github.io/gneiss/docs/v0.4.0/tutorials/qiime2/cfs-qiime2-tutorial.html)
 
 
 If you use this software package in your own publications, please cite it at
