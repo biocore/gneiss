@@ -111,7 +111,7 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     in the groups.  In the linear mixed effects model `time` and `treatment`
     will be simultaneously tested for with respect to the balances.
 
-    >>> res = mixedlm('time + treatment', table, metadata, tree,
+    >>> res = mixedlm('time + treatment', table, metadata,
     ...               groups='patient')
 
     See Also
