@@ -7,7 +7,7 @@
 Canonically pronouced *nice*
 
 
-gneiss is a compositional statistics and visualization toolbox.  See [here](https://biocore.github.io/gneiss/) for API documentation.
+gneiss is a compositional data analysis and visualization toolbox designed for analyzing high dimensional proportions.  See [here](https://biocore.github.io/gneiss/) for API documentation.
  
 Note that gneiss is not compatible with python 2, and is compatible with Python 3.4 or later.
 gneiss is currently in alpha.  We are actively developing it, and __backward-incompatible interface changes may arise__.
