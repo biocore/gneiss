@@ -1,5 +1,11 @@
 # gneiss changelog
 
+
+## Version 0.4.0
+* Accelerated the ordinary least squares regression
+* Improved summary statistics and cross validation in ordinary least squares regression
+* Improved summary visualizations for OLS and MixedLM
+
 ## Version 0.3.2
 * Added `balance_boxplot` and `balance_barplot` to make interpretation balance partitions easier.
 * Added `balance_summary` to summarize a given balance using the q2 cli.
@@ -11,7 +17,6 @@
 * Added interactive heatmaps with highlights with matplotlib [#114](https://github.com/biocore/gneiss/pull/114)
 * Added tree visualizations for unrooted trees with bokeh [#112](https://github.com/biocore/gneiss/pull/112)
 * Added support of cross validation for ordinary least squares [#101](https://github.com/biocore/gneiss/pull/101)
-
 
 ## Version 0.2.1
 * Added heatmap dendrogram plotting functionality [#87](https://github.com/biocore/gneiss/issues/87)
