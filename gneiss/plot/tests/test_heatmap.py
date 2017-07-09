@@ -6,6 +6,8 @@ import pandas.util.testing as pdt
 from skbio import TreeNode, DistanceMatrix
 from scipy.cluster.hierarchy import ward
 from gneiss.plot._dendrogram import SquareDendrogram
+from gneiss.util import block_diagonal
+from gneiss.cluster import rank_linkage
 import numpy as np
 import numpy.testing.utils as npt
 import unittest
@@ -113,8 +115,25 @@ class HeatmapTest(unittest.TestCase):
         widths = [l.get_lw() for l in lines]
         np.allclose(widths, [1.0] * len(widths))
 
-    def test_basic_highlights(self):
-        fig = heatmap(self.table, self.t, self.md, self.highlights)
+    def test_highlights(self):
+
+        table = pd.DataFrame(block_diagonal(ncols=5, nrows=5, nblocks=2),
+                             index=['0', '1', '2', '3', '4'],
+                             columns=['0', '1', '2', '3', '4'])
+        t = rank_linkage(pd.Series([1, 2, 3, 4, 5],
+                                   index=['0', '1', '2', '3', '4']))
+        t = SquareDendrogram.from_tree(t)
+        md = pd.Series(['a', 'a', 'a', 'b', 'b'],
+                       index=['0', '1', '2', '3', '4'])
+        for i, n in enumerate(t.postorder()):
+            if not n.is_tip():
+                n.name = "y%d" % i
+            n.length = np.random.rand()*3
+
+        highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
+                                   'y7': ['#0000FF', '#F0000F']}).T
+
+        fig = heatmap(table, t, md, highlights)
 
         # Test to see if the lineages of the tree are ok
         lines = list(fig.get_axes()[1].get_lines())
@@ -124,38 +143,39 @@ class HeatmapTest(unittest.TestCase):
         pts['x'] = pts['x'].astype(np.float)
         pts['y'] = pts['y'].astype(np.float)
 
-        exp_coords = np.array([[14.25, 0.5],
-                               [14.25, 1.],
-                               [14.25, 1.],
-                               [20., 1.],
-                               [9.5, 1.25],
-                               [9.5, 2.],
-                               [9.5, 2.],
-                               [20., 2.],
-                               [4.75, 2.125],
-                               [4.75, 3.],
-                               [4.75, 3.],
-                               [20., 3.],
-                               [0., 3.0625],
-                               [0., 4.],
-                               [0., 4.],
+        exp_coords = np.array([[6.33333333, 3.5],
+                               [6.33333333, 4.],
+                               [6.33333333, 4.],
                                [20., 4.],
-                               [14.25, 0.5],
-                               [14.25, 0.],
-                               [14.25, 0.],
+                               [12.66666667, 0.5],
+                               [12.66666667, 1.],
+                               [12.66666667, 1.],
+                               [20., 1.],
+                               [6.33333333, 1.25],
+                               [6.33333333, 2.],
+                               [6.33333333, 2.],
+                               [20., 2.],
+                               [0., 2.375],
+                               [0., 3.5],
+                               [0., 3.5],
+                               [6.33333333, 3.5],
+                               [6.33333333, 3.5],
+                               [6.33333333, 3.],
+                               [6.33333333, 3.],
+                               [20., 3.],
+                               [12.66666667, 0.5],
+                               [12.66666667, 0.],
+                               [12.66666667, 0.],
                                [20., 0.],
-                               [9.5, 1.25],
-                               [9.5, 0.5],
-                               [9.5, 0.5],
-                               [14.25, 0.5],
-                               [4.75, 2.125],
-                               [4.75, 1.25],
-                               [4.75, 1.25],
-                               [9.5, 1.25],
-                               [0., 3.0625],
-                               [0., 2.125],
-                               [0., 2.125],
-                               [4.75, 2.125]])
+                               [6.33333333, 1.25],
+                               [6.33333333, 0.5],
+                               [6.33333333, 0.5],
+                               [12.66666667, 0.5],
+                               [0., 2.375],
+                               [0., 1.25],
+                               [0., 1.25],
+                               [6.33333333, 1.25]])
+
         res = np.vstack([i._xy for i in lines])
 
         npt.assert_allclose(exp_coords, res)
@@ -169,10 +189,16 @@ class HeatmapTest(unittest.TestCase):
 
         # Make sure that the highlight labels are set properly
         res = str(fig.get_axes()[2].get_xticklabels()[0])
-        self.assertEqual(res, "Text(0,0,'y6')")
+        self.assertEqual(res, "Text(0,0,'y7')")
 
         res = str(fig.get_axes()[2].get_xticklabels()[1])
         self.assertEqual(res, "Text(0,0,'y8')")
+
+        # Test to see if the highlights are ok
+        res = fig.get_axes()[2].get_position()._points
+        exp = np.array([[0.2, 0.1],
+                        [0.24, 0.9]])
+        npt.assert_allclose(res, exp)
 
 
 if __name__ == "__main__":

@@ -58,7 +58,8 @@ class TestMixedLM(unittest.TestCase):
 
         # for testing the plugins
         self.results = "results"
-        os.mkdir(self.results)
+        if not os.path.exists(self.results):
+            os.mkdir(self.results)
 
     def tearDown(self):
         shutil.rmtree(self.results)
@@ -131,7 +132,7 @@ class TestMixedLMFunctions(TestMixedLM):
             [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
              [4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
             index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2']).sort_index()
+            columns=['Intercept', 'groups RE', 'x1', 'x2']).sort_index().T
 
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
@@ -140,7 +141,7 @@ class TestMixedLMFunctions(TestMixedLM):
             [[0.211451,  0.0935786, 1.022008, 0.924873],
              [4.211451,  0.0935786, 1.022008, 0.924873]],
             columns=['Intercept', 'groups RE', 'x1', 'x2'],
-            index=['y1', 'y2']).sort_index()
+            index=['y1', 'y2']).sort_index().T
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
@@ -190,11 +191,6 @@ class TestMixedLMFunctions(TestMixedLM):
         res = mixedlm("x1 + x2", table, metadata, groups="groups",
                       re_formula="0+z1+z2")
         res.fit()
-        exp_pvalues = pd.DataFrame(
-            [[9.953418e-02,  3.180390e-40,  3.972325e-35,  3.568599e-30],
-             [4.923122e-236,  3.180390e-40,  3.972325e-35,  3.568599e-30]],
-            index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'])
 
         exp_pvalues = pd.DataFrame([
             [0.038015, 3.858750e-39, 2.245068e-33,
@@ -203,26 +199,19 @@ class TestMixedLMFunctions(TestMixedLM):
              2.552217e-05, 0.923418, 6.645741e-34]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
-            index=['y1', 'y2'])
+            index=['y1', 'y2']).T
         exp_coefficients = pd.DataFrame(
             [[0.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792],
              [4.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792]],
             columns=['Intercept', 'x1', 'x2', 'z1 RE',
                      'z1 RE x z2 RE', 'z2 RE'],
-            index=['y1', 'y2'])
+            index=['y1', 'y2']).T
 
         pdt.assert_frame_equal(res.pvalues, exp_pvalues,
                                check_less_precise=True)
 
         pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
                                check_less_precise=True)
-
-    def test_write(self):
-        res = mixedlm("x1 + x2", self.table, self.metadata,
-                      groups="groups")
-
-        res.fit()
-        res.write_pickle('lme.pickle')
 
     def test_percent_explained(self):
         model = mixedlm("x1 + x2", self.table, self.metadata,

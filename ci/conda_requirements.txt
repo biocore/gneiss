@@ -6,7 +6,7 @@ IPython>4.0.0
 notebook
 scikit-bio=0.5.1
 pyqt=4.11.4
-bokeh=0.12.4
+bokeh
 qiime2
 q2-composition
 q2-types

@@ -16,6 +16,8 @@ Functions
    match
    match_tips
    rename_internal_nodes
+   block_diagonal
+   band_diagonal
 """
 # ----------------------------------------------------------------------------
 # Copyright (c) 2016--, gneiss development team.
@@ -26,6 +28,57 @@ Functions
 # ----------------------------------------------------------------------------
 import warnings
 import numpy as np
+from skbio.stats.composition import closure
+import pandas as pd
+
+# Specifies which child is numberator and denominator
+NUMERATOR = 1
+DENOMINATOR = 0
+
+
+def split_balance(balance, tree):
+    """ Splits a balance into its log ratio components.
+
+    Parameters
+    ----------
+    balance : pd.Series
+        A vector corresponding to a single balance.  These values
+        that will be split into its numberator and denominator
+        components.
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe where the first column contains the numerator and the
+        second column contains the denominator of the balance.
+
+    Note
+    ----
+    The balance must have a name associated with it.
+    """
+    node = tree.find(balance.name)
+
+    if node.is_tip():
+        raise ValueError("%s is not a balance." % balance.name)
+
+    left = node.children[0]
+    right = node.children[1]
+    if left.is_tip():
+        L = 1
+    else:
+        L = len([n for n in left.tips()])
+    if right.is_tip():
+        R = 1
+    else:
+        R = len([n for n in right.tips()])
+    b = np.expand_dims(balance.values, axis=1)
+    # need to scale down by the number of children in subtrees
+    b = np.exp(b / (np.sqrt((L*R) / (L + R))))
+    o = np.ones((len(b), 1))
+    k = np.hstack((b, o))
+    p = closure(k)
+    return pd.DataFrame(p, columns=[left.name, right.name],
+                        index=balance.index)
 
 
 def match(table, metadata):
@@ -228,6 +281,13 @@ def block_diagonal(ncols, nrows, nblocks):
     nblocks : int
         Number of blocks
 
+    Returns
+    -------
+    np.array
+        Table with a block diagonal where the rows represent samples
+        and the columns represent features.  The values within the blocks
+        are uniformly distributed between 0 and 1.
+
     Note
     ----
     The number of blocks specified by `nblocks` needs to be greater than 1.
@@ -288,7 +348,9 @@ def band_diagonal(n, b):
     Returns
     -------
     np.array
-        Table of
+        Table with a dense band diagonal where the rows represent samples
+        and the columns represent features.  The values within the
+        diagonal are marked with a constant `1/b`.
     """
     p = n - b + 1  # samples
     y = [1./b] * b + [0] * (n-b)

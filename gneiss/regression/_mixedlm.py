@@ -6,26 +6,32 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 from collections import OrderedDict
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from ._model import RegressionModel
 from gneiss.util import _type_cast_to_float
 from statsmodels.iolib.summary2 import Summary
+from gneiss.balances import balance_basis
+from skbio.stats.composition import ilr_inv
 
 
 def mixedlm(formula, table, metadata, groups, **kwargs):
     """ Linear Mixed Effects Models applied to balances.
 
-    A linear mixed effects model is performed on nonzero relative abundance
-    data given a list of covariates, or explanatory variables such as pH,
-    treatment, etc to test for specific effects. The relative abundance data
-    is transformed into balances using the ILR transformation, using a tree to
-    specify the groupings of the features. The linear mixed effects model is
-    applied to each balance separately. Only positive data will be accepted,
-    so if there are zeros present, consider using a zero imputation method
-    such as ``skbio.stats.composition.multiplicative_replacement`` or
-    add a pseudocount.
+    Linear mixed effects (LME) models is a method for estimating
+    parameters in a linear regression model with mixed effects.
+    LME models are commonly used for repeated measures, where multiple
+    samples are collected from a single source.  This implementation is
+    focused on performing a multivariate response regression with mixed
+    effects where the response is a matrix of balances (`table`), the
+    covariates (`metadata`) are made up of external variables and the
+    samples sources are specified by `groups`.
+
+    T-statistics (`tvalues`) and p-values (`pvalues`) can be obtained to
+    investigate to evaluate statistical significance for a covariate for a
+    given balance.  Predictions on the resulting model can be made using
+    (`predict`), and these results can be interpreted as either balances or
+    proportions.
 
     Parameters
     ----------
@@ -43,7 +49,7 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
         in the `table` object.  Samples correspond to rows and covariates
         correspond to columns.
     groups : str
-        Column names in `metadata` that specifies the groups.  These groups are
+        Column name in `metadata` that specifies the groups.  These groups are
         often associated with individuals repeatedly sampled, typically
         longitudinally.
     **kwargs : dict
@@ -65,27 +71,25 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     --------
     >>> import pandas as pd
     >>> import numpy as np
-    >>> from skbio.stats.composition import ilr_inv
-    >>> from skbio import TreeNode
     >>> from gneiss.regression import mixedlm
 
-    Here, we will define a table of proportions with 3 features
-    `a`, `b`, and `c` across 12 samples.
+    Here, we will define a table of balances with features `Y1`, `Y2`
+    across 12 samples.
 
     >>> table = pd.DataFrame({
-    ...         'u1':  [0.804248, 0.195526, 0.000226],
-    ...         'u2':  [0.804369, 0.195556, 0.000075],
-    ...         'u3':  [0.825711, 0.174271, 0.000019],
-    ...         'x1':  [0.751606, 0.158631, 0.089763],
-    ...         'x2':  [0.777794, 0.189095, 0.033111],
-    ...         'x3':  [0.817855, 0.172613, 0.009532],
-    ...         'y1':  [0.780774, 0.189819, 0.029406],
-    ...         'y2':  [0.797332, 0.193845, 0.008824],
-    ...         'y3':  [0.802058, 0.194994, 0.002948],
-    ...         'z1':  [0.825041, 0.174129, 0.000830],
-    ...         'z2':  [0.804248, 0.195526, 0.000226],
-    ...         'z3':  [0.825667, 0.174261, 0.000072]}
-    ...         index=['a', 'b', 'c']).T
+    ...   'u1': [ 1.00000053,  6.09924644],
+    ...   'u2': [ 0.99999843,  7.0000045 ],
+    ...   'u3': [ 1.09999884,  8.08474053],
+    ...   'x1': [ 1.09999758,  1.10000349],
+    ...   'x2': [ 0.99999902,  2.00000027],
+    ...   'x3': [ 1.09999862,  2.99998318],
+    ...   'y1': [ 1.00000084,  2.10001257],
+    ...   'y2': [ 0.9999991 ,  3.09998418],
+    ...   'y3': [ 0.99999899,  3.9999742 ],
+    ...   'z1': [ 1.10000124,  5.0001796 ],
+    ...   'z2': [ 1.00000053,  6.09924644],
+    ...   'z3': [ 1.10000173,  6.99693644]},
+    ..     index=['Y1', 'Y2']).T
 
     Now we are going to define some of the external variables to
     test for in the model.  Here we will be testing a hypothetical
@@ -100,32 +104,19 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
     ...     }, index=['x1', 'x2', 'x3', 'y1', 'y2', 'y3',
     ...               'z1', 'z2', 'z3', 'u1', 'u2', 'u3'])
 
-    Finally, we need to define a bifurcating tree used to convert the
-    proportions to balances.  If the internal nodes aren't labels,
-    a default labeling will be applied (i.e. `y1`, `y2`, ...)
-
-    >>> tree = TreeNode.read(['(c, (b,a)Y2)Y1;'])
-    >>> print(tree.ascii_art())
-              /-c
-    -Y1------|
-             |          /-b
-              \Y2------|
-                        \-a
-
-    Now we can run the linear mixed effects model on the proportions.
+    Now we can run the linear mixed effects model on the balances.
     Underneath the hood, the proportions will be transformed into balances,
     so that the linear mixed effects models can be run directly on balances.
     Since each patient was sampled repeatedly, we'll specify them separately
     in the groups.  In the linear mixed effects model `time` and `treatment`
     will be simultaneously tested for with respect to the balances.
 
-    >>> res = mixedlm('time + treatment', table, metadata, tree,
+    >>> res = mixedlm('time + treatment', table, metadata,
     ...               groups='patient')
 
     See Also
     --------
     statsmodels.regression.linear_model.MixedLM
-    skbio.stats.composition.multiplicative_replacement
     ols
 
     """
@@ -145,7 +136,11 @@ def mixedlm(formula, table, metadata, groups, **kwargs):
                           **kwargs)
         submodels.append(mdf)
 
-    return LMEModel(submodels, balances=table)
+    # ugly hack to get around the statsmodels object
+    model = LMEModel(Y=table, Xs=None)
+    model.submodels = submodels
+    model.balances = table
+    return model
 
 
 class LMEModel(RegressionModel):
@@ -160,19 +155,12 @@ class LMEModel(RegressionModel):
 
     Attributes
     ----------
-    submodels : list of statsmodels objects
-        List of statsmodels result objects.
-    basis : pd.DataFrame
-        Orthonormal basis in the Aitchison simplex.
-        Row names correspond to the leafs of the tree
-        and the column names correspond to the internal nodes
-        in the tree.
-    tree : skbio.TreeNode
-        Bifurcating tree that defines `basis`.
-    balances : pd.DataFrame
+    Y : pd.DataFrame
         A table of balances where samples are rows and
         balances are columns. These balances were calculated
         using `tree`.
+    Xs : pd.DataFrame
+        Design matrix.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -215,9 +203,133 @@ class LMEModel(RegressionModel):
         # TODO: We need better model statistics
         return smry
 
-    def percent_explained(self):
-        """ Proportion explained by each principal balance."""
-        # Using sum of squares error calculation (df=1)
-        # instead of population variance (df=0).
-        axis_vars = np.var(self.balances, ddof=1, axis=0)
-        return axis_vars / axis_vars.sum()
+    def coefficients(self, tree=None):
+        """ Returns coefficients from fit.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented as
+            proportions. Otherwise, if this is not specified, the prediction
+            will be represented as balances. (default: None).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of coefficients where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+        """
+        coef = pd.DataFrame()
+
+        for r in self.results:
+            c = r.params
+            c.name = r.model.endog_names
+            coef = coef.append(c)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            c = ilr_inv(coef.values.T, basis=basis).T
+
+            return pd.DataFrame(c, index=[n.name for n in tree.tips()],
+                                columns=coef.columns)
+        else:
+            return coef.T
+
+    def residuals(self, tree=None):
+        """ Returns calculated residuals from fit.
+
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates.  If not specified, then the
+            fitted values calculated from training the model will be
+            returned.
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of residuals where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+
+        References
+        ----------
+        .. [1] Aitchison, J. "A concise guide to compositional data analysis,
+           CDA work." Girona 24 (2003): 73-81.
+        """
+        resid = pd.DataFrame()
+
+        for r in self.results:
+            err = r.resid
+            err.name = r.model.endog_names
+            resid = resid.append(err)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_resid = ilr_inv(resid.values.T, basis=basis).T
+            return pd.DataFrame(proj_resid,
+                                index=[n.name for n in tree.tips()],
+                                columns=resid.columns).T
+        else:
+            return resid.T
+
+    def predict(self, X=None, tree=None, **kwargs):
+        """ Performs a prediction based on model.
+
+        Parameters
+        ----------
+        X : pd.DataFrame, optional
+            Input table of covariates, where columns are covariates, and
+            rows are samples.  If not specified, then the fitted values
+            calculated from training the model will be returned.
+        tree : skbio.TreeNode, optional
+            The tree used to perform the ilr transformation.  If this
+            is specified, then the prediction will be represented
+            as proportions. Otherwise, if this is not specified,
+            the prediction will be represented as balances. (default: None).
+        **kwargs : dict
+            Other arguments to be passed into the model prediction.
+
+        Returns
+        -------
+        pd.DataFrame
+            A table of predicted values where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
+        """
+        prediction = pd.DataFrame()
+        for m in self.results:
+            # check if X is none.
+            p = pd.Series(m.predict(X, **kwargs))
+            p.name = m.model.endog_names
+            if X is not None:
+                p.index = X.index
+            else:
+                p.index = m.fittedvalues.index
+            prediction = prediction.append(p)
+
+        if tree is not None:
+            basis, _ = balance_basis(tree)
+            proj_prediction = ilr_inv(prediction.values.T, basis=basis)
+            return pd.DataFrame(proj_prediction,
+                                columns=[n.name for n in tree.tips()],
+                                index=prediction.columns)
+        else:
+            return prediction.T
+
+    @property
+    def pvalues(self):
+        """ Return pvalues from each of the coefficients in the fit. """
+        pvals = pd.DataFrame()
+        for r in self.results:
+            p = r.pvalues
+            p.name = r.model.endog_names
+            pvals = pvals.append(p)
+        return pvals.T

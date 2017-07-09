@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
+import abc
 import pandas as pd
 from skbio.stats.composition import ilr_inv
 from gneiss._model import Model
@@ -31,7 +32,12 @@ class RegressionModel(Model):
             balances are columns.  These balances were calculated
             using `tree`.
         """
+        self._beta = None
+        self._resid = None
+        self._fitted = False
         super().__init__(*args, **kwargs)
+        # there is only one design matrix for regression
+        self.design_matrix = self.design_matrices
 
     def coefficients(self, tree=None):
         """ Returns coefficients from fit.
@@ -47,22 +53,19 @@ class RegressionModel(Model):
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
-            are proportions, if `tree` is specified.
+            A table of coefficients where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
         """
-        coef = pd.DataFrame()
-
-        for r in self.results:
-            c = r.params
-            c.name = r.model.endog_names
-            coef = coef.append(c)
-
+        if not self._fitted:
+            ValueError(('Model not fitted - coefficients not calculated.'
+                        'See `fit()`'))
+        coef = self._beta
         if tree is not None:
             basis, _ = balance_basis(tree)
-            c = ilr_inv(coef.values.T, basis=basis).T
-
-            return pd.DataFrame(c, index=[n.name for n in tree.tips()],
-                                columns=coef.columns)
+            c = ilr_inv(coef.values, basis=basis)
+            ids = [n.name for n in tree.tips()]
+            return pd.DataFrame(c, columns=ids, index=coef.index)
         else:
             return coef
 
@@ -84,30 +87,30 @@ class RegressionModel(Model):
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
-            are proportions, if `tree` is specified.
+            A table of residuals where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
 
         References
         ----------
         .. [1] Aitchison, J. "A concise guide to compositional data analysis,
            CDA work." Girona 24 (2003): 73-81.
         """
-        resid = pd.DataFrame()
-
-        for r in self.results:
-            err = r.resid
-            err.name = r.model.endog_names
-            resid = resid.append(err)
-
+        if not self._fitted:
+            ValueError(('Model not fitted - coefficients not calculated.'
+                        'See `fit()`'))
+        resid = self._resid
         if tree is not None:
             basis, _ = balance_basis(tree)
-            proj_resid = ilr_inv(resid.values.T, basis=basis).T
+            proj_resid = ilr_inv(resid.values, basis=basis)
+            ids = [n.name for n in tree.tips()]
             return pd.DataFrame(proj_resid,
-                                index=[n.name for n in tree.tips()],
-                                columns=resid.columns).T
+                                columns=ids,
+                                index=resid.index)
         else:
-            return resid.T
+            return resid
 
+    @abc.abstractmethod
     def predict(self, X=None, tree=None, **kwargs):
         """ Performs a prediction based on model.
 
@@ -128,36 +131,24 @@ class RegressionModel(Model):
         Returns
         -------
         pd.DataFrame
-            A table of values where rows are coefficients, and the columns
-            are proportions, if `tree` is specified.
+            A table of predicted values where rows are covariates,
+            and the columns are balances. If `tree` is specified, then
+            the columns are proportions.
 
         """
-        prediction = pd.DataFrame()
-        for m in self.results:
-            # check if X is none.
-            p = pd.Series(m.predict(X, **kwargs))
-            p.name = m.model.endog_names
-            if X is not None:
-                p.index = X.index
-            else:
-                p.index = m.fittedvalues.index
-            prediction = prediction.append(p)
+        if not self._fitted:
+            ValueError(('Model not fitted - coefficients not calculated.'
+                        'See `fit()`'))
+        if X is None:
+            X = self.design_matrices
 
+        prediction = X.dot(self._beta)
         if tree is not None:
             basis, _ = balance_basis(tree)
-            proj_prediction = ilr_inv(prediction.values.T, basis=basis)
+            proj_prediction = ilr_inv(prediction.values, basis=basis)
+            ids = [n.name for n in tree.tips()]
             return pd.DataFrame(proj_prediction,
-                                columns=[n.name for n in tree.tips()],
-                                index=prediction.columns)
+                                columns=ids,
+                                index=prediction.index)
         else:
-            return prediction.T
-
-    @property
-    def pvalues(self):
-        """ Return pvalues from each of the coefficients in the fit. """
-        pvals = pd.DataFrame()
-        for r in self.results:
-            p = r.pvalues
-            p.name = r.model.endog_names
-            pvals = pvals.append(p)
-        return pvals
+            return prediction

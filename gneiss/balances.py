@@ -66,7 +66,7 @@ def balance_basis(tree_node):
     """
     Determines the basis based on bifurcating tree.
 
-    This is commonly referred to as sequential binary partition.
+    This is commonly referred to as sequential binary partition [1]_.
     Given a binary tree relating a list of features, this module can
     be used to calculate an orthonormal basis, which is used to
     calculate the ilr transform.
