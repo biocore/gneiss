@@ -28,9 +28,7 @@ Functions
 # ----------------------------------------------------------------------------
 from ._pba import (correlation_linkage, gradient_linkage,
                    rank_linkage, random_linkage)
-from ._cluster import correlation_clustering, gradient_clustering
 
 
 __all__ = ['correlation_linkage', 'gradient_linkage',
-           'rank_linkage', 'random_linkage',
-           'correlation_clustering', 'gradient_clustering']
+           'rank_linkage', 'random_linkage']

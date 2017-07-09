@@ -8,7 +8,6 @@
 import pandas as pd
 import skbio
 from skbio.stats.composition import ilr
-from gneiss.plugin_setup import plugin
 from gneiss.balances import balance_basis
 from gneiss.util import match_tips
 

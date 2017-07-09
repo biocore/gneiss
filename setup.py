@@ -92,7 +92,4 @@ setup(name='gneiss',
       classifiers=classifiers,
       package_data={
           },
-      entry_points={
-          'qiime2.plugins':
-          ['gneiss=gneiss.plugin_setup:plugin']
-      })
+)
