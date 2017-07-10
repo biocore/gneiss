@@ -7,9 +7,3 @@ notebook
 scikit-bio=0.5.1
 pyqt=4.11.4
 bokeh
-qiime2
-q2-composition
-q2-types
-q2-feature-table
-q2cli
-q2templates
