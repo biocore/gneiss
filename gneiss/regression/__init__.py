@@ -34,8 +34,6 @@ Classes
 # ----------------------------------------------------------------------------
 from ._ols import ols, OLSModel
 from ._mixedlm import mixedlm, LMEModel
-from ._regression import lme_regression, ols_regression
 
 
-__all__ = ["ols", "OLSModel", "mixedlm", "LMEModel",
-           "lme_regression", "ols_regression"]
+__all__ = ["ols", "OLSModel", "mixedlm", "LMEModel"]

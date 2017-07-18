@@ -28,8 +28,6 @@ Functions
 from ._heatmap import heatmap
 from ._radial import radialplot
 from ._decompose import balance_boxplot, balance_barplots
-from ._plot import dendrogram_heatmap
 
 
-__all__ = ["heatmap", "radialplot", "balance_boxplot", "balance_barplots",
-           "dendrogram_heatmap"]
+__all__ = ["heatmap", "radialplot", "balance_boxplot", "balance_barplots"]

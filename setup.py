@@ -37,7 +37,7 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
 
 classes = """
-    Development Status :: 3 - Alpha
+    Development Status :: 4 - Beta
     License :: OSI Approved :: BSD License
     Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
@@ -86,14 +86,10 @@ setup(name='gneiss',
           'nose >= 1.3.7',
           'scikit-bio==0.5.1',
           'statsmodels>=0.8.0',
+          'biom-format',
+          'seaborn'
       ],
-      extras_require={
-          'q2': ['qiime2 >= 2017.2.0', 'biom-format', 'seaborn']
-      },
       classifiers=classifiers,
       package_data={
           },
-      entry_points={
-          'qiime2.plugins':
-          ['gneiss=gneiss.plugin_setup:plugin']
-      })
+      )
