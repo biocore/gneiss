@@ -125,9 +125,6 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
                                      frame_on=True, sharey=ax_dendrogram)
         _plot_highlights_dendrogram(ax_highlights, table, t, highlights)
 
-    # colorbar on the far right side
-    [axc_x, axc_y, axc_w, axc_h] = [cbar_pad, top_buffer, 1-cbar_pad, height]
-
     # plot heatmap
     ax_heatmap = fig.add_axes([ax1_x, ax1_y, ax1_w, ax1_h], frame_on=True,
                               sharey=ax_dendrogram)
