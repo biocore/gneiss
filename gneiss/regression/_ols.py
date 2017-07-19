@@ -193,9 +193,6 @@ class OLSModel(RegressionModel):
         tvalues = np.divide(beta, bse)
         pvals = stats.t.sf(np.abs(tvalues), df_resid)*2
 
-        # pillai t-test
-
-
         self._tvalues = pd.DataFrame(tvalues, index=X.columns,
                                      columns=Y.columns)
         self._pvalues = pd.DataFrame(pvals, index=X.columns,
