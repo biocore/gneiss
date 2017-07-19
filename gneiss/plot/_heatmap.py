@@ -111,7 +111,8 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
 
     # heatmap axes
     hstart = xwidth + (h * hwidth)
-    [ax1_x, ax1_y, ax1_w, ax1_h] = [hstart, top_buffer, cbar_pad-hstart, height]
+    [ax1_x, ax1_y, ax1_w, ax1_h] = [hstart, top_buffer,
+                                    cbar_pad-hstart, height]
 
     # plot dendrogram
     ax_dendrogram = fig.add_axes([axm_x, axm_y, axm_w, axm_h],
@@ -131,7 +132,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     ax_heatmap = fig.add_axes([ax1_x, ax1_y, ax1_w, ax1_h], frame_on=True,
                               sharey=ax_dendrogram)
     cbar = _plot_heatmap(ax_heatmap, table, mdvar,
-                                grid_col, grid_width, cmap, **kwargs)
+                         grid_col, grid_width, cmap, **kwargs)
     # plot the colorbar
     fig.colorbar(cbar)
     return fig
@@ -252,7 +253,8 @@ def _sort_table(table, mdvar):
     return table, mdvar
 
 
-def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap, **kwargs):
+def _plot_heatmap(ax_heatmap, table, mdvar, grid_col,
+                  grid_width, cmap, **kwargs):
     """ Sorts metadata category and aligns with table.
 
     Parameters
