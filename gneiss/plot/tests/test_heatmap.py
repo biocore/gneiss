@@ -57,7 +57,7 @@ class HeatmapTest(unittest.TestCase):
                       figsize=(5, self.table.shape[0]))
 
         # Test to see if the lineages of the tree are ok
-        lines = list(fig.get_axes()[1].get_lines())
+        lines = list(fig.get_axes()[0].get_lines())
 
         exp_coords = np.array([[14.25, 0.5],
                                [14.25, 1.],
@@ -97,13 +97,13 @@ class HeatmapTest(unittest.TestCase):
         npt.assert_allclose(exp_coords, res)
 
         # Make sure that the metadata labels are set properly
-        res = str(fig.get_axes()[0].get_xticklabels(minor=True)[0])
+        res = str(fig.get_axes()[1].get_xticklabels(minor=True)[0])
         self.assertEqual(res, "Text(0,0,'a')")
 
-        res = str(fig.get_axes()[0].get_xticklabels(minor=True)[1])
+        res = str(fig.get_axes()[1].get_xticklabels(minor=True)[1])
         self.assertEqual(res, "Text(0,0,'b')")
 
-        res = str(fig.get_axes()[0].get_xlabel())
+        res = str(fig.get_axes()[1].get_xlabel())
         self.assertEqual(res, "None")
 
     def test_basic_line_width(self):
@@ -136,7 +136,7 @@ class HeatmapTest(unittest.TestCase):
         fig = heatmap(table, t, md, highlights)
 
         # Test to see if the lineages of the tree are ok
-        lines = list(fig.get_axes()[1].get_lines())
+        lines = list(fig.get_axes()[0].get_lines())
 
         pts = self.t.coords(width=20, height=self.table.shape[0])
         pts['y'] = pts['y'] - 0.5  # account for offset
@@ -181,23 +181,23 @@ class HeatmapTest(unittest.TestCase):
         npt.assert_allclose(exp_coords, res)
 
         # Make sure that the metadata labels are set properly
-        res = str(fig.get_axes()[0].get_xticklabels(minor=True)[0])
+        res = str(fig.get_axes()[2].get_xticklabels(minor=True)[0])
         self.assertEqual(res, "Text(0,0,'a')")
 
-        res = str(fig.get_axes()[0].get_xticklabels(minor=True)[1])
+        res = str(fig.get_axes()[2].get_xticklabels(minor=True)[1])
         self.assertEqual(res, "Text(0,0,'b')")
 
         # Make sure that the highlight labels are set properly
-        res = str(fig.get_axes()[2].get_xticklabels()[0])
+        res = str(fig.get_axes()[1].get_xticklabels()[0])
         self.assertEqual(res, "Text(0,0,'y7')")
 
-        res = str(fig.get_axes()[2].get_xticklabels()[1])
+        res = str(fig.get_axes()[1].get_xticklabels()[1])
         self.assertEqual(res, "Text(0,0,'y8')")
 
         # Test to see if the highlights are ok
         res = fig.get_axes()[2].get_position()._points
-        exp = np.array([[0.2, 0.1],
-                        [0.24, 0.9]])
+        exp = np.array([[0.24, 0.1],
+                        [0.808, 0.9]])
         npt.assert_allclose(res, exp)
 
 

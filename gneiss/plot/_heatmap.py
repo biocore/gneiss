@@ -15,7 +15,7 @@ from gneiss.util import match_tips, NUMERATOR, DENOMINATOR
 
 def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
             linewidth=0.5, grid_col='w', grid_width=2, highlight_width=0.02,
-            figsize=(5, 5)):
+            figsize=(5, 5), **kwargs):
     """ Creates heatmap plotting object
 
     Parameters
@@ -48,7 +48,8 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
         (default=2)
     figsize: tuple of int
         Species (width, height) for figure. (default=(5, 5))
-
+    **kwargs : dict
+        Arguments to be passed into the heatmap plotting.
 
     Returns
     -------
@@ -95,8 +96,9 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     xwidth = 0.2
     top_buffer = 0.1
     height = 0.8
+    cbar_pad = 0.95
 
-    # heatmap axes
+    # dendrogram axes on the left side
     [axm_x, axm_y, axm_w, axm_h] = [0, top_buffer, xwidth, height]
 
     # create a split for the highlights
@@ -107,25 +109,29 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     hwidth = highlight_width
     [axs_x, axs_y, axs_w, axs_h] = [xwidth, top_buffer, hwidth * h, height]
 
-    # dendrogram axes on the right side
-    hstart = xwidth + (h * hwidth)  # beginning of heatmap
-    [ax1_x, ax1_y, ax1_w, ax1_h] = [hstart, top_buffer, 1-hstart, height]
-
-    # plot heatmap
-    ax_heatmap = fig.add_axes([ax1_x, ax1_y, ax1_w, ax1_h], frame_on=True)
-    _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap)
+    # heatmap axes
+    hstart = xwidth + (h * hwidth)
+    [ax1_x, ax1_y, ax1_w, ax1_h] = [hstart, top_buffer,
+                                    cbar_pad-hstart, height]
 
     # plot dendrogram
     ax_dendrogram = fig.add_axes([axm_x, axm_y, axm_w, axm_h],
-                                 frame_on=True, sharey=ax_heatmap)
+                                 frame_on=True)
     _plot_dendrogram(ax_dendrogram, table, edge_list, linewidth=linewidth)
 
     # plot highlights for dendrogram
     if highlights is not None:
         ax_highlights = fig.add_axes([axs_x, axs_y, axs_w, axs_h],
-                                     frame_on=True, sharey=ax_heatmap)
+                                     frame_on=True, sharey=ax_dendrogram)
         _plot_highlights_dendrogram(ax_highlights, table, t, highlights)
 
+    # plot heatmap
+    ax_heatmap = fig.add_axes([ax1_x, ax1_y, ax1_w, ax1_h], frame_on=True,
+                              sharey=ax_dendrogram)
+    cbar = _plot_heatmap(ax_heatmap, table, mdvar,
+                         grid_col, grid_width, cmap, **kwargs)
+    # plot the colorbar
+    fig.colorbar(cbar)
     return fig
 
 
@@ -244,7 +250,8 @@ def _sort_table(table, mdvar):
     return table, mdvar
 
 
-def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap):
+def _plot_heatmap(ax_heatmap, table, mdvar, grid_col,
+                  grid_width, cmap, **kwargs):
     """ Sorts metadata category and aligns with table.
 
     Parameters
@@ -263,13 +270,21 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap):
     grid_width: int
         Width of vertical lines for highlighting sample metadata.
         (default=2)
+    **kwargs: dict
+        Arguments to be passed into the heatmap function.
+
+    Returns
+    -------
+    colorbar_ax : matplotlib axes object
+        The colorbar axis.
     """
     # TODO add explicit test for this, since matplotlib orientation
     # is from top to down (i.e. is backwards)
     table, mdvar = _sort_table(table, mdvar)
     table = table.iloc[::-1, :]
-    ax_heatmap.imshow(table, aspect='auto', interpolation='nearest',
-                      cmap=cmap)
+    colorbar_ax = ax_heatmap.imshow(table, aspect='auto',
+                                    interpolation='nearest',
+                                    cmap=cmap, **kwargs)
     ax_heatmap.set_ylim([0, table.shape[0]])
     vcounts = mdvar.value_counts()
 
@@ -287,3 +302,4 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col, grid_width, cmap):
     ax_heatmap.set_xticks(midpoints-0.5, minor=True)
     ax_heatmap.set_xticklabels(vcounts.index, minor=True)
     ax_heatmap.set_xlabel(mdvar.name)
+    return colorbar_ax
