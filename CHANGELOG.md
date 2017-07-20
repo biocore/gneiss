@@ -1,5 +1,7 @@
 # gneiss changelog
 
+## Version 0.4.1
+* Added colorbar for heatmap
 
 ## Version 0.4.0
 * Accelerated the ordinary least squares regression
