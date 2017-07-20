@@ -49,7 +49,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     figsize: tuple of int
         Species (width, height) for figure. (default=(5, 5))
     **kwargs : dict
-        Arguments to pass into the heatmap plotting.
+        Arguments to be passed into the heatmap plotting.
 
     Returns
     -------
