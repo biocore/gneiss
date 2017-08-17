@@ -6,7 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 import unittest
-from gneiss.plot import balance_boxplot, balance_barplots
+from gneiss.plot import balance_boxplot, balance_barplots, proportion_plot
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
@@ -103,6 +103,59 @@ class TestBoxplot(unittest.TestCase):
     def test_basic_barplot(self):
         ax_denom, ax_num = balance_barplots(self.tree, 'y', header='food',
                                             feature_metadata=self.feature_df)
+
+
+class TestProportionPlot(unittest.TestCase):
+    def setUp(self):
+        self.table = pd.DataFrame({
+            'A': [1, 1.2, 1.1, 2.1, 2.2, 2],
+            'B': [9.9, 10, 10.1, 2, 2.4, 2.1],
+            'C': [5, 3, 1, 2, 2, 3],
+            'D': [5, 5, 5, 5, 5, 5],
+        }, index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
+
+        self.feature_metadata = pd.DataFrame({
+            'A': ['k__foo', 'p__bar', 'c__', 'o__', 'f__', 'g__', 's__'],
+            'B': ['k__foo', 'p__bar', 'c__', 'o__', 'f__', 'g__', 's__'],
+            'C': ['k__poo', 'p__tar', 'c__', 'o__', 'f__', 'g__', 's__'],
+            'D': ['k__poo', 'p__far', 'c__', 'o__', 'f__', 'g__', 's__']
+        }, index=['kingdom', 'phylum', 'class', 'order',
+                  'family', 'genus', 'species']).T
+
+        self.metadata = pd.DataFrame({
+            'groups': ['X', 'X', 'X', 'Y', 'Y', 'Y'],
+            'dry': [1, 2, 3, 4, 5, 6]
+        }, index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
+
+    def test_proportion_plot(self):
+
+        num_features = ['A', 'B']
+        denom_features = ['C', 'D']
+        ax1, ax2 = proportion_plot(self.table, self.metadata,
+                                   num_features, denom_features,
+                                   self.feature_metadata, 'groups', 'X', 'Y',
+                                   taxa_level='phylum')
+        res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
+        exp = np.array([[0.1863354, 0.],
+                        [0.20529801, 0.],
+                        [0.19254658, 1.],
+                        [0.21794872, 1.],
+                        [0.19230769, 2.],
+                        [0.2484472, 2.],
+                        [0.37267081, 3.],
+                        [0.39735099, 3.]])
+        npt.assert_allclose(res, exp)
+
+        res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
+        exp = np.array([[0.08032129, 0.],
+                        [0.0990566, 0.],
+                        [0.437751, 1.],
+                        [0.52358491, 1.],
+                        [0.09433962, 2.],
+                        [0.24096386, 2.],
+                        [0.24096386, 3.],
+                        [0.28301887, 3.]])
+        npt.assert_allclose(res, exp)
 
 
 if __name__ == '__main__':

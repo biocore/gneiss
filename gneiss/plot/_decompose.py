@@ -155,3 +155,123 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     ax_num.set_xlim([0,  max([num_.max().values[1],
                               denom_.max().values[1]])])
     return ax_num, ax_denom
+
+
+def proportion_plot(table, metadata, num_features, denom_features,
+                    feature_metadata, category, left_group, right_group,
+                    taxa_level='species',
+                    num_color='#105d33', denom_color='#b0d78e',
+                    axes=(None, None)):
+    """ Plot the mean proportions of features within a balance.
+
+    This plots the numerator and denominator components within a balance.
+
+    Parameters
+    ----------
+    table : pd.DataFrame
+       Table of relative abundances.
+    metadata : pd.DataFrame
+       Samples metadata
+    spectrum : pd.Series
+       The component from partial least squares.
+    feature_metadata : pd.DataFrame
+       The metadata associated to the features.
+    category : str
+       Name of sample metadata category.
+    left_group : str
+       Name of group within sample metadata category to plot
+       on the left of the plot.
+    right_group : str
+       Name of group within sample metadata category to plot
+       on the right of the plot.
+    taxa_level : str
+       Taxonomic level to summarize.
+    num_color : str
+       Color to plot the numerator.
+    denom_color : str
+       Color to plot the denominator.
+    """
+    import seaborn as sns
+    if axes[0] is None or axes[1] is None:
+        f, (ax_num, ax_denom) = plt.subplots(1, 2)
+    else:
+        ax_num, ax_denom = axes[0][0], axes[0][1]
+
+    level = 'feature'
+    ptable = table.apply(lambda x: (x+1) / (x+1).sum(), axis=1)
+    num_collapsed = ptable[num_features]
+
+    denom_collapsed = ptable[denom_features]
+
+    # merge together metadata and sequences
+    num_data_ = pd.merge(metadata, num_collapsed,
+                         left_index=True, right_index=True)
+    denom_data_ = pd.merge(metadata, denom_collapsed,
+                           left_index=True, right_index=True)
+
+    # merge the data frame, so that all of the proportions
+    # are in their own separate column
+    num_data = pd.melt(num_data_, id_vars=[category],
+                       value_vars=list(num_collapsed.columns),
+                       value_name='proportion', var_name=level)
+    num_data['part'] = 'numerator'
+    denom_data = pd.melt(denom_data_, id_vars=[category],
+                         value_vars=list(denom_collapsed.columns),
+                         value_name='proportion', var_name=level)
+    denom_data['part'] = 'denominator'
+    data = pd.concat((num_data, denom_data))
+
+    num_feature_metadata = feature_metadata.loc[num_collapsed.columns,
+                                                taxa_level]
+    denom_feature_metadata = feature_metadata.loc[denom_collapsed.columns,
+                                                  taxa_level]
+
+    less_df = data.loc[data[category] == left_group].dropna()
+
+    sns.barplot(x='proportion',
+                y=level,
+                data=less_df,
+                color=denom_color,
+                order=(list(num_feature_metadata.index) +
+                       list(denom_feature_metadata.index)),
+                ax=ax_denom)
+    more_df = data.loc[data[category] == right_group].dropna()
+
+    sns.barplot(x='proportion',
+                y=level,
+                data=more_df,
+                color=num_color,
+                order=(list(num_feature_metadata.index) +
+                       list(denom_feature_metadata.index)),
+                ax=ax_num)
+
+    ax_denom.set(yticklabels=(sorted(num_feature_metadata) +
+                              sorted(denom_feature_metadata)),
+                 title=left_group)
+    ax_num.set(yticklabels=[], ylabel='', yticks=[], title=right_group)
+
+    max_xlim = max(ax_denom.get_xlim()[1], ax_num.get_xlim()[1])
+    min_xlim = max(ax_denom.get_xlim()[0], ax_num.get_xlim()[0])
+
+    max_ylim, min_ylim = ax_denom.get_ylim()
+
+    xlim = ([min_xlim, max_xlim])
+    ax_denom.set_xlim(max_xlim, min_xlim)
+    ax_num.set_xlim(min_xlim, max_xlim)
+    ax_denom.set_position([0.2, 0.125, 0.3, 0.75])
+    ax_num.set_position([0.5, 0.125, 0.3, 0.75])
+
+    num_h = num_collapsed.shape[1]
+    denom_h = denom_collapsed.shape[1]
+
+    space = (max_ylim - min_ylim) / (num_h + denom_h)
+    ymid = (max_ylim - min_ylim) * num_h / (num_h + denom_h) - 0.5 * space
+
+    ax_denom.axhspan(min_ylim, ymid, facecolor=num_color,
+                     zorder=0, alpha=0.25)
+    ax_denom.axhspan(ymid, max_ylim, facecolor=denom_color,
+                     zorder=0, alpha=0.25)
+
+    ax_num.axhspan(min_ylim, ymid, facecolor=num_color, zorder=0, alpha=0.25)
+    ax_num.axhspan(ymid, max_ylim, facecolor=denom_color, zorder=0, alpha=0.25)
+    return (ax_num, ax_denom)
