@@ -227,13 +227,14 @@ def proportion_plot(table, metadata, num_features, denom_features,
                                                   taxa_level]
 
     less_df = data.loc[data[category] == left_group].dropna()
-
+    # order of the ids to plot
+    order = (list(num_feature_metadata.index) +
+             list(denom_feature_metadata.index))
     sns.barplot(x='proportion',
                 y=level,
                 data=less_df,
                 color=denom_color,
-                order=(list(num_feature_metadata.index) +
-                       list(denom_feature_metadata.index)),
+                order=order,
                 ax=ax_denom)
     more_df = data.loc[data[category] == right_group].dropna()
 
@@ -241,12 +242,11 @@ def proportion_plot(table, metadata, num_features, denom_features,
                 y=level,
                 data=more_df,
                 color=num_color,
-                order=(list(num_feature_metadata.index) +
-                       list(denom_feature_metadata.index)),
+                order=order,
                 ax=ax_num)
 
-    ax_denom.set(yticklabels=(sorted(num_feature_metadata) +
-                              sorted(denom_feature_metadata)),
+    ax_denom.set(yticklabels=(list(num_feature_metadata.values) +
+                              list(denom_feature_metadata.values)),
                  title=left_group)
     ax_num.set(yticklabels=[], ylabel='', yticks=[], title=right_group)
 
