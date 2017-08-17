@@ -10,6 +10,7 @@ from gneiss.plot import balance_boxplot, balance_barplots, proportion_plot
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
+import matplotlib.pyplot as plt
 from skbio import TreeNode
 
 
@@ -190,6 +191,42 @@ class TestProportionPlot(unittest.TestCase):
                         [0.09433962, 3.],
                         [0.24096386, 3.]])
         npt.assert_allclose(res, exp, atol=1e-5)
+
+        res = [l._text for l in ax2.get_yticklabels()]
+        exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
+        self.assertListEqual(res, exp)
+
+    def test_proportion_plot_order_figure(self):
+        # tests for different ordering
+        fig, axes = plt.subplots(1, 2)
+
+        num_features = ['A', 'B']
+        denom_features = ['D', 'C']
+        ax1, ax2 = proportion_plot(self.table, self.metadata,
+                                   num_features, denom_features,
+                                   self.feature_metadata, 'groups', 'X', 'Y',
+                                   taxa_level='phylum', axes=axes)
+        res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
+        exp = np.array([[0.1863354, 0.],
+                        [0.20529801, 0.],
+                        [0.19254658, 1.],
+                        [0.21794872, 1.],
+                        [0.37267081, 2.],
+                        [0.39735099, 2.],
+                        [0.19230769, 3.],
+                        [0.2484472, 3.]])
+        npt.assert_allclose(res, exp, atol=1e-2)
+
+        res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
+        exp = np.array([[0.08032129, 0.],
+                        [0.0990566, 0.],
+                        [0.437751, 1.],
+                        [0.52358491, 1.],
+                        [0.24096386, 2.],
+                        [0.28301887, 2.],
+                        [0.09433962, 3.],
+                        [0.24096386, 3.]])
+        npt.assert_allclose(res, exp, atol=1e-2)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']

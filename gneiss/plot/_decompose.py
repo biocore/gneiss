@@ -195,7 +195,7 @@ def proportion_plot(table, metadata, num_features, denom_features,
     if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(1, 2)
     else:
-        ax_num, ax_denom = axes[0][0], axes[0][1]
+        ax_num, ax_denom = axes[0], axes[1]
 
     level = 'feature'
     ptable = table.apply(lambda x: (x+1) / (x+1).sum(), axis=1)
