@@ -198,7 +198,7 @@ def proportion_plot(table, metadata, num_features, denom_features,
         ax_num, ax_denom = axes[0], axes[1]
 
     level = 'feature'
-    ptable = table.apply(lambda x: (x+1) / (x+1).sum(), axis=1)
+    ptable = table.apply(lambda x: x / x.sum(), axis=1)
     num_collapsed = ptable[num_features]
 
     denom_collapsed = ptable[denom_features]
