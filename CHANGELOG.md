@@ -2,6 +2,7 @@
 
 ## Version 0.4.1
 * Added colorbar for heatmap
+* Decoupled qiime2 from gneiss.  All qiime2 commands have now been ported to [q2-gneiss](https://github.com/qiime2/q2-gneiss)
 
 ## Version 0.4.0
 * Accelerated the ordinary least squares regression
