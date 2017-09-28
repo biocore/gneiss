@@ -270,7 +270,6 @@ def proportion_plot(table, metadata, category, left_group, right_group,
 
     max_ylim, min_ylim = ax_denom.get_ylim()
 
-    xlim = ([min_xlim, max_xlim])
     ax_denom.set_xlim(max_xlim, min_xlim)
     ax_num.set_xlim(min_xlim, max_xlim)
     ax_denom.set_position([0.2, 0.125, 0.3, 0.75])

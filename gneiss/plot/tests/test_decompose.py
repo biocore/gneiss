@@ -137,6 +137,15 @@ class TestProportionPlot(unittest.TestCase):
                                    num_features, denom_features,
                                    self.feature_metadata,
                                    label_col='phylum')
+        res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
+        exp=np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+        npt.assert_allclose(res[:, 1], exp, verbose=True)
+
+        res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
+        exp=np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+        npt.assert_allclose(res[:, 1], exp, verbose=True)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__tar', 'p__far']
@@ -153,6 +162,15 @@ class TestProportionPlot(unittest.TestCase):
                                    num_features, denom_features,
                                    self.feature_metadata,
                                    label_col='phylum')
+        res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+        npt.assert_allclose(res[:, 1], exp, atol=1e-2, rtol=1e-2, verbose=True)
+
+        res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+        npt.assert_allclose(res[:, 1], exp, atol=1e-2, rtol=1e-2, verbose=True)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
@@ -171,6 +189,16 @@ class TestProportionPlot(unittest.TestCase):
                                    num_features, denom_features,
                                    self.feature_metadata,
                                    label_col='phylum', axes=axes)
+        res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+        npt.assert_allclose(res[:, 1], exp, atol=1e-2, rtol=1e-2, verbose=True)
+
+        res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+
+
+        npt.assert_allclose(res[:, 1], exp, atol=1e-2, rtol=1e-2, verbose=True)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
