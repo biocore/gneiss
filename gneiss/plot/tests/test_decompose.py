@@ -133,29 +133,32 @@ class TestProportionPlot(unittest.TestCase):
         num_features = ['A', 'B']
         denom_features = ['C', 'D']
         ax1, ax2 = proportion_plot(self.table, self.metadata,
+                                   'groups', 'X', 'Y',
                                    num_features, denom_features,
-                                   self.feature_metadata, 'groups', 'X', 'Y',
-                                   taxa_level='phylum')
+                                   self.feature_metadata,
+                                   label_col='phylum')
         res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
-        exp = np.array([[0.1863354, 0.],
-                        [0.20529801, 0.],
-                        [0.19254658, 1.],
-                        [0.21794872, 1.],
-                        [0.19230769, 2.],
-                        [0.2484472, 2.],
-                        [0.37267081, 3.],
-                        [0.39735099, 3.]])
+        exp = np.array([[0.16528926, 0.],
+                        [0.18965517, 0.],
+                        [0.17355372, 1.],
+                        [0.20689655, 1.],
+                        [0.17241379, 2.],
+                        [0.24793388, 2.],
+                        [0.41322314, 3.],
+                        [0.45045045, 3.]])
+
         npt.assert_allclose(res, exp)
 
         res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
-        exp = np.array([[0.08032129, 0.],
-                        [0.0990566, 0.],
-                        [0.437751, 1.],
-                        [0.52358491, 1.],
-                        [0.09433962, 2.],
-                        [0.24096386, 2.],
-                        [0.24096386, 3.],
-                        [0.28301887, 3.]])
+        exp = np.array([[0.04784689, 0.],
+                        [0.06395349, 0.],
+                        [0.47368421, 1.],
+                        [0.5872093, 1.],
+                        [0.05813953, 2.],
+                        [0.23923445, 2.],
+                        [0.23923445, 3.],
+                        [0.29069767, 3.]])
+
         npt.assert_allclose(res, exp)
 
         res = [l._text for l in ax2.get_yticklabels()]
@@ -167,30 +170,34 @@ class TestProportionPlot(unittest.TestCase):
         num_features = ['A', 'B']
         denom_features = ['D', 'C']
         ax1, ax2 = proportion_plot(self.table, self.metadata,
+                                   'groups', 'X', 'Y',
                                    num_features, denom_features,
-                                   self.feature_metadata, 'groups', 'X', 'Y',
-                                   taxa_level='phylum')
+                                   self.feature_metadata,
+                                   label_col='phylum')
         res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
-        exp = np.array([[0.1863354, 0.],
-                        [0.20529801, 0.],
-                        [0.19254658, 1.],
-                        [0.21794872, 1.],
-                        [0.37267081, 2.],
-                        [0.39735099, 2.],
-                        [0.19230769, 3.],
-                        [0.2484472, 3.]])
-        npt.assert_allclose(res, exp, atol=1e-5)
+
+        exp = np.array([[0.16528926, 0.],
+                        [0.18965517, 0.],
+                        [0.17355372, 1.],
+                        [0.20689655, 1.],
+                        [0.41322314, 2.],
+                        [0.45045045, 2.],
+                        [0.17241379, 3.],
+                        [0.24793388, 3.]])
+
+
+        npt.assert_allclose(res, exp, atol=1e-3, rtol=1e-3)
 
         res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
-        exp = np.array([[0.08032129, 0.],
-                        [0.0990566, 0.],
-                        [0.437751, 1.],
-                        [0.52358491, 1.],
-                        [0.24096386, 2.],
-                        [0.28301887, 2.],
-                        [0.09433962, 3.],
-                        [0.24096386, 3.]])
-        npt.assert_allclose(res, exp, atol=1e-5)
+        exp = np.array([[0.04784689, 0.],
+                        [0.06395349, 0.],
+                        [0.47368421, 1.],
+                        [0.5872093, 1.],
+                        [0.23923445, 2.],
+                        [0.29069767, 2.],
+                        [0.05813953, 3.],
+                        [0.23923445, 3.]])
+        npt.assert_allclose(res, exp, atol=1e-3, rtol=1e-3)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
@@ -203,30 +210,31 @@ class TestProportionPlot(unittest.TestCase):
         num_features = ['A', 'B']
         denom_features = ['D', 'C']
         ax1, ax2 = proportion_plot(self.table, self.metadata,
+                                   'groups', 'X', 'Y',
                                    num_features, denom_features,
-                                   self.feature_metadata, 'groups', 'X', 'Y',
-                                   taxa_level='phylum', axes=axes)
+                                   self.feature_metadata,
+                                   label_col='phylum', axes=axes)
         res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
-        exp = np.array([[0.1863354, 0.],
-                        [0.20529801, 0.],
-                        [0.19254658, 1.],
-                        [0.21794872, 1.],
-                        [0.37267081, 2.],
-                        [0.39735099, 2.],
-                        [0.19230769, 3.],
-                        [0.2484472, 3.]])
-        npt.assert_allclose(res, exp, atol=1e-2)
+        exp = np.array([[0.16528926, 0.],
+                        [0.18965517, 0.],
+                        [0.17355372, 1.],
+                        [0.20689655, 1.],
+                        [0.41322314, 2.],
+                        [0.45045045, 2.],
+                        [0.17241379, 3.],
+                        [0.24793388, 3.]])
+        npt.assert_allclose(res, exp, atol=1e-3, rtol=1e-3)
 
         res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
-        exp = np.array([[0.08032129, 0.],
-                        [0.0990566, 0.],
-                        [0.437751, 1.],
-                        [0.52358491, 1.],
-                        [0.24096386, 2.],
-                        [0.28301887, 2.],
-                        [0.09433962, 3.],
-                        [0.24096386, 3.]])
-        npt.assert_allclose(res, exp, atol=1e-2)
+        exp = np.array([[0.04784689, 0.],
+                        [0.06395349, 0.],
+                        [0.47368421, 1.],
+                        [0.5872093, 1.],
+                        [0.23923445, 2.],
+                        [0.29069767, 2.],
+                        [0.05813953, 3.],
+                        [0.23923445, 3.]])
+        npt.assert_allclose(res, exp, atol=1e-3, rtol=1e-3)
 
         res = [l._text for l in ax2.get_yticklabels()]
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
