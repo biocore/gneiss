@@ -157,9 +157,10 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     return ax_num, ax_denom
 
 
-def proportion_plot(table, metadata, num_features, denom_features,
-                    feature_metadata, category, left_group, right_group,
-                    taxa_level='species',
+def proportion_plot(table, metadata, category, left_group, right_group,
+                    num_features, denom_features,
+                    feature_metadata=None,
+                    aggregate_level='species',
                     num_color='#105d33', denom_color='#b0d78e',
                     axes=(None, None)):
     """ Plot the mean proportions of features within a balance.
@@ -184,8 +185,8 @@ def proportion_plot(table, metadata, num_features, denom_features,
     right_group : str
        Name of group within sample metadata category to plot
        on the right of the plot.
-    taxa_level : str
-       Taxonomic level to summarize.
+    aggregrate_col : str
+       Column in the feature metadata table to summarize by.
     num_color : str
        Color to plot the numerator.
     denom_color : str
@@ -197,7 +198,7 @@ def proportion_plot(table, metadata, num_features, denom_features,
     else:
         ax_num, ax_denom = axes[0], axes[1]
 
-    level = 'feature'
+    fname = 'feature'
     ptable = table.apply(lambda x: x / x.sum(), axis=1)
     num_collapsed = ptable[num_features]
 
@@ -213,25 +214,26 @@ def proportion_plot(table, metadata, num_features, denom_features,
     # are in their own separate column
     num_data = pd.melt(num_data_, id_vars=[category],
                        value_vars=list(num_collapsed.columns),
-                       value_name='proportion', var_name=level)
+                       value_name='proportion', var_name=fname)
     num_data['part'] = 'numerator'
     denom_data = pd.melt(denom_data_, id_vars=[category],
                          value_vars=list(denom_collapsed.columns),
-                         value_name='proportion', var_name=level)
+                         value_name='proportion', var_name=fname)
     denom_data['part'] = 'denominator'
     data = pd.concat((num_data, denom_data))
-
-    num_feature_metadata = feature_metadata.loc[num_collapsed.columns,
-                                                taxa_level]
-    denom_feature_metadata = feature_metadata.loc[denom_collapsed.columns,
-                                                  taxa_level]
+    if feature_metadata is not None:
+        num_feature_metadata = feature_metadata.loc[num_collapsed.columns,
+                                                    aggregate_level]
+        denom_feature_metadata = feature_metadata.loc[denom_collapsed.columns,
+                                                      aggregate_level]
+        # order of the ids to plot
+        order = (list(num_feature_metadata.index) +
+                 list(denom_feature_metadata.index))
 
     less_df = data.loc[data[category] == left_group].dropna()
-    # order of the ids to plot
-    order = (list(num_feature_metadata.index) +
-             list(denom_feature_metadata.index))
+
     sns.barplot(x='proportion',
-                y=level,
+                y=lfname,
                 data=less_df,
                 color=denom_color,
                 order=order,
@@ -244,10 +246,10 @@ def proportion_plot(table, metadata, num_features, denom_features,
                 color=num_color,
                 order=order,
                 ax=ax_num)
-
-    ax_denom.set(yticklabels=(list(num_feature_metadata.values) +
-                              list(denom_feature_metadata.values)),
-                 title=left_group)
+    if feature_metadata is not None:
+        ax_denom.set(yticklabels=(list(num_feature_metadata.values) +
+                                  list(denom_feature_metadata.values)),
+                     title=left_group)
     ax_num.set(yticklabels=[], ylabel='', yticks=[], title=right_group)
 
     max_xlim = max(ax_denom.get_xlim()[1], ax_num.get_xlim()[1])
