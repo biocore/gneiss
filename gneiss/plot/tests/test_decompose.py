@@ -138,12 +138,12 @@ class TestProportionPlot(unittest.TestCase):
                                    self.feature_metadata,
                                    label_col='phylum')
         res = np.vstack([l.get_xydata() for l in ax1.get_lines()])
-        exp=np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
 
         npt.assert_allclose(res[:, 1], exp, verbose=True)
 
         res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
-        exp=np.array([0., 0., 1., 1., 2., 2., 3., 3.])
+        exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
 
         npt.assert_allclose(res[:, 1], exp, verbose=True)
 
@@ -196,7 +196,6 @@ class TestProportionPlot(unittest.TestCase):
 
         res = np.vstack([l.get_xydata() for l in ax2.get_lines()])
         exp = np.array([0., 0., 1., 1., 2., 2., 3., 3.])
-
 
         npt.assert_allclose(res[:, 1], exp, atol=1e-2, rtol=1e-2, verbose=True)
 
