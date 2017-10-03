@@ -6,4 +6,4 @@ IPython>4.0.0
 notebook
 scikit-bio=0.5.1
 pyqt=4.11.4
-bokeh
+bokeh=0.12.6
