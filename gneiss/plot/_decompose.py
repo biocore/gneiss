@@ -198,6 +198,42 @@ def proportion_plot(table, metadata, category, left_group, right_group,
        Matplotlib axes for the numerator bars
     ax_denom : matplotlib.pyplot.Axes
        Matplotlib axes for the denominator bars
+
+    Examples
+    --------
+    First we'll want to set up the main objects to pass into the plot.
+    For starters, we'll pass in the feature table, metadata and
+    feature_metadata.
+
+    >>> table = pd.DataFrame({
+    ... 'A': [1, 1.2, 1.1, 2.1, 2.2, 2],
+    ... 'B': [9.9, 10, 10.1, 2, 2.4, 2.1],
+    ... 'C': [5, 3, 1, 2, 2, 3],
+    ... 'D': [5, 5, 5, 5, 5, 5],
+    ... }, index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
+
+    >>> feature_metadata = pd.DataFrame({
+    ...     'A': ['k__foo', 'p__bar', 'c__', 'o__', 'f__', 'g__', 's__'],
+    ...     'B': ['k__foo', 'p__bar', 'c__', 'o__', 'f__', 'g__', 's__'],
+    ...     'C': ['k__poo', 'p__tar', 'c__', 'o__', 'f__', 'g__', 's__'],
+    ...     'D': ['k__poo', 'p__far', 'c__', 'o__', 'f__', 'g__', 's__']
+    ... }, index=['kingdom', 'phylum', 'class', 'order', 'family',
+    ...           'genus', 'species']).T
+
+    >>> metadata = pd.DataFrame({
+    ...     'groups': ['X', 'X', 'X', 'Y', 'Y', 'Y'],
+    ...     'dry': [1, 2, 3, 4, 5, 6]},
+    ...     index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
+
+    Then we can specify which specific features to visualize and plot.
+    >>> num_features = ['A', 'B']
+    >>> denom_features = ['C', 'D']
+    >>> ax1, ax2 = proportion_plot(table, metadata, 'groups', 'X', 'Y',
+    ...                            num_features, denom_features,
+    ...                            feature_metadata, label_col='phylum')
+
+    Since this method will return the raw matplotlib object, labels, titles, ticks, etc
+    can directly modified using this object.
     """
     import seaborn as sns
     if axes[0] is None or axes[1] is None:

@@ -7,6 +7,7 @@ from skbio import TreeNode, DistanceMatrix
 from gneiss.plot._radial import radialplot
 from gneiss.plot._dendrogram import UnrootedDendrogram
 import pandas.util.testing as pdt
+import numpy.testing as npt
 
 
 class TestRadial(unittest.TestCase):
@@ -84,9 +85,9 @@ class TestRadial(unittest.TestCase):
                        node_size='node_size', edge_width='edge_width')
 
         for e in exp_edges.keys():
-            pdt.assert_series_equal(
-                p.renderers[0].data_source.data[e],
-                pd.Series(exp_edges[e], name=e))
+            self.assertListEqual(
+                list(p.renderers[0].data_source.data[e]),
+                exp_edges[e])
 
         for e in exp_nodes.keys():
             self.assertListEqual(
