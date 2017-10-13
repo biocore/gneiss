@@ -27,7 +27,8 @@ Functions
 
 from ._heatmap import heatmap
 from ._radial import radialplot
-from ._decompose import balance_boxplot, balance_barplots
+from ._decompose import balance_boxplot, balance_barplots, proportion_plot
 
 
-__all__ = ["heatmap", "radialplot", "balance_boxplot", "balance_barplots"]
+__all__ = ["heatmap", "radialplot", "balance_boxplot",
+           "balance_barplots", "proportion_plot"]

@@ -1,6 +1,7 @@
 # gneiss changelog
 
 ## Version 0.4.1
+* Added `proportion_plot` to plot the mean proportions within a single balance [#234](https://github.com/biocore/gneiss/pull/234)
 * Added colorbar for heatmap
 * Decoupled qiime2 from gneiss.  All qiime2 commands have now been ported to [q2-gneiss](https://github.com/qiime2/q2-gneiss)
 
