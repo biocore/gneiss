@@ -232,8 +232,8 @@ def proportion_plot(table, metadata, category, left_group, right_group,
     ...                            num_features, denom_features,
     ...                            feature_metadata, label_col='phylum')
 
-    Since this method will return the raw matplotlib object, labels, titles, ticks, etc
-    can directly modified using this object.
+    Since this method will return the raw matplotlib object, labels, titles,
+    ticks, etc can directly modified using this object.
     """
     import seaborn as sns
     if axes[0] is None or axes[1] is None:
