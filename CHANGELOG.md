@@ -1,5 +1,7 @@
 # gneiss changelog
 
+## Version 0.4.2-dev
+
 ## Version 0.4.2
 * Added `proportion_plot` to plot the mean proportions within a single balance [#234](https://github.com/biocore/gneiss/pull/234)
 
