@@ -41,25 +41,37 @@ except:
 def _balance_basis(tree_node):
     """ Helper method for calculating balance basis
     """
-    counts, n_tips = _count_matrix(tree_node)
-    counts = OrderedDict([(x, counts[x])
-                          for x in counts.keys() if not x.is_tip()])
-    nds = counts.keys()
-    r = np.array([counts[n]['r'] for n in nds])
-    s = np.array([counts[n]['l'] for n in nds])
-    k = np.array([counts[n]['k'] for n in nds])
-    t = np.array([counts[n]['t'] for n in nds])
+    # TODO: use recarray
+    # col 0 -> right counts
+    # col 1 -> left counts
+    # col 2 -> k
+    # col 3 -> t
+    r_idx = 0
+    l_idx = 1
+    k_idx = 2
+    t_idx = 3
+
+    counts, n_tips, n_nodes = _count_matrix(tree_node)
+    r = counts[:, r_idx]
+    s = counts[:, l_idx]
+    k = counts[:, k_idx]
+    t = counts[:, t_idx]
 
     a = np.sqrt(s / (r*(r+s)))
     b = -1*np.sqrt(r / (s*(r+s)))
 
     basis = np.zeros((n_tips-1, n_tips))
-    for i in range(len(nds)):
-        basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
-    # Make sure that the basis is in level order
-    basis = basis[:, ::-1]
-    nds = list(nds)
-    return basis, nds
+    for i in np.arange(n_nodes - n_tips, dtype=int):
+        v = basis[i]
+
+        k_i = n_tips - k[i]
+        r_i = k_i - r[i]
+        s_i = r_i - s[i]
+
+        v[r_i:k_i] = a[i]
+        v[s_i:r_i] = b[i]
+
+    return basis, [n for n in tree_node.levelorder() if not n.is_tip()]
 
 
 def balance_basis(tree_node):
@@ -123,51 +135,63 @@ def balance_basis(tree_node):
 
 
 def _count_matrix(treenode):
-    n_tips = 0
-    nodes = list(treenode.levelorder(include_self=True))
-    # fill in the Ordered dictionary. Note that the
-    # elements of this Ordered dictionary are
-    # dictionaries.
-    counts = OrderedDict()
-    columns = ['k', 'r', 'l', 't', 'tips']
-    for n in nodes:
-        if n not in counts:
-            counts[n] = {}
-        for c in columns:
-            counts[n][c] = 0
-
-    # fill in r and l.  This is done in reverse level order.
-    for n in nodes[::-1]:
+    node_count = 0
+    for n in treenode.postorder(include_self=True):
+        node_count += 1
         if n.is_tip():
-            counts[n]['tips'] = 1
-            n_tips += 1
-        elif len(n.children) == 2:
-            lchild = n.children[0]
-            rchild = n.children[1]
-            counts[n]['r'] = counts[rchild]['tips']
-            counts[n]['l'] = counts[lchild]['tips']
-            counts[n]['tips'] = counts[n]['r'] + counts[n]['l']
+            n._tip_count = 1
         else:
-            raise ValueError("Not a strictly bifurcating tree!")
+            try:
+                left, right = n.children
+            except:
+                raise ValueError("Not a strictly bifurcating tree!")
+            n._tip_count = left._tip_count + right._tip_count
 
-    # fill in k and t
-    for n in nodes:
-        if n.parent is None:
-            counts[n]['k'] = 0
-            counts[n]['t'] = 0
+    # TODO: use recarray
+    # col 0 -> right counts
+    # col 1 -> left counts
+    # col 2 -> k
+    # col 3 -> t
+    r_idx = 0
+    l_idx = 1
+    k_idx = 2
+    t_idx = 3
+    counts = np.zeros((node_count, 4), dtype=int)
+
+    for i, n in enumerate(treenode.levelorder(include_self=True)):
+        if n.is_tip():
             continue
-        elif n.is_tip():
-            continue
-        # left or right child
-        # left = 0, right = 1
-        child_idx = 'l' if n.parent.children[0] != n else 'r'
-        if child_idx == 'l':
-            counts[n]['t'] = counts[n.parent]['t'] + counts[n.parent]['l']
-            counts[n]['k'] = counts[n.parent]['k']
+
+        n._lo_idx = i
+        node_counts = counts[i]
+
+        node_counts[r_idx] = 1 if n.is_tip() else n.children[1]._tip_count
+        node_counts[l_idx] = 1 if n.is_tip() else n.children[0]._tip_count
+
+        if n.is_root():
+            k = 0
+            t = 0
         else:
-            counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
-            counts[n]['t'] = counts[n.parent]['t']
-    return counts, n_tips
+            parent_counts = counts[n.parent._lo_idx]
+            if n is n.parent.children[0]:
+                #t = parent_counts[t_idx] + parent_counts[l_idx]
+                #k = parent_counts[k_idx]
+
+                k = parent_counts[k_idx] + parent_counts[r_idx]
+                t = parent_counts[t_idx]
+            else:
+                #k = parent_counts[k_idx] + parent_counts[r_idx]
+                #t = parent_counts[t_idx]
+
+                k = parent_counts[k_idx]
+                t = parent_counts[t_idx] + parent_counts[l_idx]
+
+        node_counts[k_idx] = k
+        node_counts[t_idx] = t
+
+        counts[i] = node_counts
+
+    return counts, treenode._tip_count, node_count
 
 
 def _attach_balances(balances, tree):
