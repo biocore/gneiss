@@ -31,11 +31,6 @@ import numpy as np
 import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
-try:
-    import ete3
-    from gneiss.layouts import default_layout
-except:
-    pass
 
 
 def _balance_basis(tree_node):
@@ -207,72 +202,3 @@ def _attach_balances(balances, tree):
                 n.add_features(weight=balances.loc[n.name])
             i += 1
     return ete_tree
-
-
-def balanceplot(balances, tree,
-                layout=None,
-                mode='c'):
-    """ Plots balances on tree.
-
-    Parameters
-    ----------
-    balances : np.array
-        A vector of internal nodes and their associated real-valued balances.
-        The order of the balances will be assumed to be in level order.
-    tree : skbio.TreeNode
-        A strictly bifurcating tree defining a hierarchical relationship
-        between all of the features within `table`.
-    layout : function, optional
-        A layout for formatting the tree visualization. Must take a
-        `ete.tree` as a parameter.
-    mode : str
-        Type of display to show the tree. ('c': circular, 'r': rectangular).
-
-    Notes
-    -----
-    The `tree` is assumed to strictly bifurcating and whose tips match
-    `balances`.  It is not recommended to attempt to plot trees with a
-    ton of leaves (i.e. more than 4000 leaves).
-
-
-    Examples
-    --------
-    >>> from gneiss.balances import balanceplot
-    >>> from skbio import TreeNode
-    >>> tree = u"((b,c)a, d)root;"
-    >>> t = TreeNode.read([tree])
-    >>> balances = [10, -10]
-    >>> tr, ts = balanceplot(balances, t)
-    >>> print(tr.get_ascii())
-    <BLANKLINE>
-           /-b
-        /a|
-    -root  \-c
-       |
-        \-d
-
-
-    See Also
-    --------
-    skbio.TreeNode.levelorder
-    """
-    ete_tree = _attach_balances(balances, tree)
-
-    # Create an empty TreeStyle
-    ts = ete3.TreeStyle()
-
-    # Set our custom layout function
-    if layout is None:
-        ts.layout_fn = default_layout
-    else:
-        ts.layout_fn = layout
-    # Draw a tree
-    ts.mode = mode
-
-    # We will add node names manually
-    ts.show_leaf_name = False
-    # Show branch data
-    ts.show_branch_length = True
-    ts.show_branch_support = True
-
-    return ete_tree, ts
