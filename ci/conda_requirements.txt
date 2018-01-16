@@ -1,6 +1,6 @@
 pip
 nose
-pep8
+pycodestyle
 flake8
 IPython>4.0.0
 notebook
