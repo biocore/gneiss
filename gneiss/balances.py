@@ -14,7 +14,6 @@ Functions
    :toctree: generated/
 
    balance_basis
-   balanceplot
 
 """
 # ----------------------------------------------------------------------------
@@ -163,42 +162,3 @@ def _count_matrix(treenode):
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
     return counts, n_tips
-
-
-def _attach_balances(balances, tree):
-    """ Appends the balances to each of the internal nodes
-    in the ete tree.
-
-    Parameters
-    ----------
-    balances : array_like, pd.Series
-        Vector of balances to plot on internal nodes of the tree.
-        If the balances is not in a `pd.Series`, it is assumed
-        to be stored in level order.
-    tree : skbio.TreeNode
-        Bifurcating tree to plot balances on.
-
-    Return
-    ------
-    ete.Tree
-        The ETE representation of the tree with balances encoded
-        as node weights.
-    """
-    nodes = [n for n in tree.traverse(include_self=True)]
-    n_tips = sum([n.is_tip() for n in nodes])
-    n_nontips = len(nodes) - n_tips
-    if len(balances) != n_nontips:
-        raise IndexError('The number of balances (%d) is not '
-                         'equal to the number of internal nodes '
-                         'in the tree (%d)' % (len(balances), n_nontips))
-    ete_tree = ete3.Tree.from_skbio(tree)
-    # Some random features in all nodes
-    i = 0
-    for n in ete_tree.traverse():
-        if not n.is_leaf():
-            if not isinstance(balances, pd.Series):
-                n.add_features(weight=balances[i])
-            else:
-                n.add_features(weight=balances.loc[n.name])
-            i += 1
-    return ete_tree
