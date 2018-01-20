@@ -1,5 +1,6 @@
 """
 Balances (:mod:`gneiss.balances`)
+
 =================================
 
 .. currentmodule:: gneiss.balances
@@ -27,7 +28,6 @@ Functions
 
 from __future__ import division
 import numpy as np
-import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
 
