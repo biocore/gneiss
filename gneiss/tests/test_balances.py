@@ -12,8 +12,7 @@ import numpy as np
 import pandas as pd
 import numpy.testing as npt
 from gneiss.balances import (balance_basis, _count_matrix,
-                             _balance_basis, _attach_balances,
-                             balanceplot)
+                             _balance_basis, balanceplot)
 from gneiss.layouts import default_layout
 from skbio import TreeNode
 from skbio.util import get_data_path
