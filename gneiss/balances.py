@@ -1,5 +1,6 @@
 """
 Balances (:mod:`gneiss.balances`)
+
 =================================
 
 .. currentmodule:: gneiss.balances
@@ -14,7 +15,6 @@ Functions
    :toctree: generated/
 
    balance_basis
-   balanceplot
 
 """
 # ----------------------------------------------------------------------------
@@ -28,14 +28,8 @@ Functions
 
 from __future__ import division
 import numpy as np
-import pandas as pd
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
-try:
-    import ete3
-    from gneiss.layouts import default_layout
-except:
-    pass
 
 
 def _balance_basis(tree_node):
@@ -168,111 +162,3 @@ def _count_matrix(treenode):
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
     return counts, n_tips
-
-
-def _attach_balances(balances, tree):
-    """ Appends the balances to each of the internal nodes
-    in the ete tree.
-
-    Parameters
-    ----------
-    balances : array_like, pd.Series
-        Vector of balances to plot on internal nodes of the tree.
-        If the balances is not in a `pd.Series`, it is assumed
-        to be stored in level order.
-    tree : skbio.TreeNode
-        Bifurcating tree to plot balances on.
-
-    Return
-    ------
-    ete.Tree
-        The ETE representation of the tree with balances encoded
-        as node weights.
-    """
-    nodes = [n for n in tree.traverse(include_self=True)]
-    n_tips = sum([n.is_tip() for n in nodes])
-    n_nontips = len(nodes) - n_tips
-    if len(balances) != n_nontips:
-        raise IndexError('The number of balances (%d) is not '
-                         'equal to the number of internal nodes '
-                         'in the tree (%d)' % (len(balances), n_nontips))
-    ete_tree = ete3.Tree.from_skbio(tree)
-    # Some random features in all nodes
-    i = 0
-    for n in ete_tree.traverse():
-        if not n.is_leaf():
-            if not isinstance(balances, pd.Series):
-                n.add_features(weight=balances[i])
-            else:
-                n.add_features(weight=balances.loc[n.name])
-            i += 1
-    return ete_tree
-
-
-def balanceplot(balances, tree,
-                layout=None,
-                mode='c'):
-    """ Plots balances on tree.
-
-    Parameters
-    ----------
-    balances : np.array
-        A vector of internal nodes and their associated real-valued balances.
-        The order of the balances will be assumed to be in level order.
-    tree : skbio.TreeNode
-        A strictly bifurcating tree defining a hierarchical relationship
-        between all of the features within `table`.
-    layout : function, optional
-        A layout for formatting the tree visualization. Must take a
-        `ete.tree` as a parameter.
-    mode : str
-        Type of display to show the tree. ('c': circular, 'r': rectangular).
-
-    Notes
-    -----
-    The `tree` is assumed to strictly bifurcating and whose tips match
-    `balances`.  It is not recommended to attempt to plot trees with a
-    ton of leaves (i.e. more than 4000 leaves).
-
-
-    Examples
-    --------
-    >>> from gneiss.balances import balanceplot
-    >>> from skbio import TreeNode
-    >>> tree = u"((b,c)a, d)root;"
-    >>> t = TreeNode.read([tree])
-    >>> balances = [10, -10]
-    >>> tr, ts = balanceplot(balances, t)
-    >>> print(tr.get_ascii())
-    <BLANKLINE>
-           /-b
-        /a|
-    -root  \-c
-       |
-        \-d
-
-
-    See Also
-    --------
-    skbio.TreeNode.levelorder
-    """
-    ete_tree = _attach_balances(balances, tree)
-
-    # Create an empty TreeStyle
-    ts = ete3.TreeStyle()
-
-    # Set our custom layout function
-    if layout is None:
-        ts.layout_fn = default_layout
-    else:
-        ts.layout_fn = layout
-    # Draw a tree
-    ts.mode = mode
-
-    # We will add node names manually
-    ts.show_leaf_name = False
-    # Show branch data
-    ts.show_branch_length = True
-    ts.show_branch_support = True
-
-    return ete_tree, ts

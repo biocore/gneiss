@@ -264,7 +264,7 @@ def _type_cast_to_float(df):
         s = df[c]
         try:
             df[c] = s.astype(np.float64)
-        except:
+        except Exception:
             continue
     return df
 
