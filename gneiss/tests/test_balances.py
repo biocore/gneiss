@@ -9,11 +9,9 @@
 from __future__ import absolute_import, division, print_function
 import unittest
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
 from gneiss.balances import (balance_basis, _count_matrix,
-                             _balance_basis, balanceplot)
-from gneiss.layouts import default_layout
+                             _balance_basis)
 from skbio import TreeNode
 from skbio.util import get_data_path
 
