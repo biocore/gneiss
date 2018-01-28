@@ -50,7 +50,7 @@ class TestSparseBalances(unittest.TestCase):
         t = TreeNode.read([tree])
 
         exp_basis = coo_matrix(np.array(
-            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6),np.sqrt(2. / 3)],
+            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6), np.sqrt(2. / 3)],
              [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]]
         ))
         exp_keys = [t.name, t[0].name]
@@ -118,7 +118,7 @@ class TestBalances(unittest.TestCase):
         t = TreeNode.read([tree])
 
         exp_basis = np.array(
-            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6),np.sqrt(2. / 3)],
+            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6), np.sqrt(2. / 3)],
              [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]]
         )
         exp_keys = [t.name, t[0].name]
