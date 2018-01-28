@@ -202,9 +202,9 @@ def sparse_balance_basis(tree):
         if n.is_tip():
             n._tip_count = 1
         else:
-            try:
+            if len(n.children) == 2:
                 left, right = n.children[NUMERATOR], n.children[DENOMINATOR],
-            except:
+            else:
                 raise ValueError("Not a strictly bifurcating tree.")
             n._tip_count = left._tip_count + right._tip_count
 
