@@ -11,7 +11,8 @@ import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
-from gneiss.util import (match, match_tips, rename_internal_nodes,
+from gneiss.util import match, match_tips, sparse_match_tips
+from gneiss.util import (rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
                          split_balance, check_internal_nodes)
 from biom import Table
@@ -298,6 +299,30 @@ class TestMatch(unittest.TestCase):
         match_tips(table, tree)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
 
+    def test_sparse_match_tips_intersect_tips(self):
+        # there are less tree tips than table columns
+        table = Table(
+            np.array([[0, 0, 1, 1],
+                      [2, 3, 4, 4],
+                      [5, 5, 3, 3],
+                      [0, 0, 0, 1]]).T,
+            ['a', 'b', 'c', 'd'],
+            ['s1', 's2', 's3', 's4'])
+
+        tree = TreeNode.read([u"((a,b)f,c)r;"])
+        exp_table = Table(
+            np.array([[0, 0, 1],
+                      [2, 3, 4],
+                      [5, 5, 3],
+                      [0, 0, 0]]).T,
+            ['a', 'b', 'c'],
+            ['s1', 's2', 's3', 's4'])
+
+        exp_tree = tree
+        res_table, res_tree = sparse_match_tips(table, tree)
+        self.assertEqual(exp_table, res_table)
+        self.assertEqual(str(exp_tree), str(res_tree))
+
     def test_sparse_match_tips_intersect_columns(self):
         # table has less columns than tree tips
         table = Table(
@@ -309,20 +334,38 @@ class TestMatch(unittest.TestCase):
             ['s1', 's2', 's3', 's4'])
 
         tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
-        exp_table = pd.DataFrame([[1, 0, 0],
-                                  [4, 2, 3],
-                                  [3, 5, 5],
-                                  [1, 0, 0]],
-                                 index=['s1', 's2', 's3', 's4'],
-                                 columns=['d', 'a', 'b'])
+        table = Table(
+            np.array([[0, 0, 1],
+                      [2, 3, 4],
+                      [5, 5, 3],
+                      [0, 0, 1]]).T,
+            ['a', 'b', 'd'],
+            ['s1', 's2', 's3', 's4'])
+
+        exp_table = Table(
+            np.array([[1, 0, 0],
+                      [4, 2, 3],
+                      [3, 5, 5],
+                      [1, 0, 0]]).T,
+            ['d', 'a', 'b'],
+            ['s1', 's2', 's3', 's4'])
+
         exp_tree = TreeNode.read([u"(d,(a,b)f)r;"])
-        res_table, res_tree = match_tips(table, tree)
+        res_table, res_tree = sparse_match_tips(table, tree)
         self.assertEqual(exp_table, res_table)
         self.assertEqual(str(exp_tree), str(res_tree))
 
     def test_sparse_match_tips_intersect_tree_immutable(self):
-        # tests to see if tree chnages.
+        # tests to see if tree changes.
         table = Table(
+            np.array([[0, 0, 1],
+                      [2, 3, 4],
+                      [5, 5, 3],
+                      [0, 0, 1]]).T,
+            ['a', 'b', 'd'],
+            ['s1', 's2', 's3', 's4'])
+
+        exp_table = Table(
             np.array([[0, 0, 1],
                       [2, 3, 4],
                       [5, 5, 3],
@@ -332,7 +375,7 @@ class TestMatch(unittest.TestCase):
 
         tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
         sparse_match_tips(table, tree)
-        self.assertEqual(exp_table, res_table)
+        self.assertEqual(exp_table, table)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
 
 
