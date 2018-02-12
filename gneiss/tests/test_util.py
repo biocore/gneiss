@@ -14,10 +14,11 @@ from skbio import TreeNode
 from gneiss.util import (match, match_tips, rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
                          split_balance, check_internal_nodes)
+from biom import Table
 import numpy.testing as npt
 
 
-class TestUtil(unittest.TestCase):
+class TestMatch(unittest.TestCase):
 
     def test_match(self):
         table = pd.DataFrame([[0, 0, 1, 1],
@@ -296,6 +297,46 @@ class TestUtil(unittest.TestCase):
         tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
         match_tips(table, tree)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
+
+    def test_sparse_match_tips_intersect_columns(self):
+        # table has less columns than tree tips
+        table = Table(
+            np.array([[0, 0, 1],
+                      [2, 3, 4],
+                      [5, 5, 3],
+                      [0, 0, 1]]).T,
+            ['a', 'b', 'd'],
+            ['s1', 's2', 's3', 's4'])
+
+        tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
+        exp_table = pd.DataFrame([[1, 0, 0],
+                                  [4, 2, 3],
+                                  [3, 5, 5],
+                                  [1, 0, 0]],
+                                 index=['s1', 's2', 's3', 's4'],
+                                 columns=['d', 'a', 'b'])
+        exp_tree = TreeNode.read([u"(d,(a,b)f)r;"])
+        res_table, res_tree = match_tips(table, tree)
+        self.assertEqual(exp_table, res_table)
+        self.assertEqual(str(exp_tree), str(res_tree))
+
+    def test_sparse_match_tips_intersect_tree_immutable(self):
+        # tests to see if tree chnages.
+        table = Table(
+            np.array([[0, 0, 1],
+                      [2, 3, 4],
+                      [5, 5, 3],
+                      [0, 0, 1]]).T,
+            ['a', 'b', 'd'],
+            ['s1', 's2', 's3', 's4'])
+
+        tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
+        sparse_match_tips(table, tree)
+        self.assertEqual(exp_table, res_table)
+        self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
+
+
+class TestUtil(unittest.main):
 
     def test_rename_internal_nodes(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
