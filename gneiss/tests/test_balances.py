@@ -11,9 +11,53 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 from gneiss.balances import (balance_basis, _count_matrix,
-                             _balance_basis)
+                             _balance_basis, sparse_balance_basis)
 from skbio import TreeNode
 from skbio.util import get_data_path
+from scipy.sparse import coo_matrix
+
+
+def assert_coo_allclose(res, exp, rtol=1e-7, atol=1e-7):
+    res_data = np.vstack((res.row, res.col, res.data)).T
+    exp_data = np.vstack((exp.row, exp.col, exp.data)).T
+
+    # sort by row and col
+    res_data = res_data[res_data[:, 1].argsort()]
+    res_data = res_data[res_data[:, 0].argsort()]
+    exp_data = exp_data[exp_data[:, 1].argsort()]
+    exp_data = exp_data[exp_data[:, 0].argsort()]
+
+    npt.assert_allclose(res_data, exp_data, rtol=rtol, atol=atol)
+
+
+class TestSparseBalances(unittest.TestCase):
+
+    def test_sparse_balance_basis_base_case(self):
+        tree = u"(a,b);"
+        t = TreeNode.read([tree])
+
+        exp_basis = coo_matrix(
+            np.array([[-np.sqrt(1. / 2),
+                       np.sqrt(1. / 2)]]))
+        exp_keys = [t.name]
+        res_basis, res_keys = sparse_balance_basis(t)
+
+        assert_coo_allclose(exp_basis, res_basis)
+        self.assertListEqual(exp_keys, res_keys)
+
+    def test_sparse_balance_basis_unbalanced(self):
+        tree = u"((a,b)c, d);"
+        t = TreeNode.read([tree])
+
+        exp_basis = coo_matrix(np.array(
+            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6), np.sqrt(2. / 3)],
+             [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]]
+        ))
+        exp_keys = [t.name, t[0].name]
+        res_basis, res_keys = sparse_balance_basis(t)
+
+        assert_coo_allclose(exp_basis, res_basis)
+        self.assertListEqual(exp_keys, res_keys)
 
 
 class TestBalances(unittest.TestCase):
@@ -63,7 +107,7 @@ class TestBalances(unittest.TestCase):
         t = TreeNode.read([tree])
 
         exp_basis = np.array([[-np.sqrt(1. / 2), np.sqrt(1. / 2)]])
-        exp_keys = [t]
+        exp_keys = [t.name]
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
@@ -73,11 +117,11 @@ class TestBalances(unittest.TestCase):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
 
-        exp_basis = np.array([[-np.sqrt(1. / 6), -np.sqrt(1. / 6),
-                               np.sqrt(2. / 3)],
-                              [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]
-                              ])
-        exp_keys = [t, t[0]]
+        exp_basis = np.array(
+            [[-np.sqrt(1. / 6), -np.sqrt(1. / 6), np.sqrt(2. / 3)],
+             [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]]
+        )
+        exp_keys = [t.name, t[0].name]
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
@@ -86,7 +130,7 @@ class TestBalances(unittest.TestCase):
     def test_balance_basis_base_case(self):
         tree = u"(a,b);"
         t = TreeNode.read([tree])
-        exp_keys = [t]
+        exp_keys = [t.name]
         exp_basis = np.array([0.19557032, 0.80442968])
         res_basis, res_keys = balance_basis(t)
 
@@ -96,7 +140,7 @@ class TestBalances(unittest.TestCase):
     def test_balance_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
-        exp_keys = [t, t[0]]
+        exp_keys = [t.name, t[0].name]
         exp_basis = np.array([[0.18507216, 0.18507216, 0.62985567],
                               [0.14002925, 0.57597535, 0.28399541]])
 
