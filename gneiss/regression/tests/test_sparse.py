@@ -26,7 +26,8 @@ class TestSparseMatMul(tf.test.TestCase):
         )
 
         indices = tf.convert_to_tensor(
-            np.array([[1, 3, 4], [1, 0, 1]]))
+            np.array([[1, 3, 4], [1, 0, 1]]).T
+        )
         exp_idx = np.array([[1, 2],
                             [3, 3],
                             [4, 3]])

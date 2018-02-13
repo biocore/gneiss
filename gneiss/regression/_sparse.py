@@ -32,8 +32,8 @@ def sparse_matmul(A, B, indices):
        are derived from A[i] @ B[j] where i, j are the row and column
        indices specified in `indices`.
     """
-    row_index = tf.gather(indices, 0, axis=0)
-    col_index = tf.gather(indices, 1, axis=0)
+    row_index = tf.gather(indices, 0, axis=1)
+    col_index = tf.gather(indices, 1, axis=1)
     A_flat = tf.gather(A, row_index, axis=0)
     B_flat = tf.transpose(tf.gather(B, col_index, axis=1))
     values = tf.reduce_sum(tf.multiply(A_flat, B_flat), axis=1)
@@ -94,6 +94,5 @@ def minibatch(M, Y, p, seed=0):
     batch_col = np.hstack((positive_col, negative_col))
     batch_data = np.hstack((positive_data, negative_data))
     batch_idx = np.vstack((batch_row, batch_col)).T
+
     return batch_idx, batch_data
-
-

@@ -257,6 +257,7 @@ def sparse_balance_basis(tree):
         i += 1
         nodes.append(n.name)
 
-    basis = coo_matrix((value, (row, col)), shape=(D-1, D))
+    basis = coo_matrix((value, (row, col)), shape=(D-1, D),
+                       dtype=np.float32)
 
     return basis, nodes
