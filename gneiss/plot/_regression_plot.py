@@ -250,6 +250,15 @@ def _deposit_results(model, output_dir):
     pvalues.T.to_csv(os.path.join(output_dir, 'pvalues.csv'),
                      header=True, index=True)
 
+    pvalues = model.pvalues
+    def fdr(x):
+        return multipletests(x, method='fdr_bh',
+                             alpha=0.05 / pvalues.shape[1])[1]
+    corrected_pvalues = pvalues.apply(fdr, axis=0)
+    corrected_pvalues.T.to_csv(
+        os.path.join(output_dir, 'fdr-corrected-pvalues.csv'),
+        header=True, index=True)
+
 
 # OLS summary
 def ols_summary(output_dir: str, model: OLSModel,
@@ -305,6 +314,9 @@ def ols_summary(output_dir: str, model: OLSModel,
              'Download as CSV</a><br>\n'
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>FDR corrected coefficient pvalues</th>\n'
+             '<a href="fdr-corrected-pvalues.csv">'
              'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'
@@ -375,6 +387,9 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
              'Download as CSV</a><br>\n'
              '<th>Coefficient pvalues</th>\n'
              '<a href="pvalues.csv">'
+             'Download as CSV</a><br>\n'
+             '<th>FDR corrected coefficient pvalues</th>\n'
+             '<a href="fdr-corrected-pvalues.csv">'
              'Download as CSV</a><br>\n'
              '<th>Predicted Balances</th>\n'
              '<a href="predicted.csv">'
