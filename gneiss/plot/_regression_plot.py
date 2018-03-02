@@ -251,9 +251,11 @@ def _deposit_results(model, output_dir):
                      header=True, index=True)
 
     pvalues = model.pvalues
+
     def fdr(x):
         return multipletests(x, method='fdr_bh',
                              alpha=0.05 / pvalues.shape[1])[1]
+
     corrected_pvalues = pvalues.apply(fdr, axis=0)
     corrected_pvalues.T.to_csv(
         os.path.join(output_dir, 'fdr-corrected-pvalues.csv'),
