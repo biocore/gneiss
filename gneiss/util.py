@@ -219,7 +219,10 @@ def sparse_match_tips(table, tree):
 
     _tree.bifurcate()
     _tree.prune()
-    sort_f = lambda x: [n.name for n in _tree.tips()]
+
+    def sort_f(x):
+        return [n.name for n in _tree.tips()]
+
     _table = _table.sort(sort_f=sort_f, axis='observation')
     return _table, _tree
 

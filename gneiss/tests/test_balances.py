@@ -26,7 +26,10 @@ def assert_coo_allclose(res, exp, rtol=1e-7, atol=1e-7):
     res_data = res_data[res_data[:, 0].argsort()]
     exp_data = exp_data[exp_data[:, 1].argsort()]
     exp_data = exp_data[exp_data[:, 0].argsort()]
+<<<<<<< HEAD
 
+=======
+>>>>>>> 52edad92f511b0f020b4df53df43cf941b465fef
     npt.assert_allclose(res_data, exp_data, rtol=rtol, atol=atol)
 
 
@@ -45,10 +48,22 @@ class TestSparseBalances(unittest.TestCase):
         assert_coo_allclose(exp_basis, res_basis)
         self.assertListEqual(exp_keys, res_keys)
 
+<<<<<<< HEAD
     def test_sparse_balance_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
         t = TreeNode.read([tree])
 
+=======
+    def test_sparse_balance_basis_invalid(self):
+        with self.assertRaises(ValueError):
+            tree = u"(a,b,c);"
+            t = TreeNode.read([tree])
+            sparse_balance_basis(t)
+
+    def test_sparse_balance_basis_unbalanced(self):
+        tree = u"((a,b)c, d);"
+        t = TreeNode.read([tree])
+>>>>>>> 52edad92f511b0f020b4df53df43cf941b465fef
         exp_basis = coo_matrix(np.array(
             [[-np.sqrt(1. / 6), -np.sqrt(1. / 6), np.sqrt(2. / 3)],
              [-np.sqrt(1. / 2), np.sqrt(1. / 2), 0]]
@@ -58,6 +73,26 @@ class TestSparseBalances(unittest.TestCase):
 
         assert_coo_allclose(exp_basis, res_basis)
         self.assertListEqual(exp_keys, res_keys)
+<<<<<<< HEAD
+=======
+
+    def test_sparse_balance_basis_unbalanced2(self):
+        tree = u"(d, (a,b)c);"
+
+        t = TreeNode.read([tree])
+
+        exp_basis = coo_matrix(np.array(
+            [
+                [-np.sqrt(2. / 3), np.sqrt(1. / 6), np.sqrt(1. / 6)],
+                [0, -np.sqrt(1. / 2), np.sqrt(1. / 2)]
+            ]
+        ))
+
+        exp_keys = [t.name, t[1].name]
+        res_basis, res_keys = sparse_balance_basis(t)
+        assert_coo_allclose(exp_basis, res_basis, atol=1e-7, rtol=1e-7)
+        self.assertListEqual(exp_keys, res_keys)
+>>>>>>> 52edad92f511b0f020b4df53df43cf941b465fef
 
 
 class TestBalances(unittest.TestCase):

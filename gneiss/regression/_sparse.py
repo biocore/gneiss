@@ -95,5 +95,3 @@ def minibatch(M, Y, p, seed=0):
     batch_data = np.hstack((positive_data, negative_data))
     batch_idx = np.vstack((batch_row, batch_col)).T
     return batch_idx, batch_data
-
-
