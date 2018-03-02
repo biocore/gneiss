@@ -30,6 +30,8 @@ from __future__ import division
 import numpy as np
 from skbio.stats.composition import clr_inv
 from collections import OrderedDict
+from gneiss.util import NUMERATOR, DENOMINATOR
+from scipy.sparse import coo_matrix
 
 
 def _balance_basis(tree_node):
@@ -52,7 +54,7 @@ def _balance_basis(tree_node):
         basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
     # Make sure that the basis is in level order
     basis = basis[:, ::-1]
-    nds = list(nds)
+    nds = [n.name for n in nds]
     return basis, nds
 
 
@@ -162,3 +164,99 @@ def _count_matrix(treenode):
             counts[n]['k'] = counts[n.parent]['k'] + counts[n.parent]['r']
             counts[n]['t'] = counts[n.parent]['t']
     return counts, n_tips
+
+
+def sparse_balance_basis(tree):
+    """ Calculates sparse representation of an ilr basis from a tree.
+
+    This computes an orthonormal basis specified from a bifurcating tree.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        Input bifurcating tree.  Must be strictly bifurcating
+        (i.e. every internal node needs to have exactly 2 children).
+        This is used to specify the ilr basis.
+
+    Returns
+    -------
+    scipy.sparse.coo_matrix
+       The ilr basis required to perform the ilr_inv transform.
+       This is also known as the sequential binary partition.
+       Note that this matrix is represented in clr coordinates.
+    nodes : list, str
+        List of tree nodes indicating the ordering in the basis.
+
+    Raises
+    ------
+    ValueError
+        The tree doesn't contain two branches.
+
+    """
+    # this is inspired by @wasade in
+    # https://github.com/biocore/gneiss/pull/8
+    t = tree.copy()
+    D = len(list(tree.tips()))
+    # calculate number of tips under each node
+    for n in t.postorder(include_self=True):
+        if n.is_tip():
+            n._tip_count = 1
+        else:
+            if len(n.children) == 2:
+                left, right = n.children[NUMERATOR], n.children[DENOMINATOR],
+            else:
+                raise ValueError("Not a strictly bifurcating tree.")
+            n._tip_count = left._tip_count + right._tip_count
+
+    # calculate k, r, s, t coordinate for each node
+    left, right = t.children[NUMERATOR], t.children[DENOMINATOR],
+    t._k, t._r, t._s, t._t = 0, left._tip_count, right._tip_count, 0
+    for n in t.preorder(include_self=False):
+        if n.is_tip():
+            n._k, n._r, n._s, n._t = 0, 0, 0, 0
+
+        elif n == n.parent.children[NUMERATOR]:
+            n._k = n.parent._k
+            n._r = n.children[NUMERATOR]._tip_count
+            n._s = n.children[DENOMINATOR]._tip_count
+            n._t = n.parent._s + n.parent._t
+        elif n == n.parent.children[DENOMINATOR]:
+            n._k = n.parent._r + n.parent._k
+            n._r = n.children[NUMERATOR]._tip_count
+            n._s = n.children[DENOMINATOR]._tip_count
+            n._t = n.parent._t
+        else:
+            raise ValueError("Tree topology is not correct.")
+
+    # navigate through tree to build the basis in a sparse matrix form
+    value = []
+    row, col = [], []
+    nodes = []
+    i = 0
+
+    for n in t.levelorder(include_self=True):
+
+        if n.is_tip():
+            continue
+
+        for j in range(n._k, n._k + n._r):
+            row.append(i)
+            # consider tips in reverse order. May want to rethink
+            # this orientation in the future.
+            col.append(D-1-j)
+            A = np.sqrt(n._s / (n._r * (n._s + n._r)))
+
+            value.append(A)
+
+        for j in range(n._k + n._r, n._k + n._r + n._s):
+            row.append(i)
+            col.append(D-1-j)
+            B = -np.sqrt(n._r / (n._s * (n._s + n._r)))
+
+            value.append(B)
+        i += 1
+        nodes.append(n.name)
+
+    basis = coo_matrix((value, (row, col)), shape=(D-1, D))
+
+    return basis, nodes
