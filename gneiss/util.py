@@ -15,7 +15,6 @@ Functions
 
    match
    match_tips
-   sparse_match_tips
    rename_internal_nodes
    block_diagonal
    band_diagonal
@@ -31,6 +30,7 @@ import warnings
 import numpy as np
 from skbio.stats.composition import closure
 import pandas as pd
+import biom
 
 # Specifies which child is numberator and denominator
 NUMERATOR = 1
@@ -92,7 +92,7 @@ def match(table, metadata):
 
     Parameters
     ----------
-    table : pd.DataFrame
+    table : pd.DataFrame or biom.Table
         Contingency table where samples correspond to rows and
         features correspond to columns.
     metadata: pd.DataFrame
@@ -114,8 +114,15 @@ def match(table, metadata):
         Raised if duplicate sample ids are present in `metadata`.
     ValueError:
         Raised if `table` and `metadata` have incompatible sizes.
-
     """
+    if isinstance(table, pd.DataFrame):
+        return _dense_match(table, metadata)
+    elif isinstance(table, biom.Table):
+        return _sparse_match(table, metadata)
+
+
+def _dense_match(table, metadata):
+    """ Match on dense pandas tables"""
     subtableids = set(table.index)
     submetadataids = set(metadata.index)
     if len(subtableids) != len(table.index):
@@ -134,6 +141,26 @@ def match(table, metadata):
     return subtable, submetadata
 
 
+def _sparse_match(table, metadata):
+    """ Match on sparse biom tables. """
+    subtableids = set(table.ids(axis='sample'))
+    submetadataids = set(metadata.index)
+    if len(submetadataids) != len(metadata.index):
+        raise ValueError("`metadata` has duplicate sample ids.")
+    idx = subtableids & submetadataids
+    if len(idx) == 0:
+        raise ValueError(("No more samples left.  Check to make sure that "
+                          "the sample names between `metadata` and `table` "
+                          "are consistent"))
+
+    out_metadata = metadata.loc[idx]
+    metadata_filter = lambda val, id_, md: id_ in out_metadata.index
+    out_table = table.filter(metadata_filter, axis='sample', inplace=False)
+    sort_f = lambda xs: [xs[out_metadata.index.get_loc(x)] for x in xs]
+    out_table = out_table.sort(sort_f=sort_f, axis='sample')
+    return out_table, out_metadata
+
+
 def match_tips(table, tree):
     """ Returns the contingency table and tree with matched tips.
 
@@ -148,7 +175,7 @@ def match_tips(table, tree):
 
     Parameters
     ----------
-    table : pd.DataFrame
+    table : pd.DataFrame or biom.Table
         Contingency table where samples correspond to rows and
         features correspond to columns.
     tree : skbio.TreeNode
@@ -171,6 +198,32 @@ def match_tips(table, tree):
     skbio.TreeNode.bifurcate
     skbio.TreeNode.tips
     """
+    if isinstance(table, pd.DataFrame):
+        return _dense_match_tips(table, tree)
+    elif isinstance(table, biom.Table):
+        return _sparse_match_tips(table, tree)
+
+
+def _sparse_match_tips(table, tree):
+    """ Match on sparse biom tables. """
+    tips = [x.name for x in tree.tips()]
+    common_tips = set(tips) & set(table.ids(axis='observation'))
+
+    _tree = tree.shear(names=list(common_tips))
+
+    def filter_uncommon(val, id_, md):
+        return id_ in common_tips
+    _table = table.filter(filter_uncommon, axis='observation', inplace=False)
+
+    _tree.bifurcate()
+    _tree.prune()
+    sort_f = lambda x: [n.name for n in _tree.tips()]
+    _table = _table.sort(sort_f=sort_f, axis='observation')
+    return _table, _tree
+
+
+def _dense_match_tips(table, tree):
+    """ Match on dense pandas dataframes. """
     tips = [x.name for x in tree.tips()]
     common_tips = list(set(tips) & set(table.columns))
     _table = table.loc[:, common_tips]
@@ -183,48 +236,36 @@ def match_tips(table, tree):
     return _table, _tree
 
 
-def sparse_match_tips(table, tree):
-    """ Returns the contingency table and tree with matched tips.
-
-    Sorts the columns of the contingency table to match the tips in
-    the tree.  The ordering of the tips is in post-traversal order.
-    If the tree is multi-furcating, then the tree is reduced to a
-    bifurcating tree by randomly inserting internal nodes.
-    The intersection of samples in the contingency table and the
-    tree will returned.
+def formula_cv(train_metadata, test_metadata, formula):
+    """ Align two design matrices.
 
     Parameters
     ----------
-    table : biom.Table
-        Contingency table where samples correspond to rows and
-        features correspond to columns.
-    tree : skbio.TreeNode
-        Tree object where the leafs correspond to the features.
+    train_metadata : pd.DataFrame
+        Training metadata
+    test_metadata : pd.DataFrame
+        Testing metadata
+    formula : str
+        Statistical formula specifying design matrix
 
-    Returns
-    -------
-    biom.Table :
-        Subset of the original contingency table with the common features.
-    skbio.TreeNode :
-        Sub-tree with the common features.
+    Return
+    ------
+    train_design : pd.DataFrame
+        Train design matrix
+    test_design : pd.DataFrame
+        Test design matrix
     """
-    tips = [x.name for x in tree.tips()]
-    common_tips = set(tips) & set(table.ids(axis='observation'))
+    train_design = dmatrix(opts.formula, train_metadata,
+                           return_type='dataframe')
 
-    _tree = tree.shear(names=list(common_tips))
-
-    def filter_uncommon(val, id_, md):
-        return id_ in common_tips
-    _table = table.filter(filter_uncommon, axis='observation', inplace=False)
-
-    _tree.bifurcate()
-    _tree.prune()
-
-    def sort_f(x):
-        return [n.name for n in _tree.tips()]
-
-    _table = _table.sort(sort_f=sort_f, axis='observation')
-    return _table, _tree
+    # pad extra columns with zeros, so that we can still make predictions
+    extra_columns = list(set(train_metadata.columns) &
+                         set(test_metadata.columns))
+    df = pd.DataFrame({C: np.zeros(train_metadata.shape[0])
+                       for C in extra_columns})
+    test_design = pd.concat((test_metadata, df), axis=1)
+    test_design = test_design.reindex(columns=train_design.columns)
+    return train_design, test_design
 
 
 def check_internal_nodes(tree):
