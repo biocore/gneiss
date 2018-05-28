@@ -7,4 +7,4 @@ notebook
 scikit-bio=0.5.1
 pyqt=4.11.4
 bokeh
-biom
+biom-format
