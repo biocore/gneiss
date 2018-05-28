@@ -30,6 +30,7 @@ import warnings
 import numpy as np
 from skbio.stats.composition import closure
 import pandas as pd
+from patsy import dmatrix
 import biom
 
 # Specifies which child is numberator and denominator
@@ -155,7 +156,7 @@ def _sparse_match(table, metadata):
 
     out_metadata = metadata.loc[idx]
 
-    def metadata_filder(val, id_, md):
+    def metadata_filter(val, id_, md):
         return id_ in out_metadata.index
 
     out_table = table.filter(metadata_filter, axis='sample', inplace=False)
@@ -264,7 +265,7 @@ def formula_cv(train_metadata, test_metadata, formula):
     test_design : pd.DataFrame
         Test design matrix
     """
-    train_design = dmatrix(opts.formula, train_metadata,
+    train_design = dmatrix(formula, train_metadata,
                            return_type='dataframe')
 
     # pad extra columns with zeros, so that we can still make predictions
