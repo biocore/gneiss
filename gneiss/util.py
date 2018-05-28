@@ -154,12 +154,15 @@ def _sparse_match(table, metadata):
                           "are consistent"))
 
     out_metadata = metadata.loc[idx]
+
     def metadata_filder(val, id_, md):
         return id_ in out_metadata.index
+
     out_table = table.filter(metadata_filter, axis='sample', inplace=False)
 
     def sort_f(xs):
         return [xs[out_metadata.index.get_loc(x)] for x in xs]
+
     out_table = out_table.sort(sort_f=sort_f, axis='sample')
     return out_table, out_metadata
 
@@ -220,8 +223,10 @@ def _sparse_match_tips(table, tree):
 
     _tree.bifurcate()
     _tree.prune()
+
     def sort_f(x):
         return [n.name for n in _tree.tips()]
+
     _table = _table.sort(sort_f=sort_f, axis='observation')
     return _table, _tree
 
