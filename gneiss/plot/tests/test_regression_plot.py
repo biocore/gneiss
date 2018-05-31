@@ -147,25 +147,31 @@ class TestLME_Summary(unittest.TestCase):
         exp_pvals = pd.DataFrame({
             'Intercept': {'Y1': 4.8268860492262526e-236,
                           'Y2': 0.099411090631406948},
-            'groups RE': {'Y1': 4.4193804668281966e-05,
+            'Group Var': {'Y1': 4.4193804668281966e-05,
                           'Y2': 4.4193804668280984e-05},
             'x1': {'Y1': 3.9704936434633392e-35,
                    'Y2': 3.9704936434628853e-35},
             'x2': {'Y1': 3.56912071867573e-30,
-                   'Y2': 3.56912071867573e-30}})
+                   'Y2': 3.56912071867573e-30}}).sort_index(axis=1)
+        pvals = pvals.sort_index(axis=0).sort_index(axis=1)
+        exp_pvals = exp_pvals.sort_index(axis=0).sort_index(axis=1)
+
         npt.assert_allclose(pvals, exp_pvals, rtol=1e-5)
 
         exp_coefs = pd.DataFrame({
             'Intercept': {'Y1': 4.2115280233151946,
                           'Y2': 0.211528023315187},
-            'groups RE': {'Y1': 0.093578639287859755,
+            'Group Var': {'Y1': 0.093578639287859755,
                           'Y2': 0.093578639287860019},
             'x1': {'Y1': 1.0220072967452645,
                    'Y2': 1.0220072967452651},
             'x2': {'Y1': 0.92487193877761575,
                    'Y2': 0.92487193877761564}}
-        )
-        npt.assert_allclose(coefs, exp_coefs, rtol=1e-2, atol=1e-2)
+        ).sort_index(axis=1)
+
+        npt.assert_allclose(coefs.sort_index(axis=0),
+                            exp_coefs.sort_index(axis=0),
+                            rtol=1e-2, atol=1e-2)
 
         exp_resid = pd.read_csv(get_data_path('exp_resid.csv'), index_col=0)
         npt.assert_allclose(resid, exp_resid.T, rtol=1e-2, atol=1e-2)
