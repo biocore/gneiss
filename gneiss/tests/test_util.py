@@ -327,11 +327,21 @@ class TestMatch(unittest.TestCase):
                 'x1': [3, 2],
                 'x2': [1, 0]
             },
-            columns=['s2', 's3', ]
+            columns=['s2', 's3']
         ).T
 
         res_table, res_md = match(table, md)
-        self.assertEqual(exp_table, res_table)
+        exp_df = pd.DataFrame(exp_table.to_dataframe())
+        res_df = pd.DataFrame(res_table.to_dataframe())
+
+        exp_df = exp_df.reindex_axis(sorted(exp_df.columns), axis=1)
+        res_df = res_df.reindex_axis(sorted(res_df.columns), axis=1)
+
+        pdt.assert_frame_equal(exp_df, res_df)
+
+        exp_md = exp_md.reindex_axis(sorted(exp_md.index), axis=0)
+        res_md = res_md.reindex_axis(sorted(res_md.index), axis=0)
+
         pdt.assert_frame_equal(res_md, exp_md)
 
     def test_biom_match_duplicate_md_error(self):
@@ -448,7 +458,7 @@ class TestMatch(unittest.TestCase):
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
 
 
-class TestUtil(unittest.main):
+class TestUtil(unittest.TestCase):
 
     def test_rename_internal_nodes(self):
         tree = TreeNode.read([u"(((a,b), c),d)r;"])
