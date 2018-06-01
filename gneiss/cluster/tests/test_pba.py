@@ -12,6 +12,7 @@ from gneiss.cluster._pba import (correlation_linkage, gradient_linkage,
                                  rank_linkage, random_linkage)
 from skbio import TreeNode
 
+
 class TestPBA(unittest.TestCase):
     def setUp(self):
         pass
