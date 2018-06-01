@@ -12,8 +12,6 @@ import pandas as pd
 import pandas.util.testing as pdt
 import unittest
 from skbio import TreeNode
-import statsmodels.formula.api as smf
-import numpy.testing as npt
 from gneiss.regression import mixedlm
 
 
