@@ -246,8 +246,8 @@ def _dense_match_tips(table, tree):
     return _table, _tree
 
 
-def formula_cv(train_metadata, test_metadata, formula):
-    """ Align two design matrices.
+def design_formula(train_metadata, test_metadata, formula):
+    """ Generate and align two design matrices.
 
     Parameters
     ----------
@@ -267,13 +267,16 @@ def formula_cv(train_metadata, test_metadata, formula):
     """
     train_design = dmatrix(formula, train_metadata,
                            return_type='dataframe')
+    test_design = dmatrix(formula, test_metadata,
+                          return_type='dataframe')
 
     # pad extra columns with zeros, so that we can still make predictions
-    extra_columns = list(set(train_metadata.columns) &
-                         set(test_metadata.columns))
-    df = pd.DataFrame({C: np.zeros(train_metadata.shape[0])
-                       for C in extra_columns})
-    test_design = pd.concat((test_metadata, df), axis=1)
+    extra_columns = list(set(train_design.columns) -
+                         set(test_design.columns))
+    df = pd.DataFrame({C: np.zeros(test_design.shape[0])
+                       for C in extra_columns},
+                      index=test_design.index)
+    test_design = pd.concat((test_design, df), axis=1)
     test_design = test_design.reindex(columns=train_design.columns)
     return train_design, test_design
 

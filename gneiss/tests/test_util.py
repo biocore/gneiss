@@ -11,11 +11,12 @@ import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 from skbio import TreeNode
-from gneiss.util import match, match_tips
+from gneiss.util import match, match_tips, design_formula
 from gneiss.util import (rename_internal_nodes,
                          _type_cast_to_float, block_diagonal, band_diagonal,
                          split_balance, check_internal_nodes)
 from biom import Table
+from patsy import dmatrix
 import numpy.testing as npt
 
 
@@ -456,6 +457,49 @@ class TestMatch(unittest.TestCase):
         match_tips(table, tree)
         self.assertEqual(exp_table, table)
         self.assertEqual(str(tree), u"(((a,b)f,c),d)r;\n")
+
+    def test_formula(self):
+        train_metadata = pd.DataFrame(
+            [['a', '1', 'control'],
+             ['b', '2', 'control'],
+             ['c', '1', 'diseased'],
+             ['d', '3', 'diseased']],
+            index=['s1', 's2', 's3', 's4'],
+            columns=['Barcode', 'Group', 'Treatment'])
+
+        test_metadata = pd.DataFrame(
+            [['a', '1', 'control'],
+             ['b', '1', 'control'],
+             ['c', '1', 'diseased'],
+             ['d', '1', 'diseased']],
+            index=['s5', 's6', 's7', 's8'],
+            columns=['Barcode', 'Group', 'Treatment'])
+
+        exp_metadata = pd.DataFrame(
+            [['a', 'control', 0],
+             ['b', 'control', 0],
+             ['c', 'diseased', 0],
+             ['d', 'diseased', 0]],
+            index=['s5', 's6', 's7', 's8'],
+            columns=['Barcode', 'Treatment', 'Group'])
+
+        formula = "C(Group) + C(Treatment)"
+        exp_design = dmatrix(formula, exp_metadata,
+                             return_type='dataframe')
+        exp_design = pd.DataFrame(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0, 1.0],
+                [1.0, 0.0, 0.0, 1.0]
+            ], columns=['Intercept', 'C(Group)[T.2]',
+                        'C(Group)[T.3]', 'C(Treatment)[T.diseased]'],
+            index=['s5', 's6', 's7', 's8'],
+        )
+
+        res_design = design_formula(train_metadata, test_metadata, formula)[1]
+
+        pdt.assert_frame_equal(exp_design, res_design)
 
 
 class TestUtil(unittest.TestCase):
