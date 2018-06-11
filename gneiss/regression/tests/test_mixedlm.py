@@ -12,8 +12,6 @@ import pandas as pd
 import pandas.util.testing as pdt
 import unittest
 from skbio import TreeNode
-import statsmodels.formula.api as smf
-import numpy.testing as npt
 from gneiss.regression import mixedlm
 
 
@@ -67,83 +65,32 @@ class TestMixedLM(unittest.TestCase):
 
 class TestMixedLMFunctions(TestMixedLM):
 
-    # test case borrowed from statsmodels
-    def test_mixedlm_univariate(self):
-
-        np.random.seed(6241)
-        n = 1600
-        exog = np.random.normal(size=(n, 2))
-        groups = np.kron(np.arange(n // 16), np.ones(16))
-
-        # Build up the random error vector
-        errors = 0
-
-        # The random effects
-        exog_re = np.random.normal(size=(n, 2))
-        slopes = np.random.normal(size=(n // 16, 2))
-        slopes = np.kron(slopes, np.ones((16, 1))) * exog_re
-        errors += slopes.sum(1)
-
-        # First variance component
-        errors += np.kron(2 * np.random.normal(size=n // 4), np.ones(4))
-
-        # Second variance component
-        errors += np.kron(2 * np.random.normal(size=n // 2), np.ones(2))
-
-        # iid errors
-        errors += np.random.normal(size=n)
-
-        endog = exog.sum(1) + errors
-
-        df = pd.DataFrame(index=range(n))
-        df["y"] = endog
-        df["groups"] = groups
-        df["x1"] = exog[:, 0]
-        df["x2"] = exog[:, 1]
-
-        # Equivalent model in R:
-        # df.to_csv("tst.csv")
-        # model = lmer(y ~ x1 + x2)
-
-        model1 = smf.mixedlm("y ~ x1 + x2", groups=groups,
-                             data=df)
-        result1 = model1.fit()
-
-        # Compare to R
-        npt.assert_allclose(result1.fe_params, [
-            0.211451, 1.022008, 0.924873], rtol=1e-2)
-        npt.assert_allclose(result1.cov_re, [[0.987738]], rtol=1e-3)
-
-        npt.assert_allclose(result1.bse.iloc[0:3], [
-            0.128377,  0.082644,  0.081031], rtol=1e-3)
-
-        pdt.assert_series_equal(result1.pvalues,
-                                pd.Series([9.941109e-02, 3.970494e-35,
-                                           3.569121e-30, 4.419380e-05],
-                                          index=['Intercept', 'x1', 'x2',
-                                                 'groups RE']))
-
     def test_mixedlm_balances(self):
 
         res = mixedlm("x1 + x2", self.table, self.metadata,
                       groups="groups")
         res.fit()
         exp_pvalues = pd.DataFrame(
-            [[0.0994110906314,  4.4193804e-05,  3.972325e-35,  3.568599e-30],
-             [4.82688604e-236,  4.4193804e-05,  3.972325e-35,  3.568599e-30]],
+            [[0.0994110906314, 4.4193804e-05, 3.972325e-35, 3.568599e-30],
+             [4.82688604e-236, 4.4193804e-05, 3.972325e-35, 3.568599e-30]],
             index=['y1', 'y2'],
-            columns=['Intercept', 'groups RE', 'x1', 'x2']).sort_index().T
+            columns=['Intercept', 'Group Var', 'x1', 'x2']).T
 
-        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
+        res_pvals = res.pvalues.sort_index(axis=0).sort_index(axis=1)
+        exp_pvals = exp_pvalues.sort_index(axis=0).sort_index(axis=1)
+
+        pdt.assert_frame_equal(res_pvals, exp_pvals,
                                check_less_precise=True)
 
         exp_coefficients = pd.DataFrame(
-            [[0.211451,  0.0935786, 1.022008, 0.924873],
-             [4.211451,  0.0935786, 1.022008, 0.924873]],
-            columns=['Intercept', 'groups RE', 'x1', 'x2'],
+            [[0.211451, 0.0935786, 1.022008, 0.924873],
+             [4.211451, 0.0935786, 1.022008, 0.924873]],
+            columns=['Intercept', 'Group Var', 'x1', 'x2'],
             index=['y1', 'y2']).sort_index().T
+        res_coef = res.coefficients().sort_index(axis=0).sort_index(axis=1)
+        exp_coef = exp_coefficients.sort_index(axis=0).sort_index(axis=1)
 
-        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
+        pdt.assert_frame_equal(res_coef, exp_coef,
                                check_less_precise=True)
 
     def test_mixedlm_balances_vcf(self):
@@ -197,20 +144,23 @@ class TestMixedLMFunctions(TestMixedLM):
              2.552217e-05, 0.923418, 6.645741e-34],
             [0.000000, 3.858750e-39, 2.245068e-33,
              2.552217e-05, 0.923418, 6.645741e-34]],
-            columns=['Intercept', 'x1', 'x2', 'z1 RE',
-                     'z1 RE x z2 RE', 'z2 RE'],
+            columns=['Intercept', 'x1', 'x2', 'z1 Var',
+                     'z1 x z2 Cov', 'z2 Var'],
             index=['y1', 'y2']).T
+
         exp_coefficients = pd.DataFrame(
             [[0.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792],
              [4.163141, 1.030013, 0.935514, 0.115082, -0.001962, 0.14792]],
-            columns=['Intercept', 'x1', 'x2', 'z1 RE',
-                     'z1 RE x z2 RE', 'z2 RE'],
+            columns=['Intercept', 'x1', 'x2', 'z1 Var',
+                     'z1 x z2 Cov', 'z2 Var'],
             index=['y1', 'y2']).T
 
-        pdt.assert_frame_equal(res.pvalues, exp_pvalues,
+        pdt.assert_frame_equal(res.pvalues.sort_index(axis=0),
+                               exp_pvalues.sort_index(axis=0),
                                check_less_precise=True)
 
-        pdt.assert_frame_equal(res.coefficients(), exp_coefficients,
+        pdt.assert_frame_equal(res.coefficients().sort_index(axis=0),
+                               exp_coefficients.sort_index(axis=0),
                                check_less_precise=True)
 
     def test_percent_explained(self):

@@ -86,6 +86,7 @@ setup(name='gneiss',
           'nose >= 1.3.7',
           'scikit-bio==0.5.1',
           'statsmodels>=0.8.0',
+          'biom-format',
           'seaborn'
       ],
       classifiers=classifiers,
