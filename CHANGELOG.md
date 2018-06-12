@@ -3,6 +3,8 @@
 ## Version 0.4.2-dev
 * Enabling direct download of fdr corrected pvalues
 * Adding in sparse version of the ilr transform utilizing COO-formated sparse matrices [#250](https://github.com/biocore/gneiss/pull/250)
+* Adding in sparse utilities for matching biom tables [#253](https://github.com/biocore/gneiss/pull/253)
+
 
 ## Version 0.4.2
 * Added `proportion_plot` to plot the mean proportions within a single balance [#234](https://github.com/biocore/gneiss/pull/234)
