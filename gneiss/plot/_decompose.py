@@ -15,8 +15,8 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
                     denom_color='#FFFFFF',
                     xlabel="", ylabel="", linewidth=1,
                     ax=None, **kwargs):
-    """ Plots a boxplot for a given balance and the associated metadata.
-
+    """ Plots a boxplot for a given balance on a discrete metadata category.
+        
     Parameters
     ----------
     x, y, hue: str
@@ -83,8 +83,10 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                      ndim=5, num_color="#0000FF", denom_color="#0000FF",
                      xlabel="", ylabel="",
                      axes=(None, None)):
-    """ Plots barplots of counts of features found in the balance.
-
+    """ Plots barplots of feature found in a given balance.
+        These are the most abundnant taxa on each side of the balance (numerator & denominator).
+        The x-axis is the number of features within the taxonomic classification denoted on the y-axis.
+        
     Parameters
     ----------
     tree : skbio.TreeNode
@@ -96,7 +98,7 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     feature_metadata : pd.DataFrame
         Contains information about the features.
     ndim : int
-        Number of bars to display at a given time (default=5)
+        Number of bars (features) to display at a given time (default=5)
     num_color : str
         Hex for background colors of values above zero.
     denom_color : str
