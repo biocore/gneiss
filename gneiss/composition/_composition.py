@@ -11,6 +11,10 @@ from skbio.stats.composition import ilr
 from gneiss.balances import balance_basis
 from gneiss.util import match_tips
 
+  """ Performs isometric logratio (ilr) transformation on feature-table.
+      Zeros must first be removed from the table (e.g. add-pseudocount).
+      Creates a new table with balances (groups of features) that distinguish samples. 
+  """
 
 def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
     _table, _tree = match_tips(table, tree)
@@ -20,3 +24,4 @@ def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
     return pd.DataFrame(balances,
                         columns=in_nodes,
                         index=table.index)
+
