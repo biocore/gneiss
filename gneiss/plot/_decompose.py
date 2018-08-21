@@ -16,7 +16,7 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
                     xlabel="", ylabel="", linewidth=1,
                     ax=None, **kwargs):
     """ Plots a boxplot for a given balance on a discrete metadata category.
-        
+   
     Parameters
     ----------
     x, y, hue: str
@@ -84,9 +84,10 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                      xlabel="", ylabel="",
                      axes=(None, None)):
     """ Plots barplots of features found in a given balance.
-        These are the most abundant taxa on each side of the balance (numerator & denominator).
-        The x-axis is the number of features within the taxonomic classification denoted on the y-axis.
-        
+        These are the most abundant taxa on each side of the balance 
+        (numerator & denominator).  The x-axis is the number of features
+        within the taxonomic classification denoted on the y-axis.
+
     Parameters
     ----------
     tree : skbio.TreeNode
