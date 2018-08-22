@@ -22,8 +22,8 @@ Functions
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
-from ._composition import ilr_transform
+from ._composition import ilr_hierarchical, ilr_phylogenetic
 from ._variance import variation_matrix
 
 
-__all__ = ["ilr_transform", "variation_matrix"]
+__all__ = ["ilr_hierarchical", "ilr_phylogenetic", "variation_matrix"]
