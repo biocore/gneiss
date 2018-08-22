@@ -15,6 +15,7 @@ def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
     """Performs isometric logratio (ilr) transformation on feature-table.
     This creates a new table with balances (groups of features) that distinguish samples. 
     Zeros must first be removed from the table (e.g. add-pseudocount).
+    For source documentation check out: https://numpydoc.readthedocs.io/en/latest/
 
     Parameters
     -----------
