@@ -16,7 +16,7 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
                     xlabel="", ylabel="", linewidth=1,
                     ax=None, **kwargs):
     """ Plots a boxplot for a given balance on a discrete metadata category.
-    
+
     Parameters
     ----------
     x, y, hue: str
