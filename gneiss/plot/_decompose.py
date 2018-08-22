@@ -84,7 +84,7 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                      xlabel="", ylabel="",
                      axes=(None, None)):
     """ Plots barplots of features found in a given balance.
-        These are the most abundant taxa on each side of the balance 
+        These are the most abundant taxa on each side of the balance
         (numerator & denominator).  The x-axis is the number of features
         within the taxonomic classification denoted on the y-axis.
 
