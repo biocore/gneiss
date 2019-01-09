@@ -4,7 +4,7 @@ pycodestyle
 flake8
 IPython>4.0.0
 notebook
-scikit-bio=0.5.1
+scikit-bio=0.5.5
 pyqt=4.11.4
 bokeh
 biom-format
