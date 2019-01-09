@@ -23,6 +23,7 @@ class TestILRTransform(unittest.TestCase):
                              index=[1, 2, 3],
                              columns=['a', 'b', 'c', 'd'])
         table = table.reindex(columns=np.random.permutation(table.columns))
+        # fix tree
         tree = TreeNode.read([r"((d,c)y2, (b,a)y1)y0;"])
 
         res_balances = ilr_transform(table, tree)
