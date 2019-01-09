@@ -9,7 +9,6 @@ import unittest
 import numpy as np
 import pandas as pd
 from gneiss.composition._composition import ilr_transform
-from gneiss.cluster import gradient_linkage
 import pandas.util.testing as pdt
 from skbio import TreeNode
 
@@ -24,7 +23,6 @@ class TestILRTransform(unittest.TestCase):
                              index=[1, 2, 3],
                              columns=['a', 'b', 'c', 'd'])
         table = table.reindex(columns=np.random.permutation(table.columns))
-        ph = pd.Series([1, 2, 3], index=table.index)
         tree = TreeNode.read([r"((d,c)y2, (b,a)y1)y0;"])
 
         res_balances = ilr_transform(table, tree)
