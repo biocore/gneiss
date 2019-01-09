@@ -13,6 +13,7 @@ from gneiss.cluster import gradient_linkage
 import pandas.util.testing as pdt
 from skbio import TreeNode
 
+
 class TestILRTransform(unittest.TestCase):
 
     def test_ilr(self):
