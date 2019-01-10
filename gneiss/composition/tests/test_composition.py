@@ -25,9 +25,6 @@ class TestILRTransform(unittest.TestCase):
         table = table.reindex(columns=np.random.permutation(table.columns))
         # fix tree
         tree = TreeNode.read([r"((d,c)y2, (b,a)y1)y0;"])
-        # failing because of python3.5 and python3.6 difference?
-        #tree = TreeNode.read([r"((a,b)y1, (c,d)y2)y0;"])
-
         res_balances = ilr_transform(table, tree)
         exp_balances = pd.DataFrame(
             [[0.693147, -5.551115e-17, 2.775558e-17],
