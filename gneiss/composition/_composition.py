@@ -39,7 +39,7 @@ def ilr_transform(table: pd.DataFrame, tree: skbio.TreeNode) -> pd.DataFrame:
          the log ratio of subchildren values below the specified internal node.
     """
     _table, _tree = match_tips(table, tree)
-    basis, _ = balance_basis(_tree)
+    basis, nodes = balance_basis(_tree)
     balances = ilr(_table.values, basis)
     in_nodes = [n.name for n in _tree.levelorder() if not n.is_tip()]
     return pd.DataFrame(balances,
