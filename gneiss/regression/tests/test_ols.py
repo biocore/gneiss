@@ -19,7 +19,6 @@ from gneiss.balances import balance_basis
 from statsmodels.regression.linear_model import OLS
 
 
-
 class TestOLS(unittest.TestCase):
     """ Tests OLS regression with refactored matrix multiplication. """
     def setUp(self):

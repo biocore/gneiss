@@ -82,7 +82,6 @@ class TestRadial(unittest.TestCase):
         p = radialplot(t, node_color='color', edge_color='edge_color',
                        node_size='node_size', edge_width='edge_width')
 
-
         for e in exp_edges.keys():
             if isinstance(exp_edges[e], float):
                 npt.assert_allclose(
