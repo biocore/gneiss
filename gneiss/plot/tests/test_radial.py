@@ -6,6 +6,7 @@ from scipy.cluster.hierarchy import ward
 from skbio import TreeNode, DistanceMatrix
 from gneiss.plot._radial import radialplot
 from gneiss.plot._dendrogram import UnrootedDendrogram
+import numpy.testing as npt
 
 
 class TestRadial(unittest.TestCase):
