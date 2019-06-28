@@ -148,7 +148,7 @@ def _cache_ntips(tree):
 
 
 def ladderize(tree, ascending=True):
-    """
+    r"""
     Sorts tree according to the size of the subtrees.
 
     Parameters
@@ -200,7 +200,7 @@ def ladderize(tree, ascending=True):
 
 
 def gradient_sort(tree, gradient, ascending=True):
-    """
+    r"""
     Sorts tree according to ordering in gradient.
 
     Parameters
