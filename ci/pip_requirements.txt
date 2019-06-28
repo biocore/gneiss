@@ -1,2 +1,4 @@
 coveralls
 sphinx
+pycodestyle
+flake8
