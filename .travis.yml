@@ -3,7 +3,7 @@
 sudo: false
 language: python
 env:
-  - PYVERSION=3.5 USE_CYTHON=TRUE MAKE_DOC=TRUE
+  - PYVERSION=3.6  USE_CYTHON=TRUE MAKE_DOC=TRUE
 before_install:
   - export MPLBACKEND='Agg'
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
