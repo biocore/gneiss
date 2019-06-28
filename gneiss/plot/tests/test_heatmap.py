@@ -98,13 +98,13 @@ class HeatmapTest(unittest.TestCase):
 
         # Make sure that the metadata labels are set properly
         res = str(fig.get_axes()[1].get_xticklabels(minor=True)[0])
-        self.assertEqual(res, "Text(0,0,'a')")
+        self.assertEqual(res, "Text(0, 0, 'a')")
 
         res = str(fig.get_axes()[1].get_xticklabels(minor=True)[1])
-        self.assertEqual(res, "Text(0,0,'b')")
+        self.assertEqual(res, "Text(0, 0, 'b')")
 
         res = str(fig.get_axes()[1].get_xlabel())
-        self.assertEqual(res, "None")
+        self.assertEqual(res, "")
 
     def test_basic_line_width(self):
         fig = heatmap(self.table, self.t, self.md,
@@ -182,17 +182,17 @@ class HeatmapTest(unittest.TestCase):
 
         # Make sure that the metadata labels are set properly
         res = str(fig.get_axes()[2].get_xticklabels(minor=True)[0])
-        self.assertEqual(res, "Text(0,0,'a')")
+        self.assertEqual(res, "Text(0, 0, 'a')")
 
         res = str(fig.get_axes()[2].get_xticklabels(minor=True)[1])
-        self.assertEqual(res, "Text(0,0,'b')")
+        self.assertEqual(res, "Text(0, 0, 'b')")
 
         # Make sure that the highlight labels are set properly
         res = str(fig.get_axes()[1].get_xticklabels()[0])
-        self.assertEqual(res, "Text(0,0,'y7')")
+        self.assertEqual(res, "Text(0, 0, 'y7')")
 
         res = str(fig.get_axes()[1].get_xticklabels()[1])
-        self.assertEqual(res, "Text(0,0,'y8')")
+        self.assertEqual(res, "Text(0, 0, 'y8')")
 
         # Test to see if the highlights are ok
         res = fig.get_axes()[2].get_position()._points

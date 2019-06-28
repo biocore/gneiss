@@ -1,2 +1,3 @@
 pip
 biom-format
+bokeh=1.1.0

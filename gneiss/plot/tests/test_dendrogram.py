@@ -87,6 +87,7 @@ class TestUnrootedDendrogram(unittest.TestCase):
                            index=['x', 'y', 'child0', 'child1', 'is_tip']).T
 
         res = t.coords(500, 500)
+        exp = exp.loc[res.index]
         pdt.assert_frame_equal(exp, res)
 
     def test_rescale(self):
@@ -148,6 +149,7 @@ class TestSquareDendrogram(unittest.TestCase):
                            index=['x', 'y', 'child0', 'child1', 'is_tip']).T
 
         res = t.coords(width=20, height=self.table.shape[0])
+        exp = exp.loc[res.index]
         pdt.assert_frame_equal(exp, res)
 
     def test_rescale(self):
