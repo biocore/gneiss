@@ -11,7 +11,7 @@ from skbio.stats.composition import closure
 
 
 def variation_matrix(X):
-    """ Calculate Aitchison variation matrix.
+    r""" Calculate Aitchison variation matrix.
 
     This calculates the Aitchison variation matrix.  Given a compositional
     matrix :math:`X`, and columns :math:`i` and :math:`j`, the :math:`ij` entry
