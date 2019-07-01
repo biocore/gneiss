@@ -6,6 +6,7 @@ from scipy.cluster.hierarchy import ward
 from skbio import TreeNode, DistanceMatrix
 from gneiss.plot._radial import radialplot
 from gneiss.plot._dendrogram import UnrootedDendrogram
+import numpy.testing as npt
 
 
 class TestRadial(unittest.TestCase):
@@ -49,13 +50,13 @@ class TestRadial(unittest.TestCase):
                      'hover_var': [None, None, None, None, None],
                      'is_tip': [True, True, True, False, False],
                      'node_size': [10, 10, 10, 10, 10],
-                     'x': [487.5,
-                           12.499999999999972,
+                     'x': [12.499999999999972,
+                           487.5,
                            324.89684138234867,
                            338.26125938385832,
                            193.16888625577729],
-                     'y': [347.7691620070637,
-                           483.28006102610289,
+                     'y': [483.28006102610289,
+                           347.7691620070637,
                            16.719938973897143,
                            271.72822561264161,
                            365.95231443706376]}
@@ -83,9 +84,15 @@ class TestRadial(unittest.TestCase):
                        node_size='node_size', edge_width='edge_width')
 
         for e in exp_edges.keys():
-            self.assertListEqual(
-                list(p.renderers[0].data_source.data[e]),
-                exp_edges[e])
+            if isinstance(exp_edges[e], float):
+                npt.assert_allclose(
+                    p.renderers[0].data_source.data[e],
+                    np.array(exp_edges[e])
+                )
+            else:
+                self.assertListEqual(
+                    list(p.renderers[0].data_source.data[e]),
+                    exp_edges[e])
 
         for e in exp_nodes.keys():
             self.assertListEqual(

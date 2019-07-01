@@ -16,7 +16,7 @@ from skbio import TreeNode
 from skbio.util import get_data_path
 from gneiss.regression import ols
 from gneiss.balances import balance_basis
-import statsmodels.formula.api as smf
+from statsmodels.regression.linear_model import OLS
 
 
 class TestOLS(unittest.TestCase):
@@ -45,8 +45,8 @@ class TestOLS(unittest.TestCase):
         self.Y = Y
         self.B = B
         self.X = X
-        self.r1_ = smf.OLS(endog=y1, exog=X).fit()
-        self.r2_ = smf.OLS(endog=y2, exog=X).fit()
+        self.r1_ = OLS(endog=y1, exog=X).fit()
+        self.r2_ = OLS(endog=y2, exog=X).fit()
         self.tree = TreeNode.read(['(c, (b,a)y2)y1;'])
 
         self.results = "results"
@@ -257,8 +257,8 @@ class TestOLSCV(unittest.TestCase):
         self.Y = Y
         self.B = B
         self.X = X
-        self.r1_ = smf.OLS(endog=y1, exog=X).fit()
-        self.r2_ = smf.OLS(endog=y2, exog=X).fit()
+        self.r1_ = OLS(endog=y1, exog=X).fit()
+        self.r2_ = OLS(endog=y2, exog=X).fit()
         self.tree = TreeNode.read(['(c, (b,a)y2)y1;'])
 
     def test_loo(self):

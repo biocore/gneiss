@@ -1,4 +1,4 @@
 coveralls
-ete3
-statsmodels
 sphinx
+pycodestyle
+flake8

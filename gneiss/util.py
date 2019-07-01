@@ -369,7 +369,8 @@ def _type_cast_to_float(df):
 
 
 def block_diagonal(ncols, nrows, nblocks):
-    """ Generate block diagonal with uniformly distributed values within blocks.
+    """ Generate block diagonal with uniformly distributed values within
+        blocks.
 
     Parameters
     ----------
