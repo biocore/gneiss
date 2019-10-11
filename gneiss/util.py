@@ -242,7 +242,7 @@ def _dense_match_tips(table, tree):
     _tree.bifurcate()
     _tree.prune()
     sorted_features = [n.name for n in _tree.tips()]
-    _table = _table.reindex_axis(sorted_features, axis=1)
+    _table = _table.reindex(sorted_features, axis=1)
     return _table, _tree
 
 
