@@ -1,6 +1,7 @@
 # gneiss changelog
 
 ## Version 0.4.5
+* Pandas dependencies have been updated [#282](https://github.com/biocore/gneiss/pull/282)
 
 ## Version 0.4.4
 * Numpy and scikit-bio dependencies have been updated [#278](https://github.com/biocore/gneiss/pull/278)
