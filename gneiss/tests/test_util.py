@@ -335,13 +335,13 @@ class TestMatch(unittest.TestCase):
         exp_df = pd.DataFrame(exp_table.to_dataframe())
         res_df = pd.DataFrame(res_table.to_dataframe())
 
-        exp_df = exp_df.reindex_axis(sorted(exp_df.columns), axis=1)
-        res_df = res_df.reindex_axis(sorted(res_df.columns), axis=1)
+        exp_df = exp_df.reindex(sorted(exp_df.columns), axis=1)
+        res_df = res_df.reindex(sorted(res_df.columns), axis=1)
 
         pdt.assert_frame_equal(exp_df, res_df)
 
-        exp_md = exp_md.reindex_axis(sorted(exp_md.index), axis=0)
-        res_md = res_md.reindex_axis(sorted(res_md.index), axis=0)
+        exp_md = exp_md.reindex(sorted(exp_md.index), axis=0)
+        res_md = res_md.reindex(sorted(res_md.index), axis=0)
 
         pdt.assert_frame_equal(res_md, exp_md)
 
