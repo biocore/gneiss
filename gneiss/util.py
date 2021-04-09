@@ -232,6 +232,20 @@ def _sparse_match_tips(table, tree):
     return _table, _tree
 
 
+def _xarray_match_tips(data_array, tree, dim='features'):
+    """ Match on xarray Dataset or DataArray object. """
+    tips = [x.name for x in tree.tips()]
+    common_tips = list(set(tips) & set(list(data_array[dim].values)))
+
+    _table = data_array.loc[{dim: common_tips}]
+    _tree = tree.shear(names=common_tips)
+    _tree.bifurcate()
+    _tree.prune()
+    sorted_features = [n.name for n in _tree.tips()]
+    data_array = data_array.reindex(indexers={dim: sorted_features})
+    return data_array, _tree
+
+
 def _dense_match_tips(table, tree):
     """ Match on dense pandas dataframes. """
     tips = [x.name for x in tree.tips()]
