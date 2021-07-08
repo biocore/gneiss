@@ -112,7 +112,7 @@ class HeatmapTest(unittest.TestCase):
 
         # Test to see if the lineages of the tree are ok
         lines = list(fig.get_axes()[1].get_lines())
-        widths = [l.get_lw() for l in lines]
+        widths = [L.get_lw() for L in lines]
         np.allclose(widths, [1.0] * len(widths))
 
     def test_highlights(self):

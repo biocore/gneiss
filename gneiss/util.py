@@ -412,19 +412,19 @@ def block_diagonal(ncols, nrows, nblocks):
     return mat
 
 
-def _shift(l, n):
+def _shift(L, n):
     """ Creates the band table by iteratively shifting a single vector.
 
     Parameters
     ----------
-    l : array
+    L : array
        Vector to be shifted
     n : int
        Max number of shifts
     """
-    sl = l
+    sl = L
 
-    table = [l]
+    table = [L]
 
     if n == 0:
         return table
