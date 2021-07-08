@@ -89,7 +89,7 @@ setup(name='gneiss',
           'statsmodels>=0.8.0',
           'biom-format',
           'seaborn',
-          'bokeh=1.1.0'
+          'bokeh==1.1.0'
       ],
       classifiers=classifiers,
       package_data={})
