@@ -9,7 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 from gneiss.util import NUMERATOR, DENOMINATOR
-import warning
+import warnings
 
 
 def balance_boxplot(balance_name, data, num_color='#FFFFFF',

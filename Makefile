@@ -14,6 +14,6 @@ help:
 test:
 	$(TEST_COMMAND)
 pep8:
-	flake8 gneiss setup.py --ignore E303,E731
+	flake8 gneiss setup.py --ignore E303,E731,E722
 
 all: pep8 test

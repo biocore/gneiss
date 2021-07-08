@@ -15,6 +15,7 @@ from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
 
 from statsmodels.sandbox.stats.multicomp import multipletests
+import warnings
 try:
     from bokeh.embed import file_html
     from bokeh.resources import CDN
@@ -25,7 +26,8 @@ try:
                               FuncTickFormatter, FixedTicker)
     from bokeh.palettes import RdYlBu11 as palette
 except:
-    warnings.warn("Bokeh isn't installed - the interactive visualizations won't work.")
+    warnings.warn("Bokeh isn't installed - "
+                  "the interactive visualizations won't work.")
 
 
 def _projected_prediction(model, plot_width=400, plot_height=400):

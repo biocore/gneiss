@@ -11,6 +11,7 @@ import matplotlib.patches as patches
 import pandas as pd
 from gneiss.plot._dendrogram import SquareDendrogram
 from gneiss.util import match_tips, NUMERATOR, DENOMINATOR
+import warnings
 
 
 def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',

@@ -7,10 +7,15 @@
 # ----------------------------------------------------------------------------
 import pandas as pd
 from gneiss.plot._dendrogram import UnrootedDendrogram
-from bokeh.models.glyphs import Circle, Segment
-from bokeh.models import ColumnDataSource, DataRange1d, Plot
-from bokeh.models import (HoverTool, BoxZoomTool, ResetTool,
-                          WheelZoomTool, SaveTool, PanTool)
+import warnings
+try:
+    from bokeh.models.glyphs import Circle, Segment
+    from bokeh.models import ColumnDataSource, DataRange1d, Plot
+    from bokeh.models import (HoverTool, BoxZoomTool, ResetTool,
+                              WheelZoomTool, SaveTool, PanTool)
+except:
+    warnings.warn("Bokeh isn't installed - "
+                  "the interactive visualizations won't work.")
 
 
 def radialplot(tree, node_color='node_color', node_size='node_size',
