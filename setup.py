@@ -88,7 +88,8 @@ setup(name='gneiss',
           'scikit-bio >= 0.5.5',
           'statsmodels>=0.8.0',
           'biom-format',
-          'seaborn'
+          'seaborn',
+          'bokeh=1.1.0'
       ],
       classifiers=classifiers,
       package_data={})
