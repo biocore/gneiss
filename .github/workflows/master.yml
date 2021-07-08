@@ -34,7 +34,7 @@ jobs:
 
       - name: Install conda packages
         shell: bash -l {0}
-        run: conda install -c conda-forge statsmodels scikit-bio biom-format matplotlib flake8 pycodestyle
+        run: conda install -c conda-forge statsmodels scikit-bio biom-format matplotlib flake8
 
       - name: Install gneiss
         shell: bash -l {0}
