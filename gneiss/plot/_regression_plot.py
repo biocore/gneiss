@@ -14,15 +14,18 @@ from gneiss.plot._radial import radialplot
 from gneiss.regression._ols import OLSModel
 from gneiss.regression._mixedlm import LMEModel
 
-from bokeh.embed import file_html
-from bokeh.resources import CDN
-from bokeh.plotting import figure, ColumnDataSource
-from bokeh.layouts import row, column
-from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
-                          ResetTool, SaveTool, PanTool,
-                          FuncTickFormatter, FixedTicker)
-from bokeh.palettes import RdYlBu11 as palette
 from statsmodels.sandbox.stats.multicomp import multipletests
+try:
+    from bokeh.embed import file_html
+    from bokeh.resources import CDN
+    from bokeh.plotting import figure, ColumnDataSource
+    from bokeh.layouts import row, column
+    from bokeh.models import (HoverTool, BoxZoomTool, WheelZoomTool,
+                              ResetTool, SaveTool, PanTool,
+                              FuncTickFormatter, FixedTicker)
+    from bokeh.palettes import RdYlBu11 as palette
+except:
+    warnings.warn("Bokeh isn't installed - the interactive visualizations won't work.")
 
 
 def _projected_prediction(model, plot_width=400, plot_height=400):
@@ -41,6 +44,7 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
     -------
     bokeh plot
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     hover = HoverTool(tooltips=[("#SampleID", "@index")])
     pred = model.predict()
     pcvar = model.percent_explained()
@@ -82,6 +86,7 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     -------
     bokeh plot
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     hover = HoverTool(tooltips=[("#SampleID", "@index")])
     pcvar = model.percent_explained()
     resid = model.residuals()
@@ -121,6 +126,8 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     bokeh.charts.Heatmap
         Heatmap summarizing the regression statistics.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
+
     c = coefs.reset_index()
     c = c.rename(columns={'index': 'balance'})
 
@@ -228,6 +235,7 @@ def _decorate_tree(t, series):
 
 def _deposit_results(model, output_dir):
     """ Store all of the core regression results into a folder. """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     coefficients = model.coefficients()
     coefficients.T.to_csv(os.path.join(output_dir, 'coefficients.csv'),
                           header=True, index=True)
@@ -270,6 +278,7 @@ def ols_summary(output_dir: str, model: OLSModel,
         Tree object that defines the partitions of the features. Each of the
         leaves correspond to the balances in the model.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     # Cross validation
     w, h = 500, 300  # plot width and height
 
@@ -340,6 +349,7 @@ def lme_summary(output_dir: str, model: LMEModel, tree: TreeNode) -> None:
         Tree object that defines the partitions of the features. Each of the
         leaves correspond to the balances in the model.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     # log likelihood
     loglike = pd.Series({r.model.endog_names: r.model.loglike(r.params)
                          for r in model.results})

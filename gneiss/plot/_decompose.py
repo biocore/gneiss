@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 from gneiss.util import NUMERATOR, DENOMINATOR
+import warning
 
 
 def balance_boxplot(balance_name, data, num_color='#FFFFFF',
@@ -49,6 +50,7 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
     --------
     seaborn.boxplot
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if ax is None:
         f, ax = plt.subplots()
@@ -118,6 +120,7 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     ax_denom : matplotlib axes object
         Barplot of the features in the denominator of the balance.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(2)
@@ -238,6 +241,7 @@ def proportion_plot(table, metadata, category, left_group, right_group,
     Since this method will return the raw matplotlib object, labels, titles,
     ticks, etc can directly modified using this object.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(1, 2)

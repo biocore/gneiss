@@ -21,6 +21,7 @@ class TestRadial(unittest.TestCase):
             columns=['x', 'y', 'child0', 'child1', 'is_tip'],
             index=['0', '1', '2', 'y3', 'y4'])
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic_plot(self):
         self.maxDiff = None
         exp_edges = {'dest_node': ['0', '1', '2', 'y3'],

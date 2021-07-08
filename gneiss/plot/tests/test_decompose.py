@@ -31,6 +31,7 @@ class TestBoxplot(unittest.TestCase):
             index=["a", "b", "c", "d"]
         )
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic_boxplot(self):
         a = balance_boxplot('y', y='group', data=self.df)
         res = np.vstack([i._xy for i in a.get_lines()])
@@ -56,6 +57,7 @@ class TestBoxplot(unittest.TestCase):
                         [1.8, 1.4]])
         npt.assert_allclose(res, exp)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic_hue_boxplot(self):
         a = balance_boxplot('y', y='group', hue='hue', data=self.df)
         res = np.vstack([i._xy for i in a.get_lines()])
@@ -101,6 +103,7 @@ class TestBoxplot(unittest.TestCase):
                         [1.8, 1.396]])
         npt.assert_allclose(res, exp)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic_barplot(self):
         ax_denom, ax_num = balance_barplots(self.tree, 'y', header='food',
                                             feature_metadata=self.feature_df)
@@ -128,6 +131,7 @@ class TestProportionPlot(unittest.TestCase):
             'dry': [1, 2, 3, 4, 5, 6]
         }, index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
 
+    @unittest.skip('Visualizations are deprecated')
     def test_proportion_plot(self):
         np.random.seed(0)
         num_features = ['A', 'B']
@@ -151,6 +155,7 @@ class TestProportionPlot(unittest.TestCase):
         exp = ['p__bar', 'p__bar', 'p__tar', 'p__far']
         self.assertListEqual(res, exp)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_proportion_plot_order(self):
         self.maxDiff = None
         np.random.seed(0)
@@ -176,6 +181,7 @@ class TestProportionPlot(unittest.TestCase):
         exp = ['p__bar', 'p__bar', 'p__far', 'p__tar']
         self.assertListEqual(res, exp)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_proportion_plot_order_figure(self):
         self.maxDiff = None
         np.random.seed(0)

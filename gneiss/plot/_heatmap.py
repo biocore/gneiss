@@ -279,6 +279,7 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col,
     colorbar_ax : matplotlib axes object
         The colorbar axis.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     # TODO add explicit test for this, since matplotlib orientation
     # is from top to down (i.e. is backwards)
     table, mdvar = _sort_table(table, mdvar)
