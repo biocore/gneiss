@@ -379,6 +379,31 @@ class TestMatch(unittest.TestCase):
         with self.assertRaises(ValueError):
             match(table, md)
 
+    def test_biom_match_intersect(self):
+        table = Table(
+            np.array([[0, 0, 1, 1],
+                      [2, 3, 4, 4],
+                      [5, 5, 3, 3]]).T,
+            ['a', 'b', 'c', 'd'],
+            ['s1', 's2', 'y4'])
+        md = pd.DataFrame([[0, 1], [1, 0], [1, 1]],
+                          index=['s2', 's1', 's3'],
+                          columns=['x1', 'x2'])
+        exp_table = Table(
+            np.array([[0, 0, 1, 1],
+                      [2, 3, 4, 4]]).T,
+            ['a', 'b', 'c', 'd'],
+            ['s1', 's2'])
+        exp_md = pd.DataFrame([[1, 0], [0, 1]],
+                              columns=['x1', 'x2'],
+                              index=['s1', 's2'])
+        res_table, res_md = match(table, md)
+        pdt.assert_frame_equal(res_md, exp_md)
+        exp_df = pd.DataFrame(exp_table.to_dataframe())
+        res_df = pd.DataFrame(res_table.to_dataframe())
+        pdt.assert_frame_equal(res_df, exp_df)
+
+
     def test_biom_match_tips_intersect_tips(self):
         # there are less tree tips than table columns
         table = Table(

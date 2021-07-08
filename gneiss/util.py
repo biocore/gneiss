@@ -131,7 +131,10 @@ def _dense_match(table, metadata):
     if len(submetadataids) != len(metadata.index):
         raise ValueError("`metadata` has duplicate sample ids.")
 
-    idx = subtableids & submetadataids
+    idx = list(subtableids & submetadataids)
+    # make sure that the list is always the same to remove
+    # unwanted random behavior
+    idx.sort()
     if len(idx) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "
                           "the sample names between `metadata` and `table` "
@@ -148,7 +151,10 @@ def _sparse_match(table, metadata):
     submetadataids = set(metadata.index)
     if len(submetadataids) != len(metadata.index):
         raise ValueError("`metadata` has duplicate sample ids.")
-    idx = subtableids & submetadataids
+    idx = list(subtableids & submetadataids)
+    # make sure that the list is always the same to remove
+    # unwanted random behavior
+    idx.sort()
     if len(idx) == 0:
         raise ValueError(("No more samples left.  Check to make sure that "
                           "the sample names between `metadata` and `table` "
@@ -165,6 +171,7 @@ def _sparse_match(table, metadata):
         return [xs[out_metadata.index.get_loc(x)] for x in xs]
 
     out_table = out_table.sort(sort_f=sort_f, axis='sample')
+    out_metadata = out_metadata.loc[out_table.ids()]
     return out_table, out_metadata
 
 
