@@ -11,6 +11,7 @@ import matplotlib.patches as patches
 import pandas as pd
 from gneiss.plot._dendrogram import SquareDendrogram
 from gneiss.util import match_tips, NUMERATOR, DENOMINATOR
+import warnings
 
 
 def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
@@ -112,7 +113,7 @@ def heatmap(table, tree, mdvar, highlights=None, cmap='viridis',
     # heatmap axes
     hstart = xwidth + (h * hwidth)
     [ax1_x, ax1_y, ax1_w, ax1_h] = [hstart, top_buffer,
-                                    cbar_pad-hstart, height]
+                                    cbar_pad - hstart, height]
 
     # plot dendrogram
     ax_dendrogram = fig.add_axes([axm_x, axm_y, axm_w, axm_h],
@@ -182,21 +183,21 @@ def _plot_highlights_dendrogram(ax_highlights, table, t, highlights):
 
         ax_highlights.add_patch(
             patches.Rectangle(
-                (i/num_h, k-offset),  # x, y
-                1/num_h,  # width
+                (i / num_h, k - offset),  # x, y
+                1 / num_h,  # width
                 r,  # height
                 facecolor=highlights.iloc[i, 0]
             ))
 
         ax_highlights.add_patch(
             patches.Rectangle(
-                (i/num_h, k+r-offset),  # x, y
-                1/num_h,  # width
+                (i / num_h, k + r - offset),  # x, y
+                1 / num_h,  # width
                 l,  # height
                 facecolor=highlights.iloc[i, 1]
             ))
-        hcoords.append((i+offset)/num_h)
-    ax_highlights.set_ylim([-offset, table.shape[0]-offset])
+        hcoords.append((i + offset) / num_h)
+    ax_highlights.set_ylim([-offset, table.shape[0] - offset])
     ax_highlights.set_yticks([])
     ax_highlights.set_xticks(hcoords)
     ax_highlights.set_xticklabels(highlights.index, rotation=90)
@@ -219,8 +220,9 @@ def _plot_dendrogram(ax_dendrogram, table, edges, linewidth=1):
     for i in range(len(edges.index)):
         row = edges.iloc[i]
         ax_dendrogram.plot([row.x0, row.x1],
-                           [row.y0-offset, row.y1-offset], '-k', lw=linewidth)
-    ax_dendrogram.set_ylim([-offset, table.shape[0]-offset])
+                           [row.y0 - offset, row.y1 - offset],
+                           '-k', lw=linewidth)
+    ax_dendrogram.set_ylim([-offset, table.shape[0] - offset])
     ax_dendrogram.set_yticks([])
     ax_dendrogram.set_xticks([])
     ax_dendrogram.axis('off')
@@ -278,6 +280,7 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col,
     colorbar_ax : matplotlib axes object
         The colorbar axis.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     # TODO add explicit test for this, since matplotlib orientation
     # is from top to down (i.e. is backwards)
     table, mdvar = _sort_table(table, mdvar)
@@ -293,13 +296,13 @@ def _plot_heatmap(ax_heatmap, table, mdvar, grid_col,
 
     ticks = vcounts.sort_index().cumsum()
     midpoints = ticks - (ticks - np.array([0] + list(ticks.values[:-1]))) / 2.0
-    ax_heatmap.set_xticks(ticks.values-0.5, minor=False)
+    ax_heatmap.set_xticks(ticks.values - 0.5, minor=False)
     ax_heatmap.set_xticklabels([], minor=False)
 
     ax_heatmap.xaxis.grid(True, which='major', color=grid_col,
                           linestyle='-', linewidth=grid_width)
 
-    ax_heatmap.set_xticks(midpoints-0.5, minor=True)
+    ax_heatmap.set_xticks(midpoints - 0.5, minor=True)
     ax_heatmap.set_xticklabels(vcounts.index, minor=True)
     ax_heatmap.set_xlabel(mdvar.name)
     return colorbar_ax

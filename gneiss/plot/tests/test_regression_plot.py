@@ -45,9 +45,9 @@ class TestOLS_Summary(unittest.TestCase):
         x3 = np.exp(np.linspace(0, 0.01, n))
         x4 = x1 ** 2
         self.x = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4})
-        y = (a[0] + a[1]*x1 + a[2]*x2 + a[3]*x3 + a[4]*x4 +
-             np.random.normal(size=n))
-        sy = np.vstack((-y/10, -y)).T
+        n__ = np.random.normal(size=n)
+        y = a[0] + a[1] * x1 + a[2] * x2 + a[3] * x3 + a[4] * x4 + n__
+        sy = np.vstack((-y / 10, -y)).T
         self.y = pd.DataFrame(sy, columns=['y0', 'y1'])
         self.t2 = TreeNode.read([r"((a,b)y1,c)y0;"])
 
@@ -57,6 +57,7 @@ class TestOLS_Summary(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.results)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_visualization(self):
         res = ols(formula="x1 + x2 + x3 + x4",
                   table=self.y, metadata=self.x)
@@ -130,6 +131,7 @@ class TestLME_Summary(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.results)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_visualization(self):
         model = mixedlm("x1 + x2", self.table, self.metadata,
                         groups="groups")

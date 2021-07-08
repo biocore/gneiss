@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 from gneiss.util import NUMERATOR, DENOMINATOR
+import warnings
 
 
 def balance_boxplot(balance_name, data, num_color='#FFFFFF',
@@ -49,6 +50,7 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
     --------
     seaborn.boxplot
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if ax is None:
         f, ax = plt.subplots()
@@ -57,9 +59,9 @@ def balance_boxplot(balance_name, data, num_color='#FFFFFF',
     # resizing to make sure that there is separation between the
     # edges of the plot, and the boxplot
     pad = (data[balance_name].max() - data[balance_name].min()) / 20
-    ax.axvspan(data[balance_name].min()-pad, 0,
+    ax.axvspan(data[balance_name].min() - pad, 0,
                facecolor=num_color, zorder=0)
-    ax.axvspan(0, data[balance_name].max()+pad,
+    ax.axvspan(0, data[balance_name].max() + pad,
                facecolor=denom_color, zorder=0)
 
     if 'hue' in kwargs.keys():
@@ -118,6 +120,7 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
     ax_denom : matplotlib axes object
         Barplot of the features in the denominator of the balance.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(2)
@@ -148,15 +151,15 @@ def balance_barplots(tree, balance_name, header, feature_metadata,
                            color=denom_color)
     ax_denom.set_ylabel(ylabel)
     ax_denom.set_xlabel(xlabel)
-    ax_denom.set_xlim([0,  max([num_.max().values[1],
-                                denom_.max().values[1]])])
+    ax_denom.set_xlim(
+        [0, max([num_.max().values[1], denom_.max().values[1]])])
 
     ax_num = sns.barplot(y='index', x=header, data=num_, ax=ax_num,
                          color=num_color)
     ax_num.set_ylabel(ylabel)
     ax_num.set_xlabel(xlabel)
-    ax_num.set_xlim([0,  max([num_.max().values[1],
-                              denom_.max().values[1]])])
+    ax_num.set_xlim(
+        [0, max([num_.max().values[1], denom_.max().values[1]])])
     return ax_num, ax_denom
 
 
@@ -238,6 +241,7 @@ def proportion_plot(table, metadata, category, left_group, right_group,
     Since this method will return the raw matplotlib object, labels, titles,
     ticks, etc can directly modified using this object.
     """
+    warnings.warn("This visualization are deprecated.", DeprecationWarning)
     import seaborn as sns
     if axes[0] is None or axes[1] is None:
         f, (ax_num, ax_denom) = plt.subplots(1, 2)
@@ -268,16 +272,15 @@ def proportion_plot(table, metadata, category, left_group, right_group,
     denom_data['part'] = 'denominator'
     data = pd.concat((num_data, denom_data))
     if feature_metadata is not None:
-        num_feature_metadata = feature_metadata.loc[num_df.columns,
-                                                    label_col]
-        denom_feature_metadata = feature_metadata.loc[denom_df.columns,
-                                                      label_col]
+        fm = feature_metadata
+        num_feature_metadata = fm.loc[num_df.columns, label_col]
+        denom_feature_metadata = fm.loc[denom_df.columns, label_col]
         # order of the ids to plot
-        order = (list(num_feature_metadata.index) +
-                 list(denom_feature_metadata.index))
+        n__ = list(num_feature_metadata.index)
+        d__ = list(denom_feature_metadata.index)
+        order = n__ + d__
     else:
-        order = (list(num_df.columns) +
-                 list(denom_df.columns))
+        order = list(num_df.columns) + list(denom_df.columns)
 
     less_df = data.loc[data[category] == left_group].dropna()
 
@@ -296,9 +299,9 @@ def proportion_plot(table, metadata, category, left_group, right_group,
                 order=order,
                 ax=ax_num)
     if feature_metadata is not None:
-        ax_denom.set(yticklabels=(list(num_feature_metadata.values) +
-                                  list(denom_feature_metadata.values)),
-                     title=left_group)
+        n__ = list(num_feature_metadata.values)
+        d__ = list(denom_feature_metadata.values)
+        ax_denom.set(yticklabels=(n__ + d__), title=left_group)
     else:
         ax_denom.set(yticklabels=order, title=left_group)
 

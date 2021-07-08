@@ -29,7 +29,7 @@ class TestPBA(unittest.TestCase):
                    '(o3:0.574990173931,o4:0.574990173931)y2:0.773481312844)'
                    'y0;\n')
         exp_tree = TreeNode.read([exp_str])
-        res_tree = correlation_linkage(table+0.1)
+        res_tree = correlation_linkage(table + 0.1)
         # only check for tree topology since checking for floating point
         # numbers on the branches is still tricky.
         self.assertEqual(exp_tree.ascii_art(), res_tree.ascii_art())

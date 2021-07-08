@@ -21,6 +21,7 @@ class TestRadial(unittest.TestCase):
             columns=['x', 'y', 'child0', 'child1', 'is_tip'],
             index=['0', '1', '2', 'y3', 'y4'])
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic_plot(self):
         self.maxDiff = None
         exp_edges = {'dest_node': ['0', '1', '2', 'y3'],
@@ -63,7 +64,7 @@ class TestRadial(unittest.TestCase):
         np.random.seed(0)
         num_otus = 3  # otus
         x = np.random.rand(num_otus)
-        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
         t = UnrootedDendrogram.from_tree(t)
@@ -78,7 +79,7 @@ class TestRadial(unittest.TestCase):
                 n.color = '#1C9099'
                 n.edge_color = '#00FF00'
                 n.node_size = 10
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
             n.edge_width = 2
         p = radialplot(t, node_color='color', edge_color='edge_color',
                        node_size='node_size', edge_width='edge_width')

@@ -22,7 +22,7 @@ class HeatmapTest(unittest.TestCase):
 
         num_otus = 5  # otus
         x = np.random.rand(num_otus)
-        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
         self.t = SquareDendrogram.from_tree(t)
@@ -31,7 +31,7 @@ class HeatmapTest(unittest.TestCase):
         for i, n in enumerate(t.postorder()):
             if not n.is_tip():
                 n.name = "y%d" % i
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
 
         self.highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                         'y6': ['#0000FF', '#F0000F']}).T
@@ -52,6 +52,7 @@ class HeatmapTest(unittest.TestCase):
         pdt.assert_index_equal(pd.Index(['s1', 's3', 's5', 's2', 's4']),
                                res_table.columns)
 
+    @unittest.skip('Visualizations are deprecated')
     def test_basic(self):
         fig = heatmap(self.table, self.t, self.md,
                       figsize=(5, self.table.shape[0]))
@@ -112,9 +113,10 @@ class HeatmapTest(unittest.TestCase):
 
         # Test to see if the lineages of the tree are ok
         lines = list(fig.get_axes()[1].get_lines())
-        widths = [l.get_lw() for l in lines]
+        widths = [L.get_lw() for L in lines]
         np.allclose(widths, [1.0] * len(widths))
 
+    @unittest.skip('Visualizations are deprecated')
     def test_highlights(self):
 
         table = pd.DataFrame(block_diagonal(ncols=5, nrows=5, nblocks=2),
@@ -128,7 +130,7 @@ class HeatmapTest(unittest.TestCase):
         for i, n in enumerate(t.postorder()):
             if not n.is_tip():
                 n.name = "y%d" % i
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
 
         highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                    'y7': ['#0000FF', '#F0000F']}).T

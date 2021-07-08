@@ -138,7 +138,7 @@ class TestSort(unittest.TestCase):
             index=['o1', 'o3', 'o2', 'o4']).T
         gradient = pd.Series(
             [1, 2, 3, 4, 5],
-            index=['s1', 's2', 's3', 's4',  's5'])
+            index=['s1', 's2', 's3', 's4', 's5'])
 
         exp_table = pd.DataFrame(
             [[1, 1, 0, 0, 0],
