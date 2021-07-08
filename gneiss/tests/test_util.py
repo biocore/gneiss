@@ -388,7 +388,6 @@ class TestMatch(unittest.TestCase):
                       [0, 0, 0, 1]]).T,
             ['a', 'b', 'c', 'd'],
             ['s1', 's2', 's3', 's4'])
-
         tree = TreeNode.read([u"((a,b)f,c)r;"])
         exp_table = Table(
             np.array([[0, 0, 1],
@@ -397,7 +396,6 @@ class TestMatch(unittest.TestCase):
                       [0, 0, 0]]).T,
             ['a', 'b', 'c'],
             ['s1', 's2', 's3', 's4'])
-
         exp_tree = tree
         res_table, res_tree = match_tips(table, tree)
         self.assertEqual(exp_table, res_table)
@@ -412,7 +410,6 @@ class TestMatch(unittest.TestCase):
                       [0, 0, 1]]).T,
             ['a', 'b', 'd'],
             ['s1', 's2', 's3', 's4'])
-
         tree = TreeNode.read([u"(((a,b)f, c),d)r;"])
         table = Table(
             np.array([[0, 0, 1],
