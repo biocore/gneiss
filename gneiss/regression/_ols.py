@@ -191,8 +191,7 @@ class OLSModel(RegressionModel):
         cov = np.linalg.pinv(np.dot(X.T, X))
         bse = np.sqrt(np.outer(np.diag(cov), mse))
         tvalues = np.divide(beta, bse)
-        pvals = stats.t.sf(np.abs(tvalues), df_resid)*2
-
+        pvals = stats.t.sf(np.abs(tvalues), df_resid) * 2
         self._tvalues = pd.DataFrame(tvalues, index=X.columns,
                                      columns=Y.columns)
         self._pvalues = pd.DataFrame(pvals, index=X.columns,
@@ -342,15 +341,14 @@ class OLSModel(RegressionModel):
         # number of observations (i.e. samples)
         nobs = self.response_matrix.shape[0]
         s = nobs // num_folds
-        folds = [np.arange(i*s, ((i*s)+s) % nobs) for i in range(num_folds)]
+        folds = [np.arange(i * s, ((i * s) + s) % nobs)
+                 for i in range(num_folds)]
         results = pd.DataFrame(index=['fold_%d' % i for i in range(num_folds)],
                                columns=['model_mse', 'Rsquared', 'pred_mse'],
                                dtype=np.float64)
-
         for k in range(num_folds):
             test = folds[k]
-            train = np.hstack(folds[:k] + folds[k+1:])
-
+            train = np.hstack(folds[:k] + folds[k + 1:])
             res_i = OLSModel(self.response_matrix.iloc[train],
                              self.design_matrix.iloc[train])
             res_i.fit(**kwargs)
@@ -358,10 +356,8 @@ class OLSModel(RegressionModel):
             # model error
             p = res_i.predict(X=self.design_matrix.iloc[train]).values
             r = self.response_matrix.iloc[train].values
-
-            model_resid = ((p - r)**2)
+            model_resid = ((p - r) ** 2)
             model_mse = np.mean(model_resid.sum(axis=0))
-
             results.loc['fold_%d' % k, 'model_mse'] = model_mse
             results.loc['fold_%d' % k, 'Rsquared'] = res_i.r2
 
@@ -369,7 +365,7 @@ class OLSModel(RegressionModel):
             p = res_i.predict(X=self.design_matrix.iloc[test]).values
             r = self.response_matrix.iloc[test].values
 
-            pred_resid = ((p - r)**2)
+            pred_resid = ((p - r) ** 2)
             pred_mse = np.mean(pred_resid.sum(axis=0))
 
             results.loc['fold_%d' % k, 'pred_mse'] = pred_mse

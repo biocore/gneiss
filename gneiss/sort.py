@@ -126,7 +126,7 @@ def niche_sort(table, gradient, niche_estimator=mean_niche_estimator):
 
     # normalizes feature abundances to sum to 1, for each sample.
     # (i.e. scales values in each row to sum to 1).
-    normtable = table.apply(lambda x: x/x.sum(), axis=1)
+    normtable = table.apply(lambda x: x / x.sum(), axis=1)
 
     # calculates estimated niche for each feature
     est_niche = normtable.apply(niche_estimator, axis=0)

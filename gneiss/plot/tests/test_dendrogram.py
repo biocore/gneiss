@@ -26,7 +26,7 @@ class TestDendrogram(unittest.TestCase):
 
     def test_cache_ntips(self):
         dm = DistanceMatrix.from_iterable([0, 1, 2, 3],
-                                          lambda x, y: np.abs(x-y))
+                                          lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         ids = np.arange(4).astype(np.str)
         t = mock.from_linkage_matrix(lm, ids)
@@ -47,7 +47,7 @@ class TestUnrootedDendrogram(unittest.TestCase):
     def setUp(self):
         np.random.seed(0)
         x = np.random.rand(10)
-        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         ids = np.arange(len(x)).astype(np.str)
         self.tree = TreeNode.from_linkage_matrix(lm, ids)
@@ -119,7 +119,7 @@ class TestSquareDendrogram(unittest.TestCase):
         self.table = pd.DataFrame(np.random.random((5, 5)))
         num_otus = 5  # otus
         x = np.random.rand(num_otus)
-        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
         self.tree = SquareDendrogram.from_tree(t)
@@ -127,7 +127,7 @@ class TestSquareDendrogram(unittest.TestCase):
         for i, n in enumerate(t.postorder()):
             if not n.is_tip():
                 n.name = "y%d" % i
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
 
     def test_from_tree(self):
         t = SquareDendrogram.from_tree(self.tree)

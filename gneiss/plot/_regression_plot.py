@@ -41,12 +41,7 @@ def _projected_prediction(model, plot_width=400, plot_height=400):
     -------
     bokeh plot
     """
-    hover = HoverTool(
-            tooltips=[
-                ("#SampleID", "@index"),
-            ]
-        )
-
+    hover = HoverTool(tooltips=[("#SampleID", "@index")])
     pred = model.predict()
     pcvar = model.percent_explained()
     pred['color'] = 'predicted'  # make predictions red
@@ -87,11 +82,7 @@ def _projected_residuals(model, plot_width=400, plot_height=400):
     -------
     bokeh plot
     """
-    hover = HoverTool(
-            tooltips=[
-                ("#SampleID", "@index"),
-            ]
-        )
+    hover = HoverTool(tooltips=[("#SampleID", "@index")])
     pcvar = model.percent_explained()
     resid = model.residuals()
     p = figure(plot_width=plot_width, plot_height=plot_height,
@@ -140,7 +131,7 @@ def _heatmap_summary(pvals, coefs, plot_width=1200, plot_height=400):
     cpvals = pvals.apply(fdr, axis=0)
 
     # log scale for coloring
-    log_p = -np.log10(cpvals+1e-200)
+    log_p = -np.log10(cpvals + 1e-200)
     log_p = log_p.reset_index()
     log_p = log_p.rename(columns={'index': 'balance'})
     p = pvals.reset_index()

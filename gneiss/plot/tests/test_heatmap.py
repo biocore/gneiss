@@ -22,7 +22,7 @@ class HeatmapTest(unittest.TestCase):
 
         num_otus = 5  # otus
         x = np.random.rand(num_otus)
-        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x-y))
+        dm = DistanceMatrix.from_iterable(x, lambda x, y: np.abs(x - y))
         lm = ward(dm.condensed_form())
         t = TreeNode.from_linkage_matrix(lm, np.arange(len(x)).astype(np.str))
         self.t = SquareDendrogram.from_tree(t)
@@ -31,7 +31,7 @@ class HeatmapTest(unittest.TestCase):
         for i, n in enumerate(t.postorder()):
             if not n.is_tip():
                 n.name = "y%d" % i
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
 
         self.highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                         'y6': ['#0000FF', '#F0000F']}).T
@@ -128,7 +128,7 @@ class HeatmapTest(unittest.TestCase):
         for i, n in enumerate(t.postorder()):
             if not n.is_tip():
                 n.name = "y%d" % i
-            n.length = np.random.rand()*3
+            n.length = np.random.rand() * 3
 
         highlights = pd.DataFrame({'y8': ['#FF0000', '#00FF00'],
                                    'y7': ['#0000FF', '#F0000F']}).T

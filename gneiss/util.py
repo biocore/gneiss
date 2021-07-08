@@ -75,7 +75,7 @@ def split_balance(balance, tree):
         R = len([n for n in right.tips()])
     b = np.expand_dims(balance.values, axis=1)
     # need to scale down by the number of children in subtrees
-    b = np.exp(b / (np.sqrt((L*R) / (L + R))))
+    b = np.exp(b / (np.sqrt((L * R) / (L + R))))
     o = np.ones((len(b), 1))
     k = np.hstack((b, o))
     p = closure(k)
@@ -271,8 +271,7 @@ def design_formula(train_metadata, test_metadata, formula):
                           return_type='dataframe')
 
     # pad extra columns with zeros, so that we can still make predictions
-    extra_columns = list(set(train_design.columns) -
-                         set(test_design.columns))
+    extra_columns = list(set(train_design.columns) - set(test_design.columns))
     df = pd.DataFrame({C: np.zeros(test_design.shape[0])
                        for C in extra_columns},
                       index=test_design.index)
@@ -397,17 +396,17 @@ def block_diagonal(ncols, nrows, nblocks):
     mat = np.zeros((nrows, ncols))
     block_cols = ncols // nblocks
     block_rows = nrows // nblocks
-    for b in range(nblocks-1):
+    for b in range(nblocks - 1):
         B = np.random.uniform(size=(block_rows, block_cols))
         lower_row = block_rows * b
-        upper_row = min(block_rows*(b+1), nrows)
+        upper_row = min(block_rows * (b + 1), nrows)
         lower_col = block_cols * b
-        upper_col = min(block_cols*(b+1), ncols)
+        upper_col = min(block_cols * (b + 1), ncols)
 
         mat[lower_row:upper_row, lower_col:upper_col] = B
 
     # Make last block fill in the remainder
-    B = np.random.uniform(size=(nrows-upper_row, ncols-upper_col))
+    B = np.random.uniform(size=(nrows - upper_row, ncols - upper_col))
     mat[upper_row:, upper_col:] = B
     return mat
 
@@ -453,8 +452,8 @@ def band_diagonal(n, b):
         diagonal are marked with a constant `1/b`.
     """
     p = n - b + 1  # samples
-    y = [1./b] * b + [0] * (n-b)
+    y = [1. / b] * b + [0] * (n - b)
 
-    table = _shift(y, p-1)
+    table = _shift(y, p - 1)
     table = np.column_stack(table)
     return table

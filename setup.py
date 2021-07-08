@@ -91,6 +91,4 @@ setup(name='gneiss',
           'seaborn'
       ],
       classifiers=classifiers,
-      package_data={
-          },
-      )
+      package_data={})

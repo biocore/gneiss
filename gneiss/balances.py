@@ -46,12 +46,13 @@ def _balance_basis(tree_node):
     k = np.array([counts[n]['k'] for n in nds])
     t = np.array([counts[n]['t'] for n in nds])
 
-    a = np.sqrt(s / (r*(r+s)))
-    b = -1*np.sqrt(r / (s*(r+s)))
+    a = np.sqrt(s / (r * (r + s)))
+    b = -1 * np.sqrt(r / (s * (r + s)))
 
-    basis = np.zeros((n_tips-1, n_tips))
+    basis = np.zeros((n_tips - 1, n_tips))
     for i in range(len(nds)):
-        basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
+        basis[i, :] = np.array(
+            [0] * k[i] + [a[i]] * r[i] + [b[i]] * s[i] + [0] * t[i])
     # Make sure that the basis is in level order
     basis = basis[:, ::-1]
     nds = [n.name for n in nds]
@@ -243,20 +244,20 @@ def sparse_balance_basis(tree):
             row.append(i)
             # consider tips in reverse order. May want to rethink
             # this orientation in the future.
-            col.append(D-1-j)
+            col.append(D - 1 - j)
             A = np.sqrt(n._s / (n._r * (n._s + n._r)))
 
             value.append(A)
 
         for j in range(n._k + n._r, n._k + n._r + n._s):
             row.append(i)
-            col.append(D-1-j)
+            col.append(D - 1 - j)
             B = -np.sqrt(n._r / (n._s * (n._s + n._r)))
 
             value.append(B)
         i += 1
         nodes.append(n.name)
 
-    basis = coo_matrix((value, (row, col)), shape=(D-1, D))
+    basis = coo_matrix((value, (row, col)), shape=(D - 1, D))
 
     return basis, nodes

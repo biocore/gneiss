@@ -29,11 +29,10 @@ class TestVariationMatrix(unittest.TestCase):
         np.random.seed(123)
         D = 50
         N = 100
-        mean = np.ones(D)*10
+        mean = np.ones(D) * 10
         cov = np.eye(D)
-        X = pd.DataFrame(np.abs(np.random.multivariate_normal(mean, cov,
-                                                              size=N)),
-                         columns=np.arange(D).astype(np.str))
+        n__ = np.random.multivariate_normal(mean, cov, size=N)
+        X = pd.DataFrame(np.abs(n__), columns=np.arange(D).astype(np.str))
         res = variation_matrix(X)
 
         exp = DistanceMatrix.read(get_data_path('exp_varmat.txt'))

@@ -61,7 +61,7 @@ class TestOLS(unittest.TestCase):
         # and that the original table doesn't change
         table = self.Y
         x = pd.DataFrame(self.X.values, columns=self.X.columns,
-                         index=range(100, 100+len(self.X.index)))
+                         index=range(100, 100 + len(self.X.index)))
         metadata = pd.concat((self.X, x))
 
         exp_metadata = metadata.copy()
@@ -74,10 +74,10 @@ class TestOLS(unittest.TestCase):
         # and that the original table doesn't change
         table = self.Y
         y = pd.DataFrame(self.Y.values, columns=self.Y.columns,
-                         index=range(100, 100+len(self.Y.index)))
+                         index=range(100, 100 + len(self.Y.index)))
 
         table = pd.concat((self.Y, y))
-        ids = np.arange(100, 100+len(self.X.index))
+        ids = np.arange(100, 100 + len(self.X.index))
         x = pd.DataFrame([[np.nan] * len(self.X.columns)] * len(ids),
                          columns=self.X.columns, index=ids)
 
@@ -139,7 +139,7 @@ class TestOLS(unittest.TestCase):
                            index=['f1', 'f2'])
 
         res = model.predict(X=fx)
-        pdt.assert_frame_equal(res,  exp)
+        pdt.assert_frame_equal(res, exp)
 
         # test r2
         self.assertAlmostEqual(model.r2, 0.21981627865598752)
