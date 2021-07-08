@@ -165,6 +165,7 @@ def _sparse_match(table, metadata):
         return [xs[out_metadata.index.get_loc(x)] for x in xs]
 
     out_table = out_table.sort(sort_f=sort_f, axis='sample')
+    out_metadata = out_metadata.loc[out_table.ids()]
     return out_table, out_metadata
 
 
