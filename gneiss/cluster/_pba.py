@@ -12,7 +12,6 @@ from gneiss.util import match, rename_internal_nodes
 from gneiss.composition._variance import variation_matrix
 
 from skbio import TreeNode, DistanceMatrix
-from scipy.spatial.distance import euclidean
 from scipy.cluster.hierarchy import linkage
 
 
@@ -122,7 +121,7 @@ def rank_linkage(r, method='average'):
               \y2------|
                         \-o4
     """
-    dm = DistanceMatrix.from_iterable(r, euclidean)
+    dm = DistanceMatrix.from_iterable(r, lambda a, b: np.abs(b-a))
     lm = linkage(dm.condensed_form(), method)
     t = TreeNode.from_linkage_matrix(lm, r.index)
     t = rename_internal_nodes(t)
